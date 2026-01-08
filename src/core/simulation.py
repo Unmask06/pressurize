@@ -1,3 +1,5 @@
+"""Dynamic valve pressurization simulation engine."""
+
 import numpy as np
 import pandas as pd
 
@@ -15,17 +17,31 @@ def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch,
                    opening_time_s, temp_f, molar_mass, z_factor, k_ratio,
                    discharge_coeff=0.65, opening_mode='linear', k_curve=4.0, dt=TIME_STEP,
                    property_mode='manual', composition=None):
-    """
-    Run the valve pressurization simulation.
+    """Run the valve pressurization simulation.
     
-    Opening modes:
-    - 'linear': Valve opens linearly over opening_time_s
-    - 'exponential': Valve opens exponentially (convex) over opening_time_s
-    - 'fixed': Valve is fully open instantly (ignores opening_time_s)
+    Simulates gas flow through a valve into a downstream vessel with dynamic
+    pressure and flow rate calculations over time.
     
-    Property modes:
-    - 'manual': Use provided molar_mass, z_factor, and k_ratio values
-    - 'composition': Derive properties dynamically from gas composition using thermo
+    Args:
+        P_up_psig: Upstream pressure in psig.
+        P_down_init_psig: Initial downstream pressure in psig.
+        volume_ft3: Vessel volume in ft³.
+        valve_id_inch: Valve inner diameter in inches.
+        opening_time_s: Time for valve to fully open in seconds.
+        temp_f: Gas temperature in °F.
+        molar_mass: Gas molar mass in g/mol (manual mode).
+        z_factor: Compressibility factor (manual mode).
+        k_ratio: Heat capacity ratio Cp/Cv (manual mode).
+        discharge_coeff: Valve discharge coefficient. Default 0.65.
+        opening_mode: 'linear', 'exponential', 'quick_opening', or 'fixed'. Default 'linear'.
+        k_curve: Curve steepness for exponential/quick_opening. Default 4.0.
+        dt: Simulation timestep in seconds.
+        property_mode: 'manual' or 'composition'. Default 'manual'.
+        composition: Gas composition string for composition mode.
+    
+    Returns:
+        DataFrame with columns: time, pressure_psig, upstream_pressure_psig,
+        flowrate_lb_hr, valve_opening_pct, flow_regime.
     """
     # Convert to SI units
     P_up = psig_to_pa(P_up_psig)

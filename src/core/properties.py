@@ -1,9 +1,4 @@
-"""
-Gas property calculations using the thermo library.
-
-This module provides dynamic gas property calculations based on composition
-and thermodynamic conditions (pressure, temperature).
-"""
+"""Gas property calculations using the thermo library."""
 
 from dataclasses import dataclass
 
@@ -35,38 +30,23 @@ class GasProperties:
 
 
 class GasState:
-    """
-    Handles gas composition and calculates thermodynamic properties
-    using the Peng-Robinson equation of state.
+    """Handles gas composition and thermodynamic property calculations.
     
-    Usage:
-        gas = GasState("Methane=0.9, Ethane=0.1")
-        props = gas.get_properties(P=1e6, T=300)  # P in Pa, T in K
-        print(props.Z, props.k, props.M)
+    Uses the Peng-Robinson equation of state for real gas behavior.
     """
     
     def __init__(self, composition: str):
-        """
-        Initialize GasState with a composition string.
+        """Initialize GasState with a composition string.
         
         Args:
-            composition: Comma-separated component=fraction pairs.
-                         Example: "Methane=0.9, Ethane=0.1"
-                         Fractions should be mole fractions (0-1) or will be normalized.
+            composition: Comma-separated "Component=fraction" pairs.
+                Example: "Methane=0.9, Ethane=0.1"
         """
         self.components, self.zs = self._parse_composition(composition)
         self._setup_thermo()
     
     def _parse_composition(self, composition: str) -> tuple[list[str], list[float]]:
-        """
-        Parse composition string into component names and mole fractions.
-        
-        Args:
-            composition: String like "Methane=0.9, Ethane=0.1"
-        
-        Returns:
-            Tuple of (component_names, mole_fractions)
-        """
+        """Parse composition string into component names and mole fractions."""
         components = []
         fractions = []
         
@@ -111,15 +91,14 @@ class GasState:
         )
     
     def get_properties(self, P: float, T: float) -> GasProperties:
-        """
-        Calculate gas properties at given pressure and temperature.
+        """Calculate gas properties at given pressure and temperature.
         
         Args:
-            P: Pressure in Pascals
-            T: Temperature in Kelvin
+            P: Pressure in Pascals.
+            T: Temperature in Kelvin.
         
         Returns:
-            GasProperties dataclass with Z, k, M, rho, Cp, Cv
+            GasProperties with Z, k, M, rho, Cp, Cv.
         """
         # Create Peng-Robinson gas phase
         eos_kwargs = dict(
@@ -165,12 +144,7 @@ class GasState:
     
     @staticmethod
     def create_default_composition() -> str:
-        """
-        Create a default composition string for typical natural gas.
-        
-        Returns:
-            Composition string with C1-C5, CO2, H2S, H2O, N2
-        """
+        """Create a default composition string for typical natural gas."""
         return "Methane=0.9387, Ethane=0.0121, Propane=0.0004, n-Butane=0.00, n-Pentane=0.00, CO2=0.0054, H2S=0.00, Water=0.00, Nitrogen=0.0433"
 
 
@@ -179,16 +153,15 @@ def get_gas_properties_at_conditions(
     P: float,
     T: float
 ) -> tuple[float, float, float]:
-    """
-    Convenience function to get Z, k, M for a given composition and conditions.
+    """Get Z, k, M for a given composition and conditions.
     
     Args:
-        composition: Composition string (e.g., "Methane=0.9, Ethane=0.1")
-        P: Pressure in Pascals
-        T: Temperature in Kelvin
+        composition: Composition string (e.g., "Methane=0.9, Ethane=0.1").
+        P: Pressure in Pascals.
+        T: Temperature in Kelvin.
     
     Returns:
-        Tuple of (Z_factor, k_ratio, molar_mass_g_mol)
+        Tuple of (Z_factor, k_ratio, molar_mass_g_mol).
     """
     gas = GasState(composition)
     props = gas.get_properties(P, T)

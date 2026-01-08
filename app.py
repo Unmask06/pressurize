@@ -1,7 +1,8 @@
-"""
-Dynamic Valve Pressurization Simulator
-A Python Dash web application that simulates the dynamic pressurization 
-of a downstream vessel as a valve opens linearly over time.
+"""Dynamic Valve Pressurization Simulator.
+
+A Dash web application for simulating gas flow through a valve into a vessel.
+Provides real-time visualization of pressure and flow dynamics with multiple
+valve opening modes and composition-based gas property calculations.
 """
 
 import dash

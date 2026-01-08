@@ -1,3 +1,5 @@
+"""Main application layout structure."""
+
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
@@ -7,6 +9,7 @@ from src.layouts.sidebar import get_sidebar
 
 
 def get_main_content():
+    """Create the main content area layout with KPIs, graphs, and data tables."""
     return html.Div([
         # Header
         html.Div([
@@ -59,6 +62,7 @@ def get_main_content():
     ], style={"padding": "30px"})
 
 def create_layout():
+    """Create the complete application layout."""
     # Create composition editor modal
     composition_modal = dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle("Gas Composition Editor")),

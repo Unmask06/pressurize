@@ -1,3 +1,5 @@
+"""Dash callback functions for interactive application behavior."""
+
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from dash import Input, Output, State, dash_table
@@ -8,6 +10,7 @@ from src.core.simulation import run_simulation
 
 
 def register_callbacks(app):
+    """Register all Dash callbacks for the application."""
     @app.callback(
         [Output("graph-simulation", "figure"),
          Output("kpi-peak-flow", "children"),

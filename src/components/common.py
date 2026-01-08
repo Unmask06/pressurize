@@ -1,8 +1,11 @@
+"""Common UI components for the Dash application."""
+
 import dash_bootstrap_components as dbc
 from dash import html
 
 
 def create_input_field(label, id, value, step=None, min_val=None):
+    """Create a labeled numeric input field."""
     return html.Div([
         html.Label(label, className="input-label"),
         dbc.Input(
@@ -16,6 +19,7 @@ def create_input_field(label, id, value, step=None, min_val=None):
     ], className="input-group-custom")
 
 def create_kpi_card(id, title, icon, color):
+    """Create a KPI (Key Performance Indicator) display card."""
     return dbc.Card([
         dbc.CardBody([
             html.Div([

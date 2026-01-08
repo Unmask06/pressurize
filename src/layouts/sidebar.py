@@ -1,3 +1,5 @@
+"""Sidebar layout component for simulation parameters."""
+
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
@@ -6,6 +8,7 @@ from src.core.properties import GasState
 
 
 def get_sidebar():
+    """Create the sidebar layout with all simulation parameter inputs."""
     return html.Div([
         html.H4("⚙️ Simulation Parameters", className="sidebar-title"),
         
