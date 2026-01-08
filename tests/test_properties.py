@@ -172,11 +172,11 @@ class TestDefaultComponents:
         assert "Methane" in components
         assert "Ethane" in components
         assert "Propane" in components
-        assert "CO2" in components
+        assert "Carbon dioxide" in components
         assert "Nitrogen" in components
         
-        # Should be a reasonable number
-        assert len(components) > 5
+        # Should now have 20 components
+        assert len(components) == 20
     
     def test_create_default_composition(self):
         """Test that default composition string is valid."""
