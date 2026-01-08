@@ -53,7 +53,7 @@ class GasState:
             composition: Comma-separated "Component=fraction" pairs.
                 Example: "Methane=0.9, Ethane=0.1"
         """
-        self.components, self.zs = self._parse_composition(composition)
+        self.components, self.molar_fraction = self._parse_composition(composition)
         self._setup_thermo()
     
     def _parse_composition(self, composition: str) -> tuple[list[str], list[float]]:
@@ -98,15 +98,15 @@ class GasState:
         
         # Calculate mixture molar mass
         self.molar_mass = sum(
-            z * mw for z, mw in zip(self.zs, self.constants.MWs)
+            z * mw for z, mw in zip(self.molar_fraction, self.constants.MWs)
         )
     
-    def get_properties(self, P: float, T: float) -> GasProperties:
+    def get_properties(self, pressure: float, temperature: float) -> GasProperties:
         """Calculate gas properties at given pressure and temperature.
         
         Args:
-            P: Pressure in Pascals.
-            T: Temperature in Kelvin.
+            pressure: Pressure in Pascals.
+            temperature: Temperature in Kelvin.
         
         Returns:
             GasProperties with Z, k, M, rho, Cp, Cv.
@@ -122,9 +122,9 @@ class GasState:
             PRMIX,
             eos_kwargs,
             HeatCapacityGases=self.correlations.HeatCapacityGases,
-            T=T,
-            P=P,
-            zs=self.zs
+            T=temperature,
+            P=pressure,
+            zs=self.molar_fraction
         )
         
         # Extract properties
@@ -137,7 +137,7 @@ class GasState:
         
         # Density from ideal gas law with compressibility
         R = 8.314  # J/mol/K
-        rho = (P * self.molar_mass / 1000) / (Z * R * T)  # kg/m³
+        rho = (pressure * self.molar_mass / 1000) / (Z * R * temperature)  # kg/m³
         
         return GasProperties(
             Z=Z,
@@ -214,19 +214,19 @@ class GasState:
 
 def get_gas_properties_at_conditions(
     composition: str,
-    P: float,
-    T: float
+    pressure: float,
+    temperature: float
 ) -> tuple[float, float, float]:
     """Get Z, k, M for a given composition and conditions.
     
     Args:
         composition: Composition string (e.g., "Methane=0.9, Ethane=0.1").
-        P: Pressure in Pascals.
-        T: Temperature in Kelvin.
+        pressure: Pressure in Pascals.
+        temperature: Temperature in Kelvin.
     
     Returns:
         Tuple of (Z_factor, k_ratio, molar_mass_g_mol).
     """
     gas = GasState(composition)
-    props = gas.get_properties(P, T)
+    props = gas.get_properties(pressure, temperature)
     return props.Z, props.k, props.M

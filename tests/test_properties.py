@@ -5,9 +5,10 @@ including composition parsing and property calculations.
 """
 
 import pytest
+
 from src.core.properties import (
-    GasState,
     GasProperties,
+    GasState,
     get_gas_properties_at_conditions,
 )
 
@@ -20,7 +21,7 @@ class TestGasStateInitialization:
         gas = GasState("Methane=1.0")
         assert len(gas.components) == 1
         assert gas.components[0] == "Methane"
-        assert pytest.approx(gas.zs[0], abs=0.001) == 1.0
+        assert pytest.approx(gas.molar_fraction[0], abs=0.001) == 1.0
     
     def test_binary_mixture(self):
         """Test initialization with binary mixture."""
@@ -29,42 +30,42 @@ class TestGasStateInitialization:
         assert "Methane" in gas.components
         assert "Ethane" in gas.components
         # Fractions should sum to 1
-        assert pytest.approx(sum(gas.zs), abs=0.001) == 1.0
+        assert pytest.approx(sum(gas.molar_fraction), abs=0.001) == 1.0
     
     def test_composition_normalization(self):
         """Test that compositions are normalized to sum to 1."""
         gas = GasState("Methane=90, Ethane=10")
         # Even though we gave 90 and 10, they should normalize to 0.9 and 0.1
-        assert pytest.approx(sum(gas.zs), abs=0.001) == 1.0
+        assert pytest.approx(sum(gas.molar_fraction), abs=0.001) == 1.0
         methane_idx = gas.components.index("Methane")
-        assert pytest.approx(gas.zs[methane_idx], abs=0.01) == 0.9
+        assert pytest.approx(gas.molar_fraction[methane_idx], abs=0.01) == 0.9
     
     def test_default_composition_on_empty_string(self):
         """Test that empty string defaults to pure methane."""
         gas = GasState("")
         assert len(gas.components) == 1
         assert gas.components[0] == "Methane"
-        assert gas.zs[0] == 1.0
+        assert gas.molar_fraction[0] == 1.0
     
     def test_default_composition_on_none(self):
         """Test that None defaults to pure methane."""
         gas = GasState(None)
         assert len(gas.components) == 1
         assert gas.components[0] == "Methane"
-        assert gas.zs[0] == 1.0
+        assert gas.molar_fraction[0] == 1.0
     
     def test_multi_component_mixture(self):
         """Test initialization with multiple components."""
         composition = "Methane=0.85, Ethane=0.10, Propane=0.03, CO2=0.02"
         gas = GasState(composition)
         assert len(gas.components) == 4
-        assert pytest.approx(sum(gas.zs), abs=0.001) == 1.0
+        assert pytest.approx(sum(gas.molar_fraction), abs=0.001) == 1.0
     
     def test_whitespace_handling(self):
         """Test that whitespace is handled correctly."""
         gas = GasState("  Methane = 0.9 ,  Ethane = 0.1  ")
         assert len(gas.components) == 2
-        assert pytest.approx(sum(gas.zs), abs=0.001) == 1.0
+        assert pytest.approx(sum(gas.molar_fraction), abs=0.001) == 1.0
     
     def test_ignores_zero_fractions(self):
         """Test that zero fractions are ignored."""
@@ -191,7 +192,7 @@ class TestDefaultComponents:
         assert len(gas.components) > 0
         
         # Fractions should sum to 1
-        assert pytest.approx(sum(gas.zs), abs=0.001) == 1.0
+        assert pytest.approx(sum(gas.molar_fraction), abs=0.001) == 1.0
     
     def test_default_composition_is_valid_natural_gas(self):
         """Test that default composition represents natural gas."""
@@ -200,7 +201,7 @@ class TestDefaultComponents:
         
         # Should be dominated by methane
         methane_idx = gas.components.index("Methane")
-        assert gas.zs[methane_idx] > 0.8  # Natural gas is mostly methane
+        assert gas.molar_fraction[methane_idx] > 0.8  # Natural gas is mostly methane
 
 
 class TestConvenienceFunction:
@@ -210,8 +211,8 @@ class TestConvenienceFunction:
         """Test that convenience function returns (Z, k, M) tuple."""
         result = get_gas_properties_at_conditions(
             "Methane=1.0",
-            P=1e6,
-            T=300
+            pressure=1e6,
+            temperature=300
         )
         
         assert isinstance(result, tuple)
@@ -269,9 +270,9 @@ class TestPropertyConsistency:
         gas = GasState("Methane=1.0")
         
         # Get properties at different conditions
-        props1 = gas.get_properties(P=1e6, T=300)
-        props2 = gas.get_properties(P=5e6, T=300)  # Different P
-        props3 = gas.get_properties(P=1e6, T=400)  # Different T
+        props1 = gas.get_properties(pressure=1e6, temperature=300)
+        props2 = gas.get_properties(pressure=5e6, temperature=300)  # Different P
+        props3 = gas.get_properties(pressure=1e6, temperature=400)  # Different T
         
         # Properties should differ
         # Z changes with pressure
@@ -312,11 +313,11 @@ class TestErrorHandling:
         gas = GasState("Methane=1.0")
         
         # Very high pressure
-        props_high_p = gas.get_properties(P=100e6, T=300)
+        props_high_p = gas.get_properties(pressure=100e6, temperature=300)
         assert props_high_p.Z > 0
         assert props_high_p.rho > 0
         
         # Very low pressure (near vacuum)
-        props_low_p = gas.get_properties(P=1000, T=300)
+        props_low_p = gas.get_properties(pressure=1000, temperature=300)
         assert props_low_p.Z > 0
         assert props_low_p.rho > 0

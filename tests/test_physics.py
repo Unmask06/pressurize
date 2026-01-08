@@ -8,14 +8,15 @@ This module tests the gas flow physics calculations including:
 - Pressure change rate calculations
 """
 
-import pytest
 import numpy as np
+import pytest
+
 from src.core.physics import (
-    calculate_critical_pressure_ratio,
     calculate_choked_flow,
-    calculate_subsonic_flow,
-    calculate_mass_flow_rate,
+    calculate_critical_pressure_ratio,
     calculate_dp_dt,
+    calculate_mass_flow_rate,
+    calculate_subsonic_flow,
 )
 
 
@@ -63,8 +64,8 @@ class TestChokedFlow:
         Z = 0.9
         T = 300  # K
         
-        m_dot = calculate_choked_flow(Cd, A, P_up, k, M, Z, T)
-        assert m_dot > 0
+        mass_flow = calculate_choked_flow(Cd, A, P_up, k, M, Z, T)
+        assert mass_flow > 0
     
     def test_choked_flow_scales_with_area(self):
         """Test that flow rate doubles when area doubles."""
@@ -77,10 +78,10 @@ class TestChokedFlow:
         Z = 0.9
         T = 300
         
-        m_dot1 = calculate_choked_flow(Cd, A1, P_up, k, M, Z, T)
-        m_dot2 = calculate_choked_flow(Cd, A2, P_up, k, M, Z, T)
+        mass_flow1 = calculate_choked_flow(Cd, A1, P_up, k, M, Z, T)
+        mass_flow2 = calculate_choked_flow(Cd, A2, P_up, k, M, Z, T)
         
-        assert pytest.approx(m_dot2, rel=0.01) == 2 * m_dot1
+        assert pytest.approx(mass_flow2, rel=0.01) == 2 * mass_flow1
     
     def test_choked_flow_scales_with_pressure(self):
         """Test that flow rate doubles when upstream pressure doubles."""
@@ -93,10 +94,10 @@ class TestChokedFlow:
         Z = 0.9
         T = 300
         
-        m_dot1 = calculate_choked_flow(Cd, A, P_up1, k, M, Z, T)
-        m_dot2 = calculate_choked_flow(Cd, A, P_up2, k, M, Z, T)
+        mass_flow1 = calculate_choked_flow(Cd, A, P_up1, k, M, Z, T)
+        mass_flow2 = calculate_choked_flow(Cd, A, P_up2, k, M, Z, T)
         
-        assert pytest.approx(m_dot2, rel=0.01) == 2 * m_dot1
+        assert pytest.approx(mass_flow2, rel=0.01) == 2 * mass_flow1
     
     def test_choked_flow_decreases_with_temperature(self):
         """Test that flow rate decreases with higher temperature."""
@@ -109,11 +110,11 @@ class TestChokedFlow:
         T1 = 300
         T2 = 400
         
-        m_dot1 = calculate_choked_flow(Cd, A, P_up, k, M, Z, T1)
-        m_dot2 = calculate_choked_flow(Cd, A, P_up, k, M, Z, T2)
+        mass_flow1 = calculate_choked_flow(Cd, A, P_up, k, M, Z, T1)
+        mass_flow2 = calculate_choked_flow(Cd, A, P_up, k, M, Z, T2)
         
         # Higher temperature should reduce flow rate (density effect)
-        assert m_dot2 < m_dot1
+        assert mass_flow2 < mass_flow1
 
 
 class TestSubsonicFlow:
@@ -130,8 +131,8 @@ class TestSubsonicFlow:
         Z = 0.9
         T = 300
         
-        m_dot = calculate_subsonic_flow(Cd, A, P_up, P_down, k, M, Z, T)
-        assert m_dot > 0
+        mass_flow = calculate_subsonic_flow(Cd, A, P_up, P_down, k, M, Z, T)
+        assert mass_flow > 0
     
     def test_subsonic_flow_zero_at_equilibrium(self):
         """Test that flow is zero when pressures are equal."""
@@ -143,8 +144,8 @@ class TestSubsonicFlow:
         Z = 0.9
         T = 300
         
-        m_dot = calculate_subsonic_flow(Cd, A, P, P, k, M, Z, T)
-        assert m_dot == 0.0
+        mass_flow = calculate_subsonic_flow(Cd, A, P, P, k, M, Z, T)
+        assert mass_flow == 0.0
     
     def test_subsonic_flow_zero_when_inverted(self):
         """Test that flow is zero when downstream pressure exceeds upstream."""
@@ -157,8 +158,8 @@ class TestSubsonicFlow:
         Z = 0.9
         T = 300
         
-        m_dot = calculate_subsonic_flow(Cd, A, P_up, P_down, k, M, Z, T)
-        assert m_dot == 0.0
+        mass_flow = calculate_subsonic_flow(Cd, A, P_up, P_down, k, M, Z, T)
+        assert mass_flow == 0.0
     
     def test_subsonic_flow_increases_with_pressure_difference(self):
         """Test that flow increases with larger pressure differential."""
@@ -172,11 +173,11 @@ class TestSubsonicFlow:
         Z = 0.9
         T = 300
         
-        m_dot1 = calculate_subsonic_flow(Cd, A, P_up, P_down1, k, M, Z, T)
-        m_dot2 = calculate_subsonic_flow(Cd, A, P_up, P_down2, k, M, Z, T)
+        mass_flow1 = calculate_subsonic_flow(Cd, A, P_up, P_down1, k, M, Z, T)
+        mass_flow2 = calculate_subsonic_flow(Cd, A, P_up, P_down2, k, M, Z, T)
         
         # Larger pressure difference should give higher flow
-        assert m_dot2 > m_dot1
+        assert mass_flow2 > mass_flow1
 
 
 class TestMassFlowRate:
@@ -194,11 +195,11 @@ class TestMassFlowRate:
         T = 300
         
         # Calculate what choked flow should give
-        m_dot_choked = calculate_choked_flow(Cd, A, P_up, k, M, Z, T)
-        m_dot_actual = calculate_mass_flow_rate(Cd, A, P_up, P_down, k, M, Z, T)
+        mass_flow_choked = calculate_choked_flow(Cd, A, P_up, k, M, Z, T)
+        mass_flow_actual = calculate_mass_flow_rate(Cd, A, P_up, P_down, k, M, Z, T)
         
         # Should match choked flow
-        assert pytest.approx(m_dot_actual, rel=0.01) == m_dot_choked
+        assert pytest.approx(mass_flow_actual, rel=0.01) == mass_flow_choked
     
     def test_detects_subsonic_flow(self):
         """Test that function correctly identifies subsonic flow conditions."""
@@ -212,11 +213,11 @@ class TestMassFlowRate:
         T = 300
         
         # Calculate what subsonic flow should give
-        m_dot_subsonic = calculate_subsonic_flow(Cd, A, P_up, P_down, k, M, Z, T)
-        m_dot_actual = calculate_mass_flow_rate(Cd, A, P_up, P_down, k, M, Z, T)
+        mass_flow_subsonic = calculate_subsonic_flow(Cd, A, P_up, P_down, k, M, Z, T)
+        mass_flow_actual = calculate_mass_flow_rate(Cd, A, P_up, P_down, k, M, Z, T)
         
         # Should match subsonic flow
-        assert pytest.approx(m_dot_actual, rel=0.01) == m_dot_subsonic
+        assert pytest.approx(mass_flow_actual, rel=0.01) == mass_flow_subsonic
     
     def test_zero_at_equilibrium(self):
         """Test that flow is zero when pressures are equalized."""
@@ -228,8 +229,8 @@ class TestMassFlowRate:
         Z = 0.9
         T = 300
         
-        m_dot = calculate_mass_flow_rate(Cd, A, P, P, k, M, Z, T)
-        assert m_dot == 0.0
+        mass_flow = calculate_mass_flow_rate(Cd, A, P, P, k, M, Z, T)
+        assert mass_flow == 0.0
     
     def test_transition_at_critical_ratio(self):
         """Test behavior near critical pressure ratio transition."""
@@ -247,18 +248,18 @@ class TestMassFlowRate:
         
         # Just below critical (choked)
         P_choked = P_critical * 0.99
-        m_dot_choked = calculate_mass_flow_rate(Cd, A, P_up, P_choked, k, M, Z, T)
+        mass_flow_choked = calculate_mass_flow_rate(Cd, A, P_up, P_choked, k, M, Z, T)
         
         # Just above critical (subsonic)
         P_subsonic = P_critical * 1.01
-        m_dot_subsonic = calculate_mass_flow_rate(Cd, A, P_up, P_subsonic, k, M, Z, T)
+        mass_flow_subsonic = calculate_mass_flow_rate(Cd, A, P_up, P_subsonic, k, M, Z, T)
         
         # Both should be positive
-        assert m_dot_choked > 0
-        assert m_dot_subsonic > 0
+        assert mass_flow_choked > 0
+        assert mass_flow_subsonic > 0
         
         # Choked flow should be higher (less downstream resistance)
-        assert m_dot_choked > m_dot_subsonic
+        assert mass_flow_choked > mass_flow_subsonic
 
 
 class TestPressureChangeRate:
@@ -270,9 +271,9 @@ class TestPressureChangeRate:
         T = 300
         V = 2.0  # 2 m³
         M = 0.017
-        m_dot = 0.5  # 0.5 kg/s inflow
+        mass_flow = 0.5  # 0.5 kg/s inflow
         
-        dp_dt = calculate_dp_dt(Z, T, V, M, m_dot)
+        dp_dt = calculate_dp_dt(Z, T, V, M, mass_flow)
         assert dp_dt > 0
     
     def test_pressure_decreases_with_negative_flow(self):
@@ -281,9 +282,9 @@ class TestPressureChangeRate:
         T = 300
         V = 2.0
         M = 0.017
-        m_dot = -0.5  # 0.5 kg/s outflow
+        mass_flow = -0.5  # 0.5 kg/s outflow
         
-        dp_dt = calculate_dp_dt(Z, T, V, M, m_dot)
+        dp_dt = calculate_dp_dt(Z, T, V, M, mass_flow)
         assert dp_dt < 0
     
     def test_no_pressure_change_with_zero_flow(self):
@@ -292,9 +293,9 @@ class TestPressureChangeRate:
         T = 300
         V = 2.0
         M = 0.017
-        m_dot = 0.0
+        mass_flow = 0.0
         
-        dp_dt = calculate_dp_dt(Z, T, V, M, m_dot)
+        dp_dt = calculate_dp_dt(Z, T, V, M, mass_flow)
         assert dp_dt == 0.0
     
     def test_pressure_change_scales_with_flow(self):
@@ -303,11 +304,11 @@ class TestPressureChangeRate:
         T = 300
         V = 2.0
         M = 0.017
-        m_dot1 = 0.5
-        m_dot2 = 1.0
+        mass_flow1 = 0.5
+        mass_flow2 = 1.0
         
-        dp_dt1 = calculate_dp_dt(Z, T, V, M, m_dot1)
-        dp_dt2 = calculate_dp_dt(Z, T, V, M, m_dot2)
+        dp_dt1 = calculate_dp_dt(Z, T, V, M, mass_flow1)
+        dp_dt2 = calculate_dp_dt(Z, T, V, M, mass_flow2)
         
         assert pytest.approx(dp_dt2, rel=0.01) == 2 * dp_dt1
     
@@ -318,10 +319,10 @@ class TestPressureChangeRate:
         V1 = 2.0
         V2 = 4.0
         M = 0.017
-        m_dot = 0.5
+        mass_flow = 0.5
         
-        dp_dt1 = calculate_dp_dt(Z, T, V1, M, m_dot)
-        dp_dt2 = calculate_dp_dt(Z, T, V2, M, m_dot)
+        dp_dt1 = calculate_dp_dt(Z, T, V1, M, mass_flow)
+        dp_dt2 = calculate_dp_dt(Z, T, V2, M, mass_flow)
         
         # Doubling volume should halve the pressure change rate
         assert pytest.approx(dp_dt2, rel=0.01) == dp_dt1 / 2
@@ -333,10 +334,10 @@ class TestPressureChangeRate:
         T2 = 400
         V = 2.0
         M = 0.017
-        m_dot = 0.5
+        mass_flow = 0.5
         
-        dp_dt1 = calculate_dp_dt(Z, T1, V, M, m_dot)
-        dp_dt2 = calculate_dp_dt(Z, T2, V, M, m_dot)
+        dp_dt1 = calculate_dp_dt(Z, T1, V, M, mass_flow)
+        dp_dt2 = calculate_dp_dt(Z, T2, V, M, mass_flow)
         
         # Should scale proportionally with temperature
         assert pytest.approx(dp_dt2 / dp_dt1, rel=0.01) == T2 / T1
@@ -360,8 +361,8 @@ class TestIntegration:
         flow_rates = []
         
         for P_down in pressures:
-            m_dot = calculate_mass_flow_rate(Cd, A, P_up, P_down, k, M, Z, T)
-            flow_rates.append(m_dot)
+            mass_flow = calculate_mass_flow_rate(Cd, A, P_up, P_down, k, M, Z, T)
+            flow_rates.append(mass_flow)
         
         # Flow rates should all be non-negative
         assert all(m >= 0 for m in flow_rates)
@@ -387,14 +388,14 @@ class TestIntegration:
         T = 300
         
         # Calculate flow
-        m_dot = calculate_mass_flow_rate(Cd, A, P_up, P_down, k, M, Z, T)
+        mass_flow = calculate_mass_flow_rate(Cd, A, P_up, P_down, k, M, Z, T)
         
         # Should be a reasonable flow rate (positive and not extreme)
-        assert 0 < m_dot < 100  # kg/s
+        assert 0 < mass_flow < 100  # kg/s
         
         # Calculate pressure change in a 2 m³ vessel
         V = 2.0
-        dp_dt = calculate_dp_dt(Z, T, V, M, m_dot)
+        dp_dt = calculate_dp_dt(Z, T, V, M, mass_flow)
         
         # Pressure should increase
         assert dp_dt > 0
