@@ -1,3 +1,9 @@
+"""Main application layout structure.
+
+This module defines the primary layout structure for the Dash application,
+including the main content area with KPIs, graphs, and data tables.
+"""
+
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
@@ -7,6 +13,26 @@ from src.layouts.sidebar import get_sidebar
 
 
 def get_main_content():
+    """Create the main content area layout.
+    
+    Returns:
+        dash.html.Div: A Div containing:
+            - Application header and description
+            - Row of KPI cards (peak flow, final pressure, equilibrium time, total mass)
+            - Interactive simulation graph with loading indicator
+            - Collapsible data table section
+    
+    Notes:
+        The main content area displays:
+        - Real-time KPI metrics updated after each simulation
+        - Dual-axis plot (pressure and flow rate vs. time)
+        - Paginated data table with simulation results
+        - Loading spinner during simulation execution
+    
+    Examples:
+        >>> content = get_main_content()
+        >>> # Returns the main content Div for the application
+    """
     return html.Div([
         # Header
         html.Div([
@@ -59,6 +85,26 @@ def get_main_content():
     ], style={"padding": "30px"})
 
 def create_layout():
+    """Create the complete application layout.
+    
+    Returns:
+        dash_bootstrap_components.Container: The root layout container with:
+            - Gas composition editor modal
+            - Two-column grid (sidebar + main content)
+            - Responsive design using Bootstrap grid system
+    
+    Notes:
+        Layout structure:
+        - Left column (3/12 width): Sidebar with input parameters
+        - Right column (9/12 width): Main content with results
+        - Modal overlay: Composition editor (hidden by default)
+        
+        The layout uses Bootstrap's Flatly theme for consistent styling.
+    
+    Examples:
+        >>> layout = create_layout()
+        >>> app.layout = layout  # Assign to Dash app
+    """
     # Create composition editor modal
     composition_modal = dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle("Gas Composition Editor")),
