@@ -2,11 +2,12 @@
 
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from dash import Input, Output, State, dash_table
+from dash import Input, Output, State, dash_table, no_update
 from plotly.subplots import make_subplots
 
 from src.core.properties import GasState
 from src.core.simulation import run_simulation
+from src.utils.converters import fahrenheit_to_kelvin, psig_to_pa
 
 
 def register_callbacks(app):
@@ -76,10 +77,10 @@ def register_callbacks(app):
             property_mode=property_mode,
             composition=composition
         )
-        
+
         # Create dual-axis figure
         fig = make_subplots(specs=[[{"secondary_y": True}]])
-        
+
         # Pressure trace
         fig.add_trace(
             go.Scatter(
@@ -190,7 +191,7 @@ def register_callbacks(app):
             tickfont=dict(color="#e74c3c")
         )
 
-        
+
         # Calculate KPIs
         peak_flow = df['flowrate_lb_hr'].max()
         final_pressure = df['pressure_psig'].iloc[-1]
@@ -272,8 +273,7 @@ def register_callbacks(app):
                 True,                    # Disable z-factor
                 True                     # Disable k-ratio
             )
-        else:
-            return (
+        return (
                 {'display': 'none'},     # Hide composition
                 False,                   # Enable molar mass
                 False,                   # Enable z-factor
@@ -295,7 +295,6 @@ def register_callbacks(app):
         if property_mode == 'composition' and composition:
             try:
                 # Convert units
-                from src.utils.converters import fahrenheit_to_kelvin, psig_to_pa
                 T = fahrenheit_to_kelvin(temp if temp is not None else 55)
                 P = psig_to_pa(p_down if p_down is not None else 800)
                 
@@ -309,7 +308,7 @@ def register_callbacks(app):
                 return 16.9, 0.771, 1.9
         else:
             # In manual mode, don't update (return current values)
-            from dash import no_update
+            
             return no_update, no_update, no_update
 
     @app.callback(
@@ -375,7 +374,6 @@ def register_callbacks(app):
     )
     def apply_composition_from_modal(n_clicks, *values):
         """Build composition string from modal inputs and update textarea."""
-        from dash import no_update
         
         if n_clicks is None:
             return no_update
@@ -385,7 +383,5 @@ def register_callbacks(app):
         
         for comp, val in zip(components, values):
             val = val if val is not None else 0.0
-            comp_parts.append(f"{comp}={val:.4f}")
-        
+            comp_parts.append(f"{comp}={val:.4f}") 
         return ", ".join(comp_parts)
-

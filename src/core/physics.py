@@ -67,7 +67,7 @@ def calculate_mass_flow_rate(Cd, A, P_up, P_down, k, M, Z, T):
         # Subsonic flow
         return calculate_subsonic_flow(Cd, A, P_up, P_down, k, M, Z, T)
 
-def calculate_dp_dt(Z, T, V, M, m_dot):
+def calculate_dp_dt(Z, T, V, M, mass_flow):
     """Calculate rate of pressure change using the Real Gas Law.
     
     Derives the pressure change rate from mass conservation and the real gas
@@ -75,4 +75,4 @@ def calculate_dp_dt(Z, T, V, M, m_dot):
     
     Formula: dP/dt = (Z·R·T)/(V·M)·ṁ
     """
-    return (Z * R_UNIVERSAL * T) / (V * M) * m_dot
+    return (Z * R_UNIVERSAL * T) / (V * M) * mass_flow
