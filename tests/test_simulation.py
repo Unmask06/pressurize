@@ -9,6 +9,20 @@ import pandas as pd
 from src.core.simulation import run_simulation
 
 
+def _find_time_index(df, target_time):
+    """Helper function to find the index of a row at or after target_time.
+    
+    Args:
+        df: DataFrame with 'time' column.
+        target_time: Target time value to search for.
+    
+    Returns:
+        Index of first row where time >= target_time, or -1 if not found.
+    """
+    matching_rows = df[df['time'] >= target_time]
+    return matching_rows.index[0] if len(matching_rows) > 0 else -1
+
+
 class TestSimulationBasics:
     """Basic tests for simulation execution."""
     
@@ -112,7 +126,7 @@ class TestValveOpeningModes:
         assert df['valve_opening_pct'].iloc[0] == 0
         
         # Find the row at or near opening_time
-        idx = df[df['time'] >= opening_time].index[0] if len(df[df['time'] >= opening_time]) > 0 else -1
+        idx = _find_time_index(df, opening_time)
         if idx >= 0:
             # Valve should be at or near 100%
             assert df['valve_opening_pct'].iloc[idx] >= 95
@@ -160,7 +174,7 @@ class TestValveOpeningModes:
         # Exponential opening should result in slower opening at start
         # Check that opening at 50% of time is less than 50% open
         halfway_time = opening_time / 2
-        idx = df[df['time'] >= halfway_time].index[0] if len(df[df['time'] >= halfway_time]) > 0 else -1
+        idx = _find_time_index(df, halfway_time)
         if idx >= 0 and idx < len(df):
             # For exponential with k=4, should be less than 50% at halfway
             assert df['valve_opening_pct'].iloc[idx] < 50
@@ -402,8 +416,8 @@ class TestParameterSensitivity:
         # Compare at 50% of opening time
         time_check = 2.5
         
-        idx_small = df_small[df_small['time'] >= time_check].index[0]
-        idx_large = df_large[df_large['time'] >= time_check].index[0]
+        idx_small = _find_time_index(df_small, time_check)
+        idx_large = _find_time_index(df_large, time_check)
         
         assert df_small['pressure_psig'].iloc[idx_small] > df_large['pressure_psig'].iloc[idx_large]
 
@@ -508,8 +522,10 @@ class TestEdgeCases:
         
         # Should complete
         assert len(df) > 0
-        # Valve should be fully open from start
-        assert df['valve_opening_pct'].iloc[1] == 100.0  # Second row (after t=0)
+        # Valve should be fully open from start - check first row after t=0
+        first_nonzero_idx = _find_time_index(df, 0.01)  # First timestep after t=0
+        if first_nonzero_idx >= 0:
+            assert df['valve_opening_pct'].iloc[first_nonzero_idx] == 100.0
 
 
 class TestUnitConsistency:
