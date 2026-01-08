@@ -1,9 +1,4 @@
-"""Dynamic valve pressurization simulation engine.
-
-This module implements the core simulation logic for modeling gas flow through
-a valve into a downstream vessel. It handles various valve opening modes,
-property calculation methods, and integrates the physics equations over time.
-"""
+"""Dynamic valve pressurization simulation engine."""
 
 import numpy as np
 import pandas as pd
@@ -24,76 +19,29 @@ def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch,
                    property_mode='manual', composition=None):
     """Run the valve pressurization simulation.
     
-    Simulates the dynamic pressurization of a downstream vessel as gas flows through
-    a valve that opens over time. The simulation integrates mass flow and pressure
-    change using timestep-based numerical methods.
+    Simulates gas flow through a valve into a downstream vessel with dynamic
+    pressure and flow rate calculations over time.
     
     Args:
-        P_up_psig (float): Upstream pressure in pounds per square inch gauge (psig).
-        P_down_init_psig (float): Initial downstream pressure in psig.
-        volume_ft3 (float): Downstream vessel volume in cubic feet (ft³).
-        valve_id_inch (float): Valve inner diameter in inches.
-        opening_time_s (float): Time for valve to fully open in seconds.
-        temp_f (float): Gas temperature in degrees Fahrenheit (°F).
-        molar_mass (float): Gas molar mass in g/mol (used when property_mode='manual').
-        z_factor (float): Compressibility factor, dimensionless (used when property_mode='manual').
-        k_ratio (float): Heat capacity ratio Cp/Cv (used when property_mode='manual').
-        discharge_coeff (float, optional): Valve discharge coefficient. Defaults to 0.65.
-        opening_mode (str, optional): Valve opening behavior. Defaults to 'linear'.
-            Options:
-            - 'linear': Linear opening over opening_time_s
-            - 'exponential': Exponential (convex) opening profile
-            - 'quick_opening': Quick opening profile (steep initial opening)
-            - 'fixed': Fully open instantly (ignores opening_time_s)
-        k_curve (float, optional): Curve steepness for exponential/quick_opening modes.
-            Defaults to 4.0.
-        dt (float, optional): Simulation timestep in seconds. Defaults to TIME_STEP.
-        property_mode (str, optional): Property calculation method. Defaults to 'manual'.
-            Options:
-            - 'manual': Use provided molar_mass, z_factor, and k_ratio values
-            - 'composition': Derive properties dynamically from gas composition using thermo library
-        composition (str, optional): Gas composition string for 'composition' mode.
-            Format: "Component1=fraction1, Component2=fraction2, ..."
-            Example: "Methane=0.9, Ethane=0.1"
+        P_up_psig: Upstream pressure in psig.
+        P_down_init_psig: Initial downstream pressure in psig.
+        volume_ft3: Vessel volume in ft³.
+        valve_id_inch: Valve inner diameter in inches.
+        opening_time_s: Time for valve to fully open in seconds.
+        temp_f: Gas temperature in °F.
+        molar_mass: Gas molar mass in g/mol (manual mode).
+        z_factor: Compressibility factor (manual mode).
+        k_ratio: Heat capacity ratio Cp/Cv (manual mode).
+        discharge_coeff: Valve discharge coefficient. Default 0.65.
+        opening_mode: 'linear', 'exponential', 'quick_opening', or 'fixed'. Default 'linear'.
+        k_curve: Curve steepness for exponential/quick_opening. Default 4.0.
+        dt: Simulation timestep in seconds.
+        property_mode: 'manual' or 'composition'. Default 'manual'.
+        composition: Gas composition string for composition mode.
     
     Returns:
-        pandas.DataFrame: Simulation results with columns:
-            - time: Time in seconds
-            - pressure_psig: Downstream pressure in psig
-            - upstream_pressure_psig: Upstream pressure in psig (constant)
-            - flowrate_lb_hr: Mass flow rate in lb/hr
-            - valve_opening_pct: Valve opening percentage (0-100%)
-            - flow_regime: Flow regime ('None', 'Choked', 'Subsonic', or 'Equilibrium')
-            
-            Additional columns when property_mode='composition':
-            - Z_factor: Compressibility factor at each timestep
-            - k_ratio: Heat capacity ratio at each timestep
-            - molar_mass_g_mol: Molar mass in g/mol at each timestep
-    
-    Notes:
-        The simulation continues until:
-        - Pressures equalize (P_down >= P_up) AND time >= opening_time_s
-        - Maximum simulation time is reached (10× opening_time_s or 3600s for fixed mode)
-        
-        All internal calculations use SI units (Pa, K, m, kg, s).
-        Input and output use engineering units (psig, °F, ft³, lb/hr).
-    
-    Examples:
-        >>> # Basic simulation with manual properties
-        >>> df = run_simulation(
-        ...     P_up_psig=500, P_down_init_psig=0, volume_ft3=100,
-        ...     valve_id_inch=2, opening_time_s=5, temp_f=70,
-        ...     molar_mass=29, z_factor=1.0, k_ratio=1.4
-        ... )
-        
-        >>> # Simulation with composition-based properties
-        >>> df = run_simulation(
-        ...     P_up_psig=2800, P_down_init_psig=800, volume_ft3=62,
-        ...     valve_id_inch=3.7, opening_time_s=30, temp_f=55,
-        ...     molar_mass=16.9, z_factor=0.771, k_ratio=1.9,
-        ...     property_mode='composition',
-        ...     composition="Methane=0.9, Ethane=0.1"
-        ... )
+        DataFrame with columns: time, pressure_psig, upstream_pressure_psig,
+        flowrate_lb_hr, valve_opening_pct, flow_regime.
     """
     # Convert to SI units
     P_up = psig_to_pa(P_up_psig)

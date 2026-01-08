@@ -1,8 +1,4 @@
-"""Configuration constants for simulation and unit conversions.
-
-This module defines all physical constants and conversion factors used
-throughout the application for consistency and maintainability.
-"""
+"""Configuration constants for simulation and unit conversions."""
 
 # Universal Constants
 R_UNIVERSAL = 8.31446  # Universal gas constant (J/mol·K)

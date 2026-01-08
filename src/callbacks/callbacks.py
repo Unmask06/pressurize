@@ -1,8 +1,4 @@
-"""Dash callback functions for interactive application behavior.
-
-This module registers all callback functions that handle user interactions,
-update visualizations, and manage the application state.
-"""
+"""Dash callback functions for interactive application behavior."""
 
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
@@ -14,34 +10,7 @@ from src.core.simulation import run_simulation
 
 
 def register_callbacks(app):
-    """Register all Dash callbacks for the application.
-    
-    This function sets up all interactive behaviors including:
-    - Running simulations and updating outputs
-    - Toggling UI elements (data table, modals)
-    - Dynamic property calculations
-    - Composition editor functionality
-    
-    Args:
-        app (dash.Dash): The Dash application instance.
-    
-    Notes:
-        Callbacks registered:
-        1. update_simulation: Main simulation execution and result updates
-        2. toggle_table: Show/hide data table
-        3. toggle_k_curve_input: Show/hide exponential curve parameter
-        4. toggle_property_mode_inputs: Toggle between manual and composition modes
-        5. update_computed_properties: Auto-calculate properties from composition
-        6. toggle_composition_modal: Open/close composition editor
-        7. populate_modal_from_composition: Parse composition to modal inputs
-        8. update_modal_total: Display sum of composition fractions
-        9. apply_composition_from_modal: Build composition string from modal
-    
-    Examples:
-        >>> app = dash.Dash(__name__)
-        >>> register_callbacks(app)
-        >>> # All callbacks are now active
-    """
+    """Register all Dash callbacks for the application."""
     @app.callback(
         [Output("graph-simulation", "figure"),
          Output("kpi-peak-flow", "children"),
@@ -69,43 +38,7 @@ def register_callbacks(app):
     def update_simulation(n_clicks, p_up, p_down, volume, valve_id, opening_mode, k_curve,
                           opening_time, temp, molar_mass, z_factor, k_ratio, cd,
                           property_mode, composition):
-        """Run simulation and update all outputs.
-        
-        This is the main callback that executes the simulation when the run button
-        is clicked and updates all visual elements with results.
-        
-        Args:
-            n_clicks (int): Number of times run button has been clicked.
-            p_up (float): Upstream pressure in psig.
-            p_down (float): Initial downstream pressure in psig.
-            volume (float): Vessel volume in ft³.
-            valve_id (float): Valve inner diameter in inches.
-            opening_mode (str): Valve opening mode.
-            k_curve (float): Curve parameter for exponential opening.
-            opening_time (float): Valve opening time in seconds.
-            temp (float): Gas temperature in °F.
-            molar_mass (float): Molar mass in g/mol.
-            z_factor (float): Compressibility factor.
-            k_ratio (float): Heat capacity ratio.
-            cd (float): Discharge coefficient.
-            property_mode (str): 'manual' or 'composition'.
-            composition (str): Gas composition string.
-        
-        Returns:
-            tuple: (figure, peak_flow, final_pressure, equil_time, total_mass, table)
-                - figure: Plotly figure with dual-axis plot
-                - peak_flow: Formatted peak flow rate string
-                - final_pressure: Formatted final pressure string
-                - equil_time: Formatted equilibrium time string
-                - total_mass: Formatted total mass string
-                - table: Dash DataTable component with results
-        
-        Notes:
-            - Applies default values if any input is None
-            - Creates dual-axis plot with pressure, flow rate, and valve opening
-            - Calculates KPIs from simulation results
-            - Generates paginated data table
-        """
+        """Run simulation and update all outputs."""
         
         def use_default(value, default):
             return default if value is None else value

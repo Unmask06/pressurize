@@ -1,8 +1,4 @@
-"""Sidebar layout component for simulation parameters.
-
-This module creates the left sidebar interface containing all user-adjustable
-simulation parameters including pressure, vessel, valve, and gas property settings.
-"""
+"""Sidebar layout component for simulation parameters."""
 
 import dash_bootstrap_components as dbc
 from dash import dcc, html
@@ -12,28 +8,7 @@ from src.core.properties import GasState
 
 
 def get_sidebar():
-    """Create the sidebar layout with all simulation parameter inputs.
-    
-    Returns:
-        dash.html.Div: A Div containing the complete sidebar interface with:
-            - Pressure settings (upstream and downstream)
-            - Vessel and valve parameters
-            - Valve opening mode selection
-            - Gas property inputs (manual or composition-based)
-            - Discharge coefficient
-            - Run simulation button
-    
-    Notes:
-        The sidebar includes:
-        - Grouped sections for related parameters
-        - Dynamic visibility (e.g., composition editor only shown in composition mode)
-        - Default values appropriate for typical natural gas applications
-        - Tooltips and helper text for user guidance
-    
-    Examples:
-        >>> sidebar = get_sidebar()
-        >>> # Returns a styled sidebar Div ready to be placed in the layout
-    """
+    """Create the sidebar layout with all simulation parameter inputs."""
     return html.Div([
         html.H4("⚙️ Simulation Parameters", className="sidebar-title"),
         
