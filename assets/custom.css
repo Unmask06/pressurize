@@ -49,3 +49,11 @@ body {
   font-weight: bold;
   margin-top: 20px;
 }
+
+/* Read-only textarea styling */
+.read-only-textarea:disabled {
+  background-color: #e9ecef !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+  color: #495057;
+}
