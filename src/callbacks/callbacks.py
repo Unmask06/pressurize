@@ -326,27 +326,135 @@ def register_callbacks(app):
         return not is_open
     
     @app.callback(
+        Output("available-components-list", "children"),
+        [Input("search-available-comps", "value")],
+        prevent_initial_call=False
+    )
+    def update_available_list(search_term):
+        """Filter available components based on search term."""
+        from src.core.properties import GasState
+        all_components = GasState.get_default_components()
+        
+        # Filter components
+        if search_term:
+            filtered = [c for c in all_components if search_term.lower() in c.lower()]
+        else:
+            filtered = all_components
+            
+        return [
+            dbc.Button(
+                comp,
+                id={"type": "available-comp-btn", "index": comp},
+                color="secondary",
+                outline=True,
+                size="sm",
+                className="mb-1 w-100 text-start available-comp-btn",
+                style={"fontSize": "13px", "fontWeight": "500", "color": "#495057", "borderColor": "#dee2e6"}
+            )
+            for comp in filtered
+        ]
+
+    @app.callback(
+        Output({"type": "selected-comp-input", "index": dash.dependencies.ALL}, "value"),
+        [Input("btn-normalize-composition", "n_clicks")],
+        [State({"type": "selected-comp-input", "index": dash.dependencies.ALL}, "value")],
+        prevent_initial_call=True
+    )
+    def normalize_composition_values(n_clicks, values):
+        """Normalize selected composition values to sum to 1.0."""
+        if not values:
+            return dash.no_update
+        
+        # Treat None as 0
+        cleaned_values = [v if v is not None else 0.0 for v in values]
+        total = sum(cleaned_values)
+        
+        if total == 0:
+            return values
+            
+        normalized = [v/total for v in cleaned_values]
+        
+        # Round to 4 decimals
+        normalized = [round(v, 4) for v in normalized]
+        
+        # Adjust rounding error on the largest element
+        if normalized:
+            current_sum = sum(normalized)
+            diff = 1.0 - current_sum
+            if abs(diff) > 1e-6:
+                max_idx = normalized.index(max(normalized))
+                normalized[max_idx] += diff
+                normalized[max_idx] = round(normalized[max_idx], 4)
+                
+        return normalized
+
+    @app.callback(
         Output("selected-components-list", "children"),
         [Input("btn-open-composition-modal", "n_clicks"),
          Input("composition-preset-selector", "value"),
          Input({"type": "available-comp-btn", "index": dash.dependencies.ALL}, "n_clicks"),
          Input({"type": "remove-comp-btn", "index": dash.dependencies.ALL}, "n_clicks"),
-         Input("btn-clear-composition", "n_clicks")],
+         Input("btn-clear-composition", "n_clicks"),
+         Input("search-selected-comps", "value")],
         [State("selected-components-list", "children"),
          State("input-composition", "value")],
         prevent_initial_call=False
     )
     def update_selected_components(n_open, preset, add_clicks, remove_clicks, clear_clicks, 
-                                   current_children, composition_str):
+                                   search_term, current_children, composition_str):
         """Update the selected components list based on user actions."""
         from dash import ctx, no_update
+
         from src.components.composition_selector import create_selected_component_row
-        
+
+        # Helper to apply search filter
+        def apply_search(children, term):
+            if not children:
+                return []
+            
+            updated_children = []
+            for child in children:
+                # Handle potential Component object vs Dict
+                if hasattr(child, 'to_plotly_json'):
+                    child = child.to_plotly_json()
+                    
+                # Copy child to avoid mutating state directly if possible
+                # But treating as dict is fine
+                try:
+                    # Access structure safely
+                    props = child.get('props', {})
+                    id_prop = props.get('id', {})
+                    comp_name = id_prop.get('index') if isinstance(id_prop, dict) else None
+                    
+                    if not comp_name:
+                         updated_children.append(child)
+                         continue
+                         
+                    # Determine visibility
+                    visible = not term or term.lower() in comp_name.lower()
+                    
+                    # Ensure style dict exists
+                    style = props.get('style', {}).copy()
+                    
+                    if visible:
+                        # Remove display: none if present
+                        if 'display' in style and style['display'] == 'none':
+                            del style['display']
+                    else:
+                        style['display'] = 'none'
+                        
+                    props['style'] = style
+                    child['props'] = props
+                except Exception:
+                    pass
+                updated_children.append(child)
+            return updated_children
+
         # Determine which input triggered the callback
         triggered_id = ctx.triggered_id
         
-        # If modal is opening, populate from current composition
-        if triggered_id == "btn-open-composition-modal":
+        # Initial load or modal open
+        if triggered_id == "btn-open-composition-modal" or (not triggered_id and not current_children):
             comp_dict = {}
             if composition_str:
                 pairs = composition_str.split(",")
@@ -358,14 +466,20 @@ def register_callbacks(app):
                         except ValueError:
                             pass
             
-            # Create rows for non-zero components
             children = []
             for comp, val in comp_dict.items():
                 if val > 0:
                     children.append(create_selected_component_row(comp, val))
-            return children
+            
+            return apply_search(children, search_term)
         
-        # If preset changed, load preset composition
+        # Filter search only
+        if triggered_id == "search-selected-comps":
+            if current_children:
+                return apply_search(current_children, search_term)
+            return []
+        
+        # If preset changed
         if triggered_id == "composition-preset-selector":
             if preset and preset != "custom":
                 preset_comp = GasState.get_preset_composition(preset)
@@ -373,14 +487,18 @@ def register_callbacks(app):
                 for comp, val in preset_comp.items():
                     if val > 0:
                         children.append(create_selected_component_row(comp, val))
-                return children
+                return apply_search(children, search_term)
         
-        # If clear button clicked, clear all
+        # If clear button clicked
         if triggered_id == "btn-clear-composition":
             return []
         
-        # If add button clicked, add component
+        # If add button clicked
         if triggered_id and isinstance(triggered_id, dict) and triggered_id.get("type") == "available-comp-btn":
+            # Check if button was actually clicked (n_clicks > 0)
+            # In pattern matching, we might get triggered with None n_clicks?
+            # dash.ctx.triggered_id gives the specific one.
+            
             comp_name = triggered_id["index"]
             # Check if already in selected
             if current_children:
@@ -392,16 +510,20 @@ def register_callbacks(app):
             # Add new component
             new_row = create_selected_component_row(comp_name, 0.0)
             if current_children is None:
-                return [new_row]
-            return current_children + [new_row]
+                new_list = [new_row]
+            else:
+                new_list = current_children + [new_row]
+            
+            return apply_search(new_list, search_term)
         
-        # If remove button clicked, remove component
+        # If remove button clicked (now the component name button)
         if triggered_id and isinstance(triggered_id, dict) and triggered_id.get("type") == "remove-comp-btn":
             comp_name = triggered_id["index"]
             if current_children:
-                return [child for child in current_children 
-                       if not (child and "props" in child and "id" in child["props"] 
-                              and child["props"]["id"]["index"] == comp_name)]
+                filtered = [child for child in current_children 
+                           if not (child and "props" in child and "id" in child["props"] 
+                                  and child["props"]["id"]["index"] == comp_name)]
+                return apply_search(filtered, search_term)
         
         return no_update
     
