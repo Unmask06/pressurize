@@ -85,12 +85,14 @@ def get_sidebar():
             ]),
             dbc.Textarea(
                 id="input-composition",
-                placeholder="e.g., Methane=0.85, Ethane=0.10, CO2=0.05",
+                placeholder="Click 'Edit' to configure gas composition...",
                 value=GasState.create_default_composition(),
-                style={"minHeight": "75px", "fontSize": "13px"}
+                style={"minHeight": "75px", "fontSize": "13px"},
+                disabled=True,  # Make read-only
+                className="read-only-textarea"
             ),
             html.Small(
-                "Supported: " + ", ".join(GasState.get_default_components()),
+                "Supported: " + ", ".join(GasState.get_default_components()[:5]) + " and 15 more...",
                 style={"color": "#95a5a6", "fontSize": "10px"}
             )
         ], id="container-composition", className="input-group-custom", style={'display': 'none'}),

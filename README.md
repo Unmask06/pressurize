@@ -8,10 +8,12 @@ A Python Dash web application that simulates the dynamic pressurization of a dow
 
 - **Real Gas Law Calculations**: Uses PV = ZnRT for accurate pressure calculations
 - **Dual Flow Regimes**: Automatically handles both choked (sonic) and subsonic flow conditions
-- **Linear Valve Opening**: Simulates realistic valve opening behavior over time
+- **Multiple Valve Opening Modes**: Linear, exponential, fixed, and quick-opening profiles
+- **Composition-Based Properties**: Define gas mixtures with 20+ components and automatically calculate Z, k, and M
 - **Interactive Dashboard**: Modern UI with real-time parameter adjustment
 - **Dual-Axis Visualization**: Simultaneous pressure and flow rate plots
 - **KPI Cards**: Quick view of peak flow, final pressure, equilibrium time, and total mass
+- **Preset Gas Compositions**: Quick selection of common gas mixtures (natural gas, pure methane, rich gas, etc.)
 
 ## Physics Background
 
@@ -74,14 +76,58 @@ $$\dot{m} = C_d \cdot A \cdot P_{up} \sqrt{\frac{2M}{ZRT} \cdot \frac{k}{k-1} \l
    - **Initial Downstream Pressure (psig)**: Starting vessel pressure
    - **Vessel Volume (ft³)**: Volume of the downstream vessel
    - **Valve ID (inches)**: Inner diameter of the valve
+   - **Valve Opening Mode**: Linear, exponential, fixed, or quick-opening
    - **Valve Opening Time (s)**: Time for valve to fully open
+   - **Property Mode**: Choose between manual entry or composition-based calculation
+   - **Gas Composition**: For composition mode, select components and define mole fractions
    - **Temperature (°F)**: Gas temperature
-   - **Molar Mass (kg/mol)**: Molecular weight of the gas (e.g., 0.029 for air)
-   - **Z-Factor**: Compressibility factor (1.0 for ideal gas)
-   - **k (Gamma)**: Heat capacity ratio (1.4 for air)
+   - **Molar Mass (kg/mol)**: Molecular weight (manual mode) or calculated from composition
+   - **Z-Factor**: Compressibility factor (manual mode) or calculated from composition
+   - **k (Gamma)**: Heat capacity ratio (manual mode) or calculated from composition
    - **Discharge Coefficient (Cd)**: Valve flow coefficient
 
 4. Click "Run Simulation" to execute
+
+## Gas Composition Feature
+
+The simulator supports two property input modes:
+
+### Manual Mode
+Directly enter Z-factor, k-ratio, and molar mass values.
+
+### Composition Mode (Enhanced)
+Define your gas mixture using 20 supported components:
+
+**Hydrocarbons (C1-C8):**
+- Methane, Ethane, Propane
+- n-Butane, i-Butane
+- n-Pentane, i-Pentane
+- n-Hexane, n-Heptane, n-Octane
+
+**Common Gases:**
+- Nitrogen, Oxygen, Hydrogen, Carbon monoxide, Argon, Helium
+
+**Acid Gases & Others:**
+- Carbon dioxide, Hydrogen sulfide, Water, Ammonia
+
+**Preset Compositions:**
+- **Natural Gas (Pipeline)**: Typical pipeline natural gas composition
+- **Pure Methane**: 100% methane for baseline comparisons
+- **Rich Gas**: High C2-C5 content for NGL-rich streams
+- **Sour Gas**: Contains H2S for acid gas applications
+- **Lean Gas**: Minimal C2+ content
+
+**Using the Composition Editor:**
+1. Select "Composition (Derived)" as the property mode
+2. Click the "✏️ Edit" button to open the composition editor
+3. Choose a preset or build a custom mixture:
+   - Click components in the "Available" column to add them
+   - Enter mole fractions for selected components
+   - Remove unwanted components with the × button
+4. The total will show with color-coded validation
+5. Click "Apply" to use the composition
+
+Properties (Z, k, M) are automatically calculated using the Peng-Robinson equation of state.
 
 ## Default Parameters
 

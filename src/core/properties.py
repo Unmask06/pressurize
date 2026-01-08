@@ -4,17 +4,28 @@ from dataclasses import dataclass
 
 from thermo import PRMIX, CEOSGas, ChemicalConstantsPackage
 
-# Default components: C1 through C5 + CO2, H2S, H2O, N2
+# Top 20 components for natural gas and industrial applications
 DEFAULT_COMPONENTS = [
-    "Methane",      # C1
-    "Ethane",       # C2
-    "Propane",      # C3
-    "n-Butane",     # C4
-    "n-Pentane",    # C5
-    "CO2",          # Carbon Dioxide
-    "H2S",          # Hydrogen Sulfide
-    "Water",        # H2O
-    "Nitrogen",     # N2
+    "Methane",          # C1
+    "Ethane",           # C2
+    "Propane",          # C3
+    "n-Butane",         # n-C4
+    "i-Butane",         # i-C4
+    "n-Pentane",        # n-C5
+    "i-Pentane",        # i-C5
+    "n-Hexane",         # n-C6
+    "n-Heptane",        # n-C7
+    "n-Octane",         # n-C8
+    "Nitrogen",         # N2
+    "Carbon dioxide",   # CO2
+    "Hydrogen sulfide", # H2S
+    "Water",            # H2O
+    "Oxygen",           # O2
+    "Hydrogen",         # H2
+    "Carbon monoxide",  # CO
+    "Argon",            # Ar
+    "Helium",           # He
+    "Ammonia",          # NH3
 ]
 
 
@@ -145,7 +156,60 @@ class GasState:
     @staticmethod
     def create_default_composition() -> str:
         """Create a default composition string for typical natural gas."""
-        return "Methane=0.9387, Ethane=0.0121, Propane=0.0004, n-Butane=0.00, n-Pentane=0.00, CO2=0.0054, H2S=0.00, Water=0.00, Nitrogen=0.0433"
+        return "Methane=0.9387, Ethane=0.0121, Propane=0.0004, n-Butane=0.00, n-Pentane=0.00, Carbon dioxide=0.0054, Hydrogen sulfide=0.00, Water=0.00, Nitrogen=0.0433"
+    
+    @staticmethod
+    def get_preset_composition(preset_name: str) -> dict[str, float]:
+        """Get a preset composition as a dictionary of component:fraction pairs.
+        
+        Args:
+            preset_name: Name of the preset ('natural_gas', 'pure_methane', 'rich_gas', 'sour_gas', 'lean_gas').
+        
+        Returns:
+            Dictionary mapping component names to mole fractions.
+        """
+        presets = {
+            'natural_gas': {
+                'Methane': 0.9387,
+                'Ethane': 0.0121,
+                'Propane': 0.0004,
+                'n-Butane': 0.0,
+                'n-Pentane': 0.0,
+                'Carbon dioxide': 0.0054,
+                'Hydrogen sulfide': 0.0,
+                'Water': 0.0,
+                'Nitrogen': 0.0433
+            },
+            'pure_methane': {
+                'Methane': 1.0,
+            },
+            'rich_gas': {
+                'Methane': 0.75,
+                'Ethane': 0.12,
+                'Propane': 0.08,
+                'n-Butane': 0.03,
+                'n-Pentane': 0.01,
+                'Carbon dioxide': 0.005,
+                'Nitrogen': 0.005
+            },
+            'sour_gas': {
+                'Methane': 0.85,
+                'Ethane': 0.05,
+                'Propane': 0.02,
+                'n-Butane': 0.01,
+                'Carbon dioxide': 0.08,
+                'Hydrogen sulfide': 0.04,
+            },
+            'lean_gas': {
+                'Methane': 0.96,
+                'Ethane': 0.02,
+                'Propane': 0.005,
+                'Carbon dioxide': 0.005,
+                'Nitrogen': 0.01
+            }
+        }
+        
+        return presets.get(preset_name, presets['natural_gas'])
 
 
 def get_gas_properties_at_conditions(
