@@ -83,9 +83,7 @@ def register_callbacks(app):
                 x=df['time'],
                 y=df['pressure_psig'],
                 name="Downstream Pressure",
-                line=dict(color="#3498db", width=3),
-                fill='tozeroy',
-                fillcolor='rgba(52, 152, 219, 0.1)'
+                line=dict(color="#3498db", width=3)
             ),
             secondary_y=False
         )
@@ -107,7 +105,9 @@ def register_callbacks(app):
                 x=df['time'],
                 y=df['flowrate_lb_hr'],
                 name="Flow Rate",
-                line=dict(color="#e74c3c", width=3, dash='dot')
+                line=dict(color="#e74c3c", width=3, dash='dot'),
+                fill='tozeroy',
+                fillcolor='rgba(231, 76, 60, 0.1)'
             ),
             secondary_y=True
         )

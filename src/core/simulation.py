@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from config.settings import FT3_TO_M3, INCH_TO_M, KG_S_TO_LB_HR
+from config.settings import FT3_TO_M3, INCH_TO_M, KG_S_TO_LB_HR, TIME_STEP
 from src.core.physics import (
     calculate_critical_pressure_ratio,
     calculate_dp_dt,
@@ -13,7 +13,7 @@ from src.utils.converters import fahrenheit_to_kelvin, pa_to_psig, psig_to_pa
 
 def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch, 
                    opening_time_s, temp_f, molar_mass, z_factor, k_ratio,
-                   discharge_coeff=0.65, opening_mode='linear', k_curve=4.0, dt=0.2,
+                   discharge_coeff=0.65, opening_mode='linear', k_curve=4.0, dt=TIME_STEP,
                    property_mode='manual', composition=None):
     """
     Run the valve pressurization simulation.

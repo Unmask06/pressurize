@@ -3,6 +3,9 @@
 R_UNIVERSAL = 8.31446  # Universal gas constant (J/mol·K)
 ATM_PSI = 14.696  # Atmospheric pressure in psi
 
+# Simulation Settings
+TIME_STEP = 0.05  # Time step for simulation (seconds)
+
 # Unit Conversion Factors
 PSI_TO_PA = 6894.76  # psi to Pascal
 PA_TO_PSI = 1 / PSI_TO_PA
