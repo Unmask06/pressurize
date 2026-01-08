@@ -7,12 +7,14 @@ from src.core.physics import (
     calculate_dp_dt,
     calculate_mass_flow_rate,
 )
+from src.core.properties import GasState
 from src.utils.converters import fahrenheit_to_kelvin, pa_to_psig, psig_to_pa
 
 
 def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch, 
                    opening_time_s, temp_f, molar_mass, z_factor, k_ratio,
-                   discharge_coeff=0.65, opening_mode='linear', k_curve=4.0, dt=0.2):
+                   discharge_coeff=0.65, opening_mode='linear', k_curve=4.0, dt=0.2,
+                   property_mode='manual', composition=None):
     """
     Run the valve pressurization simulation.
     
@@ -20,6 +22,10 @@ def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch,
     - 'linear': Valve opens linearly over opening_time_s
     - 'exponential': Valve opens exponentially (convex) over opening_time_s
     - 'fixed': Valve is fully open instantly (ignores opening_time_s)
+    
+    Property modes:
+    - 'manual': Use provided molar_mass, z_factor, and k_ratio values
+    - 'composition': Derive properties dynamically from gas composition using thermo
     """
     # Convert to SI units
     P_up = psig_to_pa(P_up_psig)
@@ -28,10 +34,22 @@ def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch,
     valve_radius = (valve_id_inch * INCH_TO_M) / 2
     A_max = np.pi * valve_radius ** 2
     T = fahrenheit_to_kelvin(temp_f)
-    M = molar_mass / 1000.0  # Convert g/mol to kg/mol
-    Z = z_factor
-    k = k_ratio
     Cd = discharge_coeff
+    
+    # Initialize gas properties based on mode
+    if property_mode == 'composition' and composition:
+        gas_state = GasState(composition)
+        # Get initial properties at downstream pressure
+        props = gas_state.get_properties(P_down, T)
+        M = props.M / 1000.0  # Convert g/mol to kg/mol
+        Z = props.Z
+        k = props.k
+    else:
+        # Manual mode - use provided values
+        gas_state = None
+        M = molar_mass / 1000.0  # Convert g/mol to kg/mol
+        Z = z_factor
+        k = k_ratio
     
     # Initialize results storage
     # For fixed mode, valve starts at 100%; otherwise starts at 0
@@ -44,6 +62,12 @@ def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch,
         'valve_opening_pct': [initial_opening],
         'flow_regime': ['None']
     }
+    
+    # Add computed property columns if in composition mode
+    if property_mode == 'composition':
+        results['Z_factor'] = [round(Z, 4)]
+        results['k_ratio'] = [round(k, 4)]
+        results['molar_mass_g_mol'] = [round(M * 1000, 2)]
     
     t = 0
     
@@ -88,6 +112,13 @@ def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch,
             
         A = A_max * opening_fraction
         
+        # Update gas properties dynamically in composition mode
+        if gas_state is not None:
+            props = gas_state.get_properties(P_down, T)
+            M = props.M / 1000.0  # Convert g/mol to kg/mol
+            Z = props.Z
+            k = props.k
+        
         # Determine flow regime
         if P_down >= P_up:
             massflow_kgs = 0
@@ -122,6 +153,12 @@ def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch,
         results['flowrate_lb_hr'].append(round(flowrate_lb_hr, 2))
         results['valve_opening_pct'].append(round(opening_fraction * 100, 1))
         results['flow_regime'].append(regime)
+        
+        # Store computed properties if in composition mode
+        if property_mode == 'composition':
+            results['Z_factor'].append(round(Z, 4))
+            results['k_ratio'].append(round(k, 4))
+            results['molar_mass_g_mol'].append(round(M * 1000, 2))
         
         # Stop if pressures are equalized AND time has passed the opening duration
         # This ensures the valve curve is fully plotted even if equilibrium is reached early

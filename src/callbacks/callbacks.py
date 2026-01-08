@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 from dash import Input, Output, State, dash_table
 from plotly.subplots import make_subplots
 
+from src.core.properties import GasState
 from src.core.simulation import run_simulation
 
 
@@ -26,11 +27,14 @@ def register_callbacks(app):
          State("input-molar-mass", "value"),
          State("input-z-factor", "value"),
          State("input-k-ratio", "value"),
-         State("input-cd", "value")],
+         State("input-cd", "value"),
+         State("input-property-mode", "value"),
+         State("input-composition", "value")],
         prevent_initial_call=False
     )
     def update_simulation(n_clicks, p_up, p_down, volume, valve_id, opening_mode, k_curve,
-                          opening_time, temp, molar_mass, z_factor, k_ratio, cd):
+                          opening_time, temp, molar_mass, z_factor, k_ratio, cd,
+                          property_mode, composition):
         """Run simulation and update all outputs."""
         
         def use_default(value, default):
@@ -49,6 +53,8 @@ def register_callbacks(app):
         z_factor = use_default(z_factor, 0.771)
         k_ratio = use_default(k_ratio, 1.9)
         cd = use_default(cd, 0.9)
+        property_mode = use_default(property_mode, 'manual')
+        composition = use_default(composition, GasState.create_default_composition())
         
         # Run simulation
         df = run_simulation(
@@ -63,7 +69,9 @@ def register_callbacks(app):
             k_ratio=k_ratio,
             discharge_coeff=cd,
             opening_mode=opening_mode,
-            k_curve=k_curve
+            k_curve=k_curve,
+            property_mode=property_mode,
+            composition=composition
         )
         
         # Create dual-axis figure
@@ -183,7 +191,13 @@ def register_callbacks(app):
         # Calculate KPIs
         peak_flow = df['flowrate_lb_hr'].max()
         final_pressure = df['pressure_psig'].iloc[-1]
-        equil_time = df['time'].iloc[-1]
+        
+        # Find equilibrium time - first time when downstream pressure >= upstream pressure
+        equilibrium_mask = df['pressure_psig'] >= df['upstream_pressure_psig']
+        if equilibrium_mask.any():
+            equil_time = df.loc[equilibrium_mask, 'time'].iloc[0]
+        else:
+            equil_time = df['time'].iloc[-1]  # Fallback to total time if equilibrium not reached
         
         # Calculate total mass (integrate flow rate over time)
         # Flow rate is in lb/hr, time in seconds
@@ -238,4 +252,137 @@ def register_callbacks(app):
         if opening_mode == 'exponential' or opening_mode == 'quick_opening':
             return {'display': 'block'}
         return {'display': 'none'}
+
+    @app.callback(
+        [Output("container-composition", "style"),
+         Output("input-molar-mass", "disabled"),
+         Output("input-z-factor", "disabled"),
+         Output("input-k-ratio", "disabled")],
+        [Input("input-property-mode", "value")]
+    )
+    def toggle_property_mode_inputs(property_mode):
+        """Toggle composition visibility and make manual props read-only in composition mode."""
+        if property_mode == 'composition':
+            return (
+                {'display': 'block'},    # Show composition
+                True,                    # Disable molar mass
+                True,                    # Disable z-factor
+                True                     # Disable k-ratio
+            )
+        else:
+            return (
+                {'display': 'none'},     # Hide composition
+                False,                   # Enable molar mass
+                False,                   # Enable z-factor
+                False                    # Enable k-ratio
+            )
+    
+    @app.callback(
+        [Output("input-molar-mass", "value"),
+         Output("input-z-factor", "value"),
+         Output("input-k-ratio", "value")],
+        [Input("input-property-mode", "value"),
+         Input("input-composition", "value"),
+         Input("input-temp", "value"),
+         Input("input-p-downstream", "value")],
+        prevent_initial_call=True
+    )
+    def update_computed_properties(property_mode, composition, temp, p_down):
+        """Compute and update property fields when in composition mode."""
+        if property_mode == 'composition' and composition:
+            try:
+                # Convert units
+                from src.utils.converters import fahrenheit_to_kelvin, psig_to_pa
+                T = fahrenheit_to_kelvin(temp if temp is not None else 55)
+                P = psig_to_pa(p_down if p_down is not None else 800)
+                
+                # Get properties at downstream pressure and temperature
+                gas = GasState(composition)
+                props = gas.get_properties(P, T)
+                
+                return round(props.M, 2), round(props.Z, 4), round(props.k, 4)
+            except Exception:
+                # Return defaults if calculation fails
+                return 16.9, 0.771, 1.9
+        else:
+            # In manual mode, don't update (return current values)
+            from dash import no_update
+            return no_update, no_update, no_update
+
+    @app.callback(
+        Output("modal-composition-editor", "is_open"),
+        [Input("btn-open-composition-modal", "n_clicks"),
+         Input("btn-apply-composition", "n_clicks"),
+         Input("btn-cancel-composition", "n_clicks")],
+        [State("modal-composition-editor", "is_open")],
+        prevent_initial_call=True
+    )
+    def toggle_composition_modal(n_open, n_apply, n_cancel, is_open):
+        """Toggle the composition editor modal."""
+        return not is_open
+    
+    @app.callback(
+        [Output(f"modal-comp-{comp.lower().replace('-', '')}", "value") 
+         for comp in GasState.get_default_components()],
+        [Input("btn-open-composition-modal", "n_clicks")],
+        [State("input-composition", "value")],
+        prevent_initial_call=True
+    )
+    def populate_modal_from_composition(n_clicks, composition_str):
+        """Parse composition string and populate modal inputs."""
+        # Default values
+        default_comp = GasState.create_default_composition()
+        components = GasState.get_default_components()
+        values = [0.0] * len(components)
+        
+        # Parse the composition string
+        if composition_str:
+            pairs = composition_str.split(",")
+            comp_dict = {}
+            for pair in pairs:
+                if "=" in pair:
+                    name, val = pair.split("=", 1)
+                    try:
+                        comp_dict[name.strip()] = float(val.strip())
+                    except ValueError:
+                        pass
+            
+            # Map to modal inputs
+            for i, comp in enumerate(components):
+                values[i] = comp_dict.get(comp, 0.0)
+        
+        return values
+    
+    @app.callback(
+        Output("modal-comp-total", "children"),
+        [Input(f"modal-comp-{comp.lower().replace('-', '')}", "value") 
+         for comp in GasState.get_default_components()]
+    )
+    def update_modal_total(*values):
+        """Update the total sum display in modal."""
+        total = sum(v if v is not None else 0 for v in values)
+        return f"{total:.4f}"
+    
+    @app.callback(
+        Output("input-composition", "value"),
+        [Input("btn-apply-composition", "n_clicks")],
+        [State(f"modal-comp-{comp.lower().replace('-', '')}", "value") 
+         for comp in GasState.get_default_components()],
+        prevent_initial_call=True
+    )
+    def apply_composition_from_modal(n_clicks, *values):
+        """Build composition string from modal inputs and update textarea."""
+        from dash import no_update
+        
+        if n_clicks is None:
+            return no_update
+        
+        components = GasState.get_default_components()
+        comp_parts = []
+        
+        for comp, val in zip(components, values):
+            val = val if val is not None else 0.0
+            comp_parts.append(f"{comp}={val:.4f}")
+        
+        return ", ".join(comp_parts)
 
