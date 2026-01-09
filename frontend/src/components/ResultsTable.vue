@@ -1,0 +1,59 @@
+<template>
+  <div class="modal-overlay" @click.self="$emit('close')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Simulation Data Results</h3>
+        <button class="close-btn" @click="$emit('close')">×</button>
+      </div>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Time (s)</th>
+              <th>P Up (psig)</th>
+              <th>P Down (psig)</th>
+              <th>Flow (lb/hr)</th>
+              <th>Valve (%)</th>
+              <th>Regime</th>
+              <th>Z</th>
+              <th>k</th>
+              <th>M (g/mol)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, idx) in data" :key="idx">
+              <td>{{ row.time.toFixed(2) }}</td>
+              <td>{{ row.upstream_pressure_psig.toFixed(1) }}</td>
+              <td>{{ row.pressure_psig.toFixed(1) }}</td>
+              <td>{{ row.flowrate_lb_hr.toFixed(1) }}</td>
+              <td>{{ row.valve_opening_pct.toFixed(1) }}</td>
+              <td>{{ row.regime }}</td>
+              <td>{{ row.z_factor.toFixed(4) }}</td>
+              <td>{{ row.k_ratio.toFixed(4) }}</td>
+              <td>{{ row.molar_mass.toFixed(2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" @click="$emit('close')">Close</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import '../styles/ResultsTable.css';
+
+const props = defineProps<{
+  data: any[];
+}>();
+
+const emit = defineEmits(['close']);
+</script>
+
+<style scoped>
+/* Additional scoped styles if needed */
+</style>

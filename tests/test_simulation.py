@@ -6,7 +6,7 @@ all physics calculations over time.
 
 import pytest
 import pandas as pd
-from src.core.simulation import run_simulation
+from backend.core.simulation import run_simulation
 
 
 def _find_time_index(df, target_time):

@@ -3,14 +3,14 @@
 import numpy as np
 import pandas as pd
 
-from config.settings import FT3_TO_M3, INCH_TO_M, KG_S_TO_LB_HR, TIME_STEP
-from src.core.physics import (
+from backend.config.settings import FT3_TO_M3, INCH_TO_M, KG_S_TO_LB_HR, TIME_STEP
+from backend.core.physics import (
     calculate_critical_pressure_ratio,
     calculate_dp_dt,
     calculate_mass_flow_rate,
 )
-from src.core.properties import GasState
-from src.utils.converters import fahrenheit_to_kelvin, pa_to_psig, psig_to_pa
+from backend.core.properties import GasState
+from backend.utils.converters import fahrenheit_to_kelvin, psig_to_pa, pa_to_psig
 
 
 def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch, 
@@ -76,14 +76,11 @@ def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch,
         'upstream_pressure_psig': [P_up_psig],
         'flowrate_lb_hr': [0],
         'valve_opening_pct': [initial_opening],
-        'flow_regime': ['None']
+        'flow_regime': ['None'],
+        'z_factor': [round(Z, 4)],
+        'k_ratio': [round(k, 4)],
+        'molar_mass': [round(M * 1000, 2)]
     }
-    
-    # Add computed property columns if in composition mode
-    if property_mode == 'composition':
-        results['Z_factor'] = [round(Z, 4)]
-        results['k_ratio'] = [round(k, 4)]
-        results['molar_mass_g_mol'] = [round(M * 1000, 2)]
     
     t = 0
     
@@ -171,10 +168,9 @@ def run_simulation(P_up_psig, P_down_init_psig, volume_ft3, valve_id_inch,
         results['flow_regime'].append(regime)
         
         # Store computed properties if in composition mode
-        if property_mode == 'composition':
-            results['Z_factor'].append(round(Z, 4))
-            results['k_ratio'].append(round(k, 4))
-            results['molar_mass_g_mol'].append(round(M * 1000, 2))
+        results['z_factor'].append(round(Z, 4))
+        results['k_ratio'].append(round(k, 4))
+        results['molar_mass'].append(round(M * 1000, 2))
         
         # Stop if pressures are equalized AND time has passed the opening duration
         # This ensures the valve curve is fully plotted even if equilibrium is reached early

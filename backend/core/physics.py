@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from config.settings import R_UNIVERSAL
+from backend.config.settings import R_UNIVERSAL
 
 
 def calculate_critical_pressure_ratio(k):

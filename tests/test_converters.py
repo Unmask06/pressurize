@@ -4,7 +4,7 @@ This module tests temperature and pressure conversion functions.
 """
 
 import pytest
-from src.utils.converters import (
+from backend.utils.converters import (
     fahrenheit_to_kelvin,
     psig_to_pa,
     pa_to_psig,

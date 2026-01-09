@@ -5,7 +5,7 @@ loaded and used with the thermo library for property calculations.
 """
 
 import pytest
-from src.core.properties import GasState, DEFAULT_COMPONENTS
+from backend.core.properties import GasState, DEFAULT_COMPONENTS
 
 
 class TestComponentCompatibility:
@@ -31,7 +31,7 @@ class TestComponentCompatibility:
         
         assert len(gas.components) == 1
         assert gas.components[0] == component
-        assert pytest.approx(gas.zs[0], abs=0.001) == 1.0
+        assert pytest.approx(gas.molar_fraction[0], abs=0.001) == 1.0
     
     @pytest.mark.parametrize("component", DEFAULT_COMPONENTS)
     def test_component_property_calculation(self, component):
@@ -108,7 +108,7 @@ class TestComponentCompatibility:
             assert len(gas.components) == 2
             assert comp1 in gas.components
             assert comp2 in gas.components
-            assert pytest.approx(sum(gas.zs), abs=0.001) == 1.0
+            assert pytest.approx(sum(gas.molar_fraction), abs=0.001) == 1.0
     
     def test_complex_mixture_with_10_components(self):
         """Test a complex mixture with 10 different components."""
@@ -122,7 +122,7 @@ class TestComponentCompatibility:
         gas = GasState(composition)
         
         assert len(gas.components) == 10
-        assert pytest.approx(sum(gas.zs), abs=0.001) == 1.0
+        assert pytest.approx(sum(gas.molar_fraction), abs=0.001) == 1.0
         
         # Should be able to calculate properties
         P = 5e6  # 5 MPa
@@ -143,7 +143,7 @@ class TestComponentCompatibility:
         gas = GasState(composition)
         
         assert len(gas.components) == 20
-        assert pytest.approx(sum(gas.zs), abs=0.001) == 1.0
+        assert pytest.approx(sum(gas.molar_fraction), abs=0.001) == 1.0
         
         # Calculate properties at standard conditions
         P = 101325  # Pa

@@ -1,0 +1,65 @@
+.kpi-card {
+    background: var(--surface-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--border-color);
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.kpi-icon {
+    font-size: 2rem;
+    background: var(--surface-hover);
+    padding: 0.75rem;
+    border-radius: 50%;
+    line-height: 1;
+}
+
+.kpi-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.kpi-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.kpi-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.kpi-unit {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+/* Specific accent colors */
+.kpi-card.flow .kpi-value {
+    color: var(--color-danger);
+}
+
+.kpi-card.pressure .kpi-value {
+    color: var(--color-primary);
+}
+
+.kpi-card.time .kpi-value {
+    color: var(--color-success);
+}
+
+.kpi-card.mass .kpi-value {
+    color: var(--color-purple);
+}
