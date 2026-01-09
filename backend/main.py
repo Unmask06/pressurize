@@ -6,7 +6,7 @@ from backend.api import routes
 app = FastAPI(title="Pressurize API", version="0.1.0")
 
 # Allow CORS for Vue frontend (assuming runs on port 5173 by default)
-origins = [
+origins: list[str] = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
@@ -21,6 +21,7 @@ app.add_middleware(
 
 app.include_router(routes.router, prefix="/api")
 
+
 @app.get("/")
-def read_root():
+def read_root() -> dict[str, str]:
     return {"message": "Pressurize API is running"}

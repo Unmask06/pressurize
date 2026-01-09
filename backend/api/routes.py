@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.post("/simulate", response_model=SimulationResponse)
-async def run_simulation_endpoint(req: SimulationRequest):
+async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
     """Execute a gas pressurization simulation and return results with KPIs."""
     try:
         df = run_simulation(
@@ -72,13 +72,13 @@ async def run_simulation_endpoint(req: SimulationRequest):
 
 
 @router.get("/components")
-async def get_components():
+async def get_components() -> list[str]:
     """Get list of available gas components for composition modeling."""
     return GasState.get_default_components()
 
 
 @router.get("/presets")
-async def get_presets():
+async def get_presets() -> list[dict[str, str]]:
     """Get list of predefined gas composition presets."""
     return [
         {"id": "natural_gas", "name": "Natural Gas (Pipeline)"},
@@ -90,14 +90,14 @@ async def get_presets():
 
 
 @router.get("/presets/{preset_id}")
-async def get_preset_details(preset_id: str):
+async def get_preset_details(preset_id: str) -> dict[str, float]:
     """Get detailed composition data for a specific preset."""
     comp = GasState.get_preset_composition(preset_id)
     return comp
 
 
 @router.post("/properties", response_model=PropertiesResponse)
-async def calculate_properties(req: PropertiesRequest):
+async def calculate_properties(req: PropertiesRequest) -> PropertiesResponse:
     """Calculate gas properties (Z, k, M) from composition and conditions."""
     try:
         # Convert units for the internal function (expects Pa and Kelvin)
