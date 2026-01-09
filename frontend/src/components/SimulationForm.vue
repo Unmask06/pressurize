@@ -4,28 +4,28 @@
     
     <div class="form-group">
       <label>Upstream Pressure (psig)</label>
-      <input type="number" v-model.number="form.p_up_psig" step="10" />
+      <input type="number" v-model.number="form.p_up_psig" />
     </div>
 
     <div class="form-group">
       <label>Downstream Pressure (psig)</label>
-      <input type="number" v-model.number="form.p_down_init_psig" step="10" />
+      <input type="number" v-model.number="form.p_down_init_psig" />
     </div>
 
     <div class="row">
       <div class="form-group half">
         <label>Volume (ft³)</label>
-        <input type="number" v-model.number="form.volume_ft3" step="1" />
+        <input type="number" v-model.number="form.volume_ft3" />
       </div>
       <div class="form-group half">
         <label>Valve ID (in)</label>
-        <input type="number" v-model.number="form.valve_id_inch" step="0.1" />
+        <input type="number" v-model.number="form.valve_id_inch" />
       </div>
     </div>
 
     <div class="form-group">
       <label>Opening Time (s)</label>
-      <input type="number" v-model.number="form.opening_time_s" step="1" />
+      <input type="number" v-model.number="form.opening_time_s" />
     </div>
 
     <div class="row">
@@ -140,7 +140,6 @@ const props = defineProps<{
 const emit = defineEmits(['run', 'edit-composition', 'view-results']);
 
 function viewResults() {
-  console.log("Emitting view-results event");
   emit('view-results');
 }
 

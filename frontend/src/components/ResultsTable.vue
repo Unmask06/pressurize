@@ -23,15 +23,15 @@
           </thead>
           <tbody>
             <tr v-for="(row, idx) in data" :key="idx">
-              <td>{{ row.time.toFixed(2) }}</td>
-              <td>{{ row.upstream_pressure_psig.toFixed(1) }}</td>
-              <td>{{ row.pressure_psig.toFixed(1) }}</td>
-              <td>{{ row.flowrate_lb_hr.toFixed(1) }}</td>
-              <td>{{ row.valve_opening_pct.toFixed(1) }}</td>
-              <td>{{ row.regime }}</td>
-              <td>{{ row.z_factor.toFixed(4) }}</td>
-              <td>{{ row.k_ratio.toFixed(4) }}</td>
-              <td>{{ row.molar_mass.toFixed(2) }}</td>
+              <td>{{ row.time?.toFixed(2) ?? '-' }}</td>
+              <td>{{ row.upstream_pressure_psig?.toFixed(1) ?? '-' }}</td>
+              <td>{{ row.pressure_psig?.toFixed(1) ?? '-' }}</td>
+              <td>{{ row.flowrate_lb_hr?.toFixed(1) ?? '-' }}</td>
+              <td>{{ row.valve_opening_pct?.toFixed(1) ?? '-' }}</td>
+              <td>{{ row.flow_regime ?? '-' }}</td>
+              <td>{{ row.z_factor?.toFixed(4) ?? '-' }}</td>
+              <td>{{ row.k_ratio?.toFixed(4) ?? '-' }}</td>
+              <td>{{ row.molar_mass?.toFixed(2) ?? '-' }}</td>
             </tr>
           </tbody>
         </table>
@@ -45,7 +45,6 @@
 </template>
 
 <script setup lang="ts">
-import '../styles/ResultsTable.css';
 
 const props = defineProps<{
   data: any[];
@@ -54,6 +53,4 @@ const props = defineProps<{
 const emit = defineEmits(['close']);
 </script>
 
-<style scoped>
-/* Additional scoped styles if needed */
-</style>
+<style scoped src="../styles/ResultsTable.css"></style>

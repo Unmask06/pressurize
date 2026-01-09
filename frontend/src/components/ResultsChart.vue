@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { use } from 'echarts/core';
+import { use, graphic } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
 import { LineChart } from 'echarts/charts';
 import {
@@ -44,50 +44,66 @@ const option = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      axisPointer: { type: 'cross' }
+      axisPointer: { type: 'cross', label: { backgroundColor: '#6a7985' } },
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#eee',
+      borderWidth: 1,
+      textStyle: { color: '#333' }
     },
     grid: {
-      left: '60',
-      right: '140', // Room for two right-side Y axes
-      top: '60',    // Room for legend
-      bottom: '80'  // Room for X-axis and dataZoom slider
+      left: '3%',
+      right: '180', // More room for labels
+      bottom: '60',
+      containLabel: true
     },
     legend: {
-      top: '5',
-      data: ['Downstream Pressure', 'Upstream Pressure', 'Flow Rate', 'Valve Opening']
+      data: ['Downstream Pressure', 'Upstream Pressure', 'Flow Rate', 'Valve Opening'],
+      top: 0,
+      textStyle: { color: '#666' }
     },
     xAxis: {
       type: 'category',
+      boundaryGap: false,
       data: times,
       name: 'Time (s)',
-      boundaryGap: false
+      nameLocation: 'middle',
+      nameGap: 30,
+      axisLine: { lineStyle: { color: '#ccc' } },
+      axisLabel: { color: '#666' }
     },
     yAxis: [
       {
         type: 'value',
         name: 'Pressure (psig)',
         position: 'left',
-        axisLine: { show: true, lineStyle: { color: '#3498db' } },
-        axisLabel: { color: '#3498db' }
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { color: '#007aff', fontWeight: 'bold' },
+        splitLine: { 
+          show: true, 
+          lineStyle: { type: 'dashed', opacity: 0.5 } 
+        }
       },
       {
         type: 'value',
-        name: 'Flow Rate (lb/hr)',
+        name: 'Flow (lb/hr)',
         position: 'right',
         offset: 0,
-        axisLine: { show: true, lineStyle: { color: '#e74c3c' } },
-        axisLabel: { color: '#e74c3c' },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { color: '#ff9500', formatter: '{value}' },
         splitLine: { show: false }
       },
       {
         type: 'value',
-        name: 'Valve (%)',
+        name: 'Opening (%)',
         position: 'right',
-        offset: 70, // Shift 3rd axis
+        offset: 80,
         min: 0,
-        max: 105,
-        axisLine: { show: true, lineStyle: { color: '#27ae60' } },
-        axisLabel: { color: '#27ae60' },
+        max: 100,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { color: '#34c759', formatter: '{value}%' },
         splitLine: { show: false }
       }
     ],
@@ -95,11 +111,10 @@ const option = computed(() => {
       {
         name: 'Downstream Pressure',
         type: 'line',
-        data: pressures,
         smooth: true,
-        lineStyle: { width: 3, color: '#3498db' },
         showSymbol: false,
-        areaStyle: { opacity: 0.1, color: '#3498db' }
+        lineStyle: { width: 3, color: '#007aff' },
+        data: pressures
       },
       {
         name: 'Upstream Pressure',
@@ -112,24 +127,40 @@ const option = computed(() => {
         name: 'Flow Rate',
         type: 'line',
         yAxisIndex: 1,
-        data: flows,
         smooth: true,
-        lineStyle: { width: 2, type: 'dotted', color: '#e74c3c' },
-        showSymbol: false
+        showSymbol: false,
+        lineStyle: { width: 3, color: '#ff9500' },
+        areaStyle: {
+          opacity: 0.2,
+          color: new graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(255, 149, 0, 0.6)' },
+            { offset: 1, color: 'rgba(255, 149, 0, 0)' }
+          ])
+        },
+        data: flows
       },
       {
         name: 'Valve Opening',
         type: 'line',
         yAxisIndex: 2,
-        data: openings,
-        lineStyle: { width: 2, color: '#27ae60' },
+        step: 'end',
         showSymbol: false,
-        step: 'end' // Better for fixed/stepped
+        lineStyle: { width: 2, color: '#34c759', type: 'dashed' },
+        data: openings
       }
     ],
     dataZoom: [
-      { type: 'inside', xAxisIndex: 0 },
-      { type: 'slider', xAxisIndex: 0 }
+      {
+        type: 'inside',
+        xAxisIndex: 0,
+        filterMode: 'filter'
+      },
+      {
+        type: 'slider',
+        xAxisIndex: 0,
+        filterMode: 'filter',
+        brushSelect: false
+      }
     ]
   };
 });

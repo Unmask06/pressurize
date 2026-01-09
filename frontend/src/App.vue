@@ -2,8 +2,8 @@
   <div class="app-container">
     <div class="sidebar">
       <div class="sidebar-header">
-        <h1>Pressurize</h1>
-        <p>Val & Gas Sim</p>
+        <h1>Pressurization Simulator</h1>
+        <p>Gas Valves</p>
       </div>
       <SimulationForm 
         :loading="loading" 
