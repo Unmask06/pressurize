@@ -1,6 +1,6 @@
 <template>
   <div class="chart-container">
-    <v-chart class="chart" :option="option" autoresize />
+    <v-chart ref="chartRef" class="chart" :option="option" autoresize />
   </div>
 </template>
 
@@ -31,6 +31,22 @@ use([
 const props = defineProps<{
   data: any[];
 }>();
+
+// Expose chart ref for parent to get image data
+const chartRef = ref<InstanceType<typeof VChart> | null>(null);
+
+defineExpose({
+  getChartDataUrl: () => {
+    if (chartRef.value) {
+      // Access the internal echarts instance
+      const chart = chartRef.value.chart;
+      if (chart) {
+        return chart.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#fff' });
+      }
+    }
+    return null;
+  }
+});
 
 const option = computed(() => {
   if (!props.data || props.data.length === 0) return {};

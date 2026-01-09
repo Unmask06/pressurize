@@ -16,15 +16,24 @@
     </div>
 
     <div class="main-content">
-      <KpiCards
-        :peak-flow="kpis.peakFlow"
-        :final-pressure="kpis.finalPressure"
-        :equilibrium-time="kpis.equilibriumTime"
-        :total-mass="kpis.totalMass"
-      />
+      <div class="results-header">
+        <KpiCards
+          :peak-flow="kpis.peakFlow"
+          :final-pressure="kpis.finalPressure"
+          :equilibrium-time="kpis.equilibriumTime"
+          :total-mass="kpis.totalMass"
+        />
+        <button 
+          class="btn-download" 
+          @click="showReportModal = true"
+          :disabled="results.length === 0"
+        >
+          📥 Download Report
+        </button>
+      </div>
 
       <div class="chart-wrapper">
-        <ResultsChart :data="results" />
+        <ResultsChart ref="chartRef" :data="results" />
       </div>
     </div>
 
@@ -44,22 +53,46 @@
         @close="showResultsTable = false"
       />
     </Transition>
+
+    <Transition name="fade">
+      <ReportDownload
+        v-if="showReportModal"
+        :inputs="lastFormParams"
+        :kpis="kpis"
+        :chart-data-url="chartDataUrl"
+        @close="showReportModal = false"
+      />
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { apiClient } from './api/client';
 import SimulationForm from './components/SimulationForm.vue';
 import KpiCards from './components/KpiCards.vue';
 import ResultsChart from './components/ResultsChart.vue';
 import CompositionEditor from './components/CompositionEditor.vue';
 import ResultsTable from './components/ResultsTable.vue';
+import ReportDownload from './components/ReportDownload.vue';
 
 const loading = ref(false);
 const showCompositionEditor = ref(false);
 const showResultsTable = ref(false);
+const showReportModal = ref(false);
 const currentComposition = ref('Methane=0.9387, Ethane=0.0121, Propane=0.0004, Carbon dioxide=0.0054, Nitrogen=0.0433');
+
+// Refs for report generation
+const chartRef = ref<InstanceType<typeof ResultsChart> | null>(null);
+const lastFormParams = ref<Record<string, any>>({});
+
+// Compute chart data URL when modal opens
+const chartDataUrl = computed(() => {
+  if (showReportModal.value && chartRef.value) {
+    return chartRef.value.getChartDataUrl();
+  }
+  return null;
+});
 
 const results = ref<any[]>([]);
 const kpis = reactive({
@@ -71,6 +104,8 @@ const kpis = reactive({
 
 async function runSimulation(params: any) {
   loading.value = true;
+  // Store form params for report
+  lastFormParams.value = { ...params };
   try {
     const res = await apiClient.post('/simulate', params);
     
