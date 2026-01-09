@@ -2,14 +2,15 @@
   <div class="simulation-form">
     <h3>Simulation Parameters</h3>
     
-    <div class="form-group">
-      <label>Upstream Pressure (psig)</label>
-      <input type="number" v-model.number="form.p_up_psig" />
-    </div>
-
-    <div class="form-group">
-      <label>Downstream Pressure (psig)</label>
-      <input type="number" v-model.number="form.p_down_init_psig" />
+    <div class="row">
+      <div class="form-group half">
+        <label>Upstream Pressure (psig)</label>
+        <input type="number" v-model.number="form.p_up_psig" />
+      </div>
+      <div class="form-group half">
+        <label>Downstream Pressure (psig)</label>
+        <input type="number" v-model.number="form.p_down_init_psig" />
+      </div>
     </div>
 
     <div class="row">
@@ -70,7 +71,7 @@
 
     <div class="row">
       <div class="form-group third">
-        <label title="Molar Mass">M (g/mol)</label>
+        <label title="Molar Mass">MW (g/mol)</label>
         <input 
           type="number" 
           v-model.number="form.molar_mass" 
