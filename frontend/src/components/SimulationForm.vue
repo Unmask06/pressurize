@@ -1,6 +1,16 @@
 <template>
   <div class="simulation-form">
-    <h3>Simulation Parameters</h3>
+    <div class="header-with-settings">
+      <h3>Simulation Parameters</h3>
+      <button class="btn-icon" @click="showSettings = !showSettings">⚙️</button>
+    </div>
+
+    <div v-if="showSettings" class="settings-group">
+      <div class="form-group">
+        <label for="step_time">Step Time (s)</label>
+        <input id="step_time" type="number" v-model.number="form.dt" step="0.01" />
+      </div>
+    </div>
     
     <div class="row">
       <div class="form-group half">
@@ -129,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, watch } from 'vue';
+import { reactive, computed, watch, ref } from 'vue';
 import { apiClient } from '../api/client';
 
 const props = defineProps<{
@@ -139,6 +149,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['run', 'edit-composition', 'view-results']);
+
+const showSettings = ref(false);
 
 function viewResults() {
   emit('view-results');
