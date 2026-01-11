@@ -9,9 +9,11 @@
         :loading="loading" 
         :initial-composition="currentComposition"
         :results-empty="results.length === 0"
+        :current-dt="currentDt"
         @run="runSimulation" 
         @edit-composition="showCompositionEditor = true"
         @view-results="showResultsTable = true"
+        @edit-settings="showSettingsEditor = true"
       />
     </div>
 
@@ -63,6 +65,15 @@
         @close="showReportModal = false"
       />
     </Transition>
+
+    <Transition name="fade">
+      <SettingsEditor
+        v-if="showSettingsEditor"
+        :current-dt="currentDt"
+        @close="showSettingsEditor = false"
+        @apply="updateSettings"
+      />
+    </Transition>
   </div>
 </template>
 
@@ -75,12 +86,15 @@ import ResultsChart from './components/ResultsChart.vue';
 import CompositionEditor from './components/CompositionEditor.vue';
 import ResultsTable from './components/ResultsTable.vue';
 import ReportDownload from './components/ReportDownload.vue';
+import SettingsEditor from './components/SettingsEditor.vue';
 
 const loading = ref(false);
 const showCompositionEditor = ref(false);
 const showResultsTable = ref(false);
 const showReportModal = ref(false);
+const showSettingsEditor = ref(false);
 const currentComposition = ref('Methane=0.9387, Ethane=0.0121, Propane=0.0004, Carbon dioxide=0.0054, Nitrogen=0.0433');
+const currentDt = ref(0.05);
 
 // Refs for report generation
 const chartRef = ref<InstanceType<typeof ResultsChart> | null>(null);
@@ -128,6 +142,11 @@ async function runSimulation(params: any) {
 function updateComposition(newComp: string) {
   currentComposition.value = newComp;
   showCompositionEditor.value = false;
+}
+
+function updateSettings(newDt: number) {
+  currentDt.value = newDt;
+  showSettingsEditor.value = false;
 }
 </script>
 

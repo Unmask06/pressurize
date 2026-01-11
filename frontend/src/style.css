@@ -1,61 +1,47 @@
-:root {
-  /* Colors */
-  --color-primary: #3498db;
-  --color-primary-dark: #2980b9;
-  --color-success: #27ae60;
-  --color-danger: #e74c3c;
-  --color-warning: #f1c40f;
-  --color-purple: #9b59b6;
-  
-  /* Light Theme */
-  --bg-body: #f5f7fa;
-  --surface-card: #ffffff;
-  --surface-hover: #f8f9fa;
-  --surface-hover-dark: #e9ecef;
-  --surface-input: #ffffff;
-  --border-color: #e2e8f0;
-  
-  --text-primary: #2c3e50;
-  --text-secondary: #64748b;
-  --text-tertiary: #94a3b8;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+@import "tailwindcss";
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
 }
 
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400;
+}
+
+/* Base styles */
 body {
-  margin: 0;
+  @apply m-0 antialiased bg-slate-50 text-slate-800 h-screen overflow-hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-body);
-  color: var(--text-primary);
-  height: 100vh;
-  overflow: hidden;
 }
 
 #app {
-  height: 100%;
+  @apply h-full;
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
+*,
+*::before,
+*::after {
+  @apply box-border;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Vue transition classes */
+.fade-enter-active,
+.fade-leave-active {
+  @apply transition-opacity duration-200 ease-in-out;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+
+.fade-enter-from,
+.fade-leave-to {
+  @apply opacity-0;
 }

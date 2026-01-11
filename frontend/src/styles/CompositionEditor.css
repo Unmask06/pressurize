@@ -1,221 +1,125 @@
+@reference "tailwindcss";
+
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000];
 }
 
 .modal-content {
-    background: var(--surface-card);
-    width: 90%;
-    max-width: 800px;
-    border-radius: 12px;
-    box-shadow: var(--shadow-xl);
-    display: flex;
-    flex-direction: column;
-    max-height: 85vh;
+    @apply bg-white w-[90%] max-w-[800px] rounded-xl shadow-2xl flex flex-col max-h-[85vh];
 }
 
 .modal-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    @apply p-6 border-b border-slate-200 flex justify-between items-center;
 }
 
 .modal-header h3 {
-    margin: 0;
+    @apply m-0;
 }
 
 .close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-secondary);
+    @apply bg-transparent border-none text-2xl cursor-pointer text-slate-500;
 }
 
 .modal-body {
-    padding: 1.5rem;
-    overflow-y: auto;
-    flex: 1;
+    @apply p-6 overflow-y-auto flex-1;
 }
 
 .presets-section {
-    margin-bottom: 1.5rem;
+    @apply mb-6;
 }
 
 .preset-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    @apply flex flex-wrap gap-2 mt-2;
 }
 
 .chip {
-    padding: 0.4rem 0.8rem;
-    background: var(--surface-hover);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
+    @apply py-1.5 px-3 bg-slate-100 border border-slate-200 rounded-full cursor-pointer text-sm transition-all;
 }
 
 .chip:hover {
-    background: var(--color-primary);
-    color: white;
-    border-color: var(--color-primary);
+    @apply bg-blue-500 text-white border-blue-500;
 }
 
 .editor-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    height: 400px;
+    @apply grid grid-cols-2 gap-6 h-[400px];
 }
 
 .list-container {
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
+    @apply border border-slate-200 rounded-lg p-4 flex flex-col;
 }
 
 h4 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1rem;
+    @apply m-0 mb-2 text-base;
 }
 
 .search-input {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background: var(--surface-input);
-    color: var(--text-primary);
+    @apply w-full py-2 px-3 mb-2 border border-slate-200 rounded-md bg-white text-slate-800;
 }
 
 .component-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    @apply flex-1 overflow-y-auto flex flex-col gap-1;
 }
 
 .comp-item {
-    padding: 0.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 4px;
-    cursor: pointer;
+    @apply py-2 px-3 flex justify-between items-center rounded cursor-pointer;
 }
 
 .comp-item.add {
-    background: var(--surface-hover);
-    border: none;
-    text-align: left;
+    @apply bg-slate-100 border-none text-left;
 }
 
 .comp-item.add:hover:not(:disabled) {
-    background: var(--surface-hover-dark);
+    @apply bg-slate-200;
 }
 
 .comp-item.add:disabled {
-    opacity: 0.5;
-    cursor: default;
+    @apply opacity-50 cursor-default;
 }
 
 .comp-item.selected {
-    background: var(--surface-hover);
-    cursor: default;
+    @apply bg-slate-100 cursor-default;
 }
 
 .comp-name {
-    font-size: 0.9rem;
-    flex: 1;
+    @apply text-sm flex-1;
 }
 
 .fraction-input {
-    width: 70px;
-    padding: 0.25rem;
-    margin-right: 0.5rem;
-    text-align: right;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
+    @apply w-[70px] py-1 px-2 mr-2 text-right border border-slate-200 rounded;
 }
 
 .remove-btn {
-    border: none;
-    background: none;
-    color: var(--color-danger);
-    cursor: pointer;
-    font-weight: bold;
+    @apply border-none bg-transparent text-red-500 cursor-pointer font-bold;
 }
 
 .total-section {
-    margin-top: 1rem;
-    padding: 0.5rem;
-    border-radius: 4px;
-    display: flex;
-    justify-content: space-between;
-    font-weight: bold;
+    @apply mt-4 p-2 rounded flex justify-between font-bold;
 }
 
 .total-section.valid {
-    background: rgba(39, 174, 96, 0.1);
-    color: var(--color-success);
+    @apply bg-emerald-500/10 text-emerald-500;
 }
 
 .total-section.invalid {
-    background: rgba(231, 76, 60, 0.1);
-    color: var(--color-danger);
+    @apply bg-red-500/10 text-red-500;
 }
 
 .modal-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
+    @apply py-4 px-6 border-t border-slate-200 flex justify-end gap-4;
 }
 
 .btn-secondary {
-    padding: 0.6rem 1.2rem;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
+    @apply py-2.5 px-5 bg-transparent border border-slate-200 rounded-md cursor-pointer;
 }
 
 .btn-secondary.small {
-    margin-top: 0.5rem;
-    font-size: 0.85rem;
-    padding: 0.3rem 0.6rem;
+    @apply mt-2 text-sm py-1 px-2.5;
 }
 
 .btn-primary {
-    padding: 0.6rem 1.2rem;
-    background: var(--color-primary);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+    @apply py-2.5 px-5 bg-blue-500 text-white border-none rounded-md cursor-pointer;
 }
 
 .btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    @apply opacity-50 cursor-not-allowed;
 }

@@ -1,6 +1,9 @@
 <template>
   <div class="simulation-form">
-    <h3>Simulation Parameters</h3>
+    <div class="header-with-settings">
+      <h3>Simulation Parameters</h3>
+      <button class="btn-icon" @click="$emit('edit-settings')">⚙️</button>
+    </div>
     
     <div class="row">
       <div class="form-group half">
@@ -129,16 +132,17 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, watch } from 'vue';
+import { reactive, computed, watch, ref } from 'vue';
 import { apiClient } from '../api/client';
 
 const props = defineProps<{
   loading: boolean;
   initialComposition?: string;
   resultsEmpty: boolean;
+  currentDt: number;
 }>();
 
-const emit = defineEmits(['run', 'edit-composition', 'view-results']);
+const emit = defineEmits(['run', 'edit-composition', 'view-results', 'edit-settings']);
 
 function viewResults() {
   emit('view-results');
@@ -164,6 +168,10 @@ const form = reactive({
 
 watch(() => props.initialComposition, (newVal) => {
   if (newVal) form.composition = newVal;
+}, { immediate: true });
+
+watch(() => props.currentDt, (newVal) => {
+  if (newVal !== undefined) form.dt = newVal;
 }, { immediate: true });
 
 // Auto-calculate properties in composition mode
