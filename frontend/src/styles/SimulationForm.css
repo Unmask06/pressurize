@@ -1,4 +1,4 @@
-@reference "tailwindcss";
+@import "tailwindcss";
 
 .simulation-form {
     @apply bg-white p-6 rounded-xl border border-slate-200 flex flex-col gap-4 h-full overflow-y-auto;
@@ -78,8 +78,9 @@ input.read-only {
     @apply opacity-50 cursor-not-allowed border-slate-200 text-slate-400;
 }
 
+/* Component-specific button styles */
 .btn-primary {
-    @apply mt-auto py-3 px-4 bg-blue-500 text-white border-none rounded-lg font-semibold cursor-pointer transition-colors;
+    @apply mt-auto py-3 px-4 font-semibold transition-colors;
 }
 
 .btn-primary:hover {
@@ -91,7 +92,7 @@ input.read-only {
 }
 
 .btn-secondary {
-    @apply py-1.5 px-3 bg-transparent border border-slate-200 rounded-md text-slate-800 cursor-pointer text-sm;
+    @apply py-1.5 px-3 rounded-md text-slate-800 text-sm;
 }
 
 .btn-secondary:hover {

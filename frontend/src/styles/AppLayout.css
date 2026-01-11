@@ -1,4 +1,4 @@
-@reference "tailwindcss";
+@import "tailwindcss";
 
 .app-container {
     @apply flex h-screen w-screen overflow-hidden;
@@ -46,15 +46,4 @@
 
 .chart-wrapper {
     @apply flex-1 min-h-0 w-full;
-}
-
-/* Transitions */
-.fade-enter-active,
-.fade-leave-active {
-    @apply transition-opacity duration-200 ease-in-out;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    @apply opacity-0;
 }

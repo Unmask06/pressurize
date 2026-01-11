@@ -1,11 +1,8 @@
-@reference "tailwindcss";
+@import "tailwindcss";
 
-.modal-overlay {
-    @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000];
-}
-
+/* Component-specific modal sizing and animation */
 .modal-content.report-modal {
-    @apply bg-white rounded-2xl shadow-2xl w-[90%] max-w-[500px] animate-[slideIn_0.2s_ease-out];
+    @apply w-[90%] max-w-[500px] animate-[slideIn_0.2s_ease-out];
 }
 
 @keyframes slideIn {
@@ -20,22 +17,21 @@
     }
 }
 
-.modal-header {
-    @apply flex justify-between items-center p-6 border-b border-slate-200;
-}
-
+/* Component-specific modal header styling */
 .modal-header h2 {
-    @apply m-0 text-xl text-slate-800;
+    @apply text-xl text-slate-800;
 }
 
+/* Component-specific close button styling */
 .close-btn {
-    @apply bg-transparent border-none text-2xl text-slate-400 cursor-pointer p-1 leading-none transition-colors;
+    @apply p-1 leading-none transition-colors text-slate-400;
 }
 
 .close-btn:hover {
     @apply text-slate-500;
 }
 
+/* Component-specific body and textarea styling */
 .modal-body {
     @apply p-6;
 }
@@ -56,12 +52,14 @@
     @apply text-slate-400;
 }
 
+/* Component-specific footer styling */
 .modal-footer {
-    @apply flex justify-end gap-3 py-4 px-6 border-t border-slate-200 bg-slate-50 rounded-b-2xl;
+    @apply bg-slate-50 rounded-b-2xl;
 }
 
+/* Component-specific button styles */
 .btn-secondary {
-    @apply py-2.5 px-5 border-2 border-slate-200 bg-white text-slate-500 rounded-lg text-sm font-medium cursor-pointer transition-all;
+    @apply border-2 bg-white text-slate-500 font-medium;
 }
 
 .btn-secondary:hover {
@@ -69,7 +67,7 @@
 }
 
 .btn-primary {
-    @apply py-2.5 px-5 border-none bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg text-sm font-semibold cursor-pointer transition-all;
+    @apply bg-gradient-to-br from-blue-500 to-blue-600 font-semibold;
 }
 
 .btn-primary:hover:not(:disabled) {
