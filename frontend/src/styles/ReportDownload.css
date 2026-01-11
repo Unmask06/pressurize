@@ -32,10 +32,6 @@
 }
 
 /* Component-specific body and textarea styling */
-.modal-body {
-    @apply p-6;
-}
-
 .instructions {
     @apply m-0 mb-4 text-slate-500 text-sm;
 }
