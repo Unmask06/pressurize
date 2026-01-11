@@ -51,11 +51,10 @@ defineExpose({
 const option = computed(() => {
   if (!props.data || props.data.length === 0) return {};
 
-  const times = props.data.map(d => d.time);
-  const pressures = props.data.map(d => d.pressure_psig);
-  const upstream = props.data.map(d => d.upstream_pressure_psig);
-  const flows = props.data.map(d => d.flowrate_lb_hr);
-  const openings = props.data.map(d => d.valve_opening_pct);
+  const pressures = props.data.map(d => [d.time, d.pressure_psig]);
+  const upstream = props.data.map(d => [d.time, d.upstream_pressure_psig]);
+  const flows = props.data.map(d => [d.time, d.flowrate_lb_hr]);
+  const openings = props.data.map(d => [d.time, d.valve_opening_pct]);
 
   return {
     tooltip: {
@@ -78,9 +77,8 @@ const option = computed(() => {
       textStyle: { color: '#666' }
     },
     xAxis: {
-      type: 'category',
+      type: 'value',
       boundaryGap: false,
-      data: times,
       name: 'Time (s)',
       nameLocation: 'middle',
       nameGap: 30,

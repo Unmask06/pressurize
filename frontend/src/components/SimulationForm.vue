@@ -2,14 +2,7 @@
   <div class="simulation-form">
     <div class="header-with-settings">
       <h3>Simulation Parameters</h3>
-      <button class="btn-icon" @click="showSettings = !showSettings">⚙️</button>
-    </div>
-
-    <div v-if="showSettings" class="settings-group">
-      <div class="form-group">
-        <label for="step_time">Step Time (s)</label>
-        <input id="step_time" type="number" v-model.number="form.dt" step="0.01" />
-      </div>
+      <button class="btn-icon" @click="$emit('edit-settings')">⚙️</button>
     </div>
     
     <div class="row">
@@ -146,11 +139,10 @@ const props = defineProps<{
   loading: boolean;
   initialComposition?: string;
   resultsEmpty: boolean;
+  currentDt: number;
 }>();
 
-const emit = defineEmits(['run', 'edit-composition', 'view-results']);
-
-const showSettings = ref(false);
+const emit = defineEmits(['run', 'edit-composition', 'view-results', 'edit-settings']);
 
 function viewResults() {
   emit('view-results');
@@ -176,6 +168,10 @@ const form = reactive({
 
 watch(() => props.initialComposition, (newVal) => {
   if (newVal) form.composition = newVal;
+}, { immediate: true });
+
+watch(() => props.currentDt, (newVal) => {
+  if (newVal !== undefined) form.dt = newVal;
 }, { immediate: true });
 
 // Auto-calculate properties in composition mode

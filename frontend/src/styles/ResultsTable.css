@@ -1,89 +1,45 @@
+@reference "tailwindcss";
+
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000];
 }
 
 .modal-content {
-    background: var(--surface-card);
-    width: 95%;
-    max-width: 1200px;
-    border-radius: 12px;
-    box-shadow: var(--shadow-xl);
-    display: flex;
-    flex-direction: column;
-    max-height: 85vh;
+    @apply bg-white w-[95%] max-w-[1200px] rounded-xl shadow-2xl flex flex-col max-h-[85vh];
 }
 
 .modal-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    @apply p-6 border-b border-slate-200 flex justify-between items-center;
 }
 
 .close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-secondary);
+    @apply bg-transparent border-none text-2xl cursor-pointer text-slate-500;
 }
 
 .table-container {
-    overflow: auto;
-    padding: 0;
-    flex: 1;
+    @apply overflow-auto p-0 flex-1;
 }
 
 table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-    color: var(--text-primary);
+    @apply w-full border-collapse text-sm text-slate-800;
 }
 
 th {
-    position: sticky;
-    top: 0;
-    background: var(--surface-hover);
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 2px solid var(--border-color);
-    font-weight: 600;
-    white-space: nowrap;
+    @apply sticky top-0 bg-slate-100 p-4 text-left border-b-2 border-slate-200 font-semibold whitespace-nowrap;
 }
 
 td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-    white-space: nowrap;
+    @apply py-3 px-4 border-b border-slate-200 whitespace-nowrap;
 }
 
 tr:hover {
-    background: var(--surface-hover);
+    @apply bg-slate-100;
 }
 
 .modal-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: flex-end;
+    @apply py-4 px-6 border-t border-slate-200 flex justify-end;
 }
 
 .btn-secondary {
-    padding: 0.6rem 1.2rem;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
+    @apply py-2.5 px-5 bg-transparent border border-slate-200 rounded-md cursor-pointer;
 }

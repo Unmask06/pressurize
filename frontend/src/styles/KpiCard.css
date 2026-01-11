@@ -1,65 +1,46 @@
+@reference "tailwindcss";
+
 .kpi-card {
-    background: var(--surface-card);
-    border-radius: 12px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    box-shadow: var(--shadow-sm);
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid var(--border-color);
+    @apply bg-white rounded-xl p-6 flex items-center gap-4 shadow-sm transition-all duration-200 border border-slate-200;
 }
 
 .kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    @apply -translate-y-0.5 shadow-md;
 }
 
 .kpi-icon {
-    font-size: 2rem;
-    background: var(--surface-hover);
-    padding: 0.75rem;
-    border-radius: 50%;
-    line-height: 1;
+    @apply text-3xl bg-slate-100 p-3 rounded-full leading-none;
 }
 
 .kpi-content {
-    display: flex;
-    flex-direction: column;
+    @apply flex flex-col;
 }
 
 .kpi-label {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    font-weight: 500;
-    margin-bottom: 0.25rem;
+    @apply text-sm text-slate-500 font-medium mb-1;
 }
 
 .kpi-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    line-height: 1.2;
+    @apply text-2xl font-bold text-slate-800 leading-tight;
 }
 
 .kpi-unit {
-    font-size: 0.75rem;
-    color: var(--text-tertiary);
+    @apply text-xs text-slate-400;
 }
 
 /* Specific accent colors */
 .kpi-card.flow .kpi-value {
-    color: var(--color-danger);
+    @apply text-red-500;
 }
 
 .kpi-card.pressure .kpi-value {
-    color: var(--color-primary);
+    @apply text-blue-500;
 }
 
 .kpi-card.time .kpi-value {
-    color: var(--color-success);
+    @apply text-emerald-500;
 }
 
 .kpi-card.mass .kpi-value {
-    color: var(--color-purple);
+    @apply text-violet-500;
 }
