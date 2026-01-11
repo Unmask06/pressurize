@@ -150,4 +150,54 @@ function updateSettings(newDt: number) {
 }
 </script>
 
-<style scoped src="./styles/AppLayout.css"></style>
+<style scoped>
+@import "tailwindcss";
+
+.app-container {
+    @apply flex h-screen w-screen overflow-hidden;
+}
+
+.sidebar {
+    @apply w-[350px] bg-white border-r border-slate-200 flex flex-col shrink-0;
+}
+
+.sidebar-header {
+    @apply p-6 border-b border-slate-200;
+}
+
+.sidebar-header h1 {
+    @apply m-0 text-2xl font-extrabold text-blue-500 tracking-tight;
+}
+
+.sidebar-header p {
+    @apply mt-1 mb-0 text-sm text-slate-400 font-medium uppercase tracking-widest;
+}
+
+.main-content {
+    @apply flex-1 flex flex-col p-8 bg-slate-50 overflow-hidden;
+}
+
+.results-header {
+    @apply flex justify-between items-start gap-4 mb-4;
+}
+
+.results-header .kpi-grid {
+    @apply flex-1;
+}
+
+.btn-download {
+    @apply shrink-0 py-3 px-5 border-none bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-emerald-500/30;
+}
+
+.btn-download:hover:not(:disabled) {
+    @apply from-emerald-600 to-emerald-700 -translate-y-0.5 shadow-xl shadow-emerald-500/40;
+}
+
+.btn-download:disabled {
+    @apply opacity-50 cursor-not-allowed transform-none shadow-none;
+}
+
+.chart-wrapper {
+    @apply flex-1 min-h-0 w-full;
+}
+</style>

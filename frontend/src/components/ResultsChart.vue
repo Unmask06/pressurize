@@ -180,4 +180,18 @@ const option = computed(() => {
 });
 </script>
 
-<style scoped src="../styles/ResultsChart.css"></style>
+<style scoped>
+@import "tailwindcss";
+
+.chart-container {
+    @apply w-full h-full bg-white rounded-xl p-4 shadow-sm border border-slate-200 transition-all duration-300;
+}
+
+.chart-container:hover {
+    @apply -translate-y-0.5 shadow-md;
+}
+
+.chart {
+    @apply h-full w-full;
+}
+</style>
