@@ -5,6 +5,11 @@
     @apply w-[90%] max-w-[800px] max-h-[85vh];
 }
 
+/* Component-specific modal body scrolling */
+.modal-body {
+    @apply overflow-y-auto flex-1;
+}
+
 .presets-section {
     @apply mb-6;
 }
