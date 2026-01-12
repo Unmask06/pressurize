@@ -54,10 +54,8 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
 
         # Calc total mass
         dt = req.dt  # Approximate integration using fixed time step provided in request
-        # Better: use the actual time steps from dataframe if needed, but dt is constant
         total_mass = (df["flowrate_lb_hr"].sum() * dt) / 3600
 
-        # Convert DataFrame to list of dicts
         results = df.to_dict(orient="records")
 
         return SimulationResponse(
