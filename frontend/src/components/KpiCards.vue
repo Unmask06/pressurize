@@ -6,6 +6,7 @@
       unit="lb/hr"
       icon="📈"
       color="flow"
+      :loading="loading"
     />
     <KpiCard
       label="Final Pressure"
@@ -13,7 +14,8 @@
       unit="psig"
       icon="🎯"
       color="pressure"
-      :decimals="1"
+      :decimals="2"
+      :loading="loading"
     />
     <KpiCard
       label="Equilibrium Time"
@@ -22,6 +24,7 @@
       icon="⏱️"
       color="time"
       :decimals="1"
+      :loading="loading"
     />
     <KpiCard
       label="Total Mass Flow"
@@ -30,6 +33,7 @@
       icon="⚖️"
       color="mass"
       :decimals="1"
+      :loading="loading"
     />
   </div>
 </template>
@@ -42,6 +46,7 @@ const props = defineProps<{
   finalPressure: number;
   equilibriumTime: number;
   totalMass: number;
+  loading?: boolean;
 }>();
 </script>
 

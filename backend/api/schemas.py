@@ -1,6 +1,7 @@
 """
 Pydantic schemas for API requests and responses.
 """
+
 from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -103,3 +104,27 @@ class PropertiesResponse(BaseModel):
     Z: float
     k: float
     M: float
+
+
+class StreamingChunk(BaseModel):
+    """A chunk of simulation results sent via SSE.
+
+    Contains a batch of result rows for progressive chart updates.
+    """
+
+    type: Literal["chunk"] = "chunk"
+    rows: List[SimulationResultPoint]
+    total_rows: int  # Running total of rows sent so far
+
+
+class StreamingComplete(BaseModel):
+    """Final message sent when simulation streaming completes.
+
+    Contains the final KPIs calculated from all results.
+    """
+
+    type: Literal["complete"] = "complete"
+    peak_flow: float
+    final_pressure: float
+    equilibrium_time: float
+    total_mass_lb: float
