@@ -12,7 +12,7 @@ from backend.core.physics import (
     calculate_mass_flow_rate,
 )
 from backend.core.properties import GasState
-from backend.utils.converters import fahrenheit_to_kelvin, psig_to_pa, pa_to_psig
+from backend.utils.converters import fahrenheit_to_kelvin, pa_to_psig, psig_to_pa
 
 
 def run_simulation(
@@ -26,7 +26,8 @@ def run_simulation(
     z_factor: float,
     k_ratio: float,
     discharge_coeff: float = 0.65,
-    opening_mode: Literal["linear", "exponential", "quick_opening", "fixed"] = "linear",
+    valve_action: Literal["open", "close"] = "open",
+    opening_mode: Literal["linear", "exponential", "quick_acting", "fixed"] = "linear",
     k_curve: float = 4.0,
     dt: float = TIME_STEP,
     property_mode: Literal["manual", "composition"] = "manual",
@@ -48,8 +49,8 @@ def run_simulation(
         z_factor: Compressibility factor (manual mode).
         k_ratio: Heat capacity ratio Cp/Cv (manual mode).
         discharge_coeff: Valve discharge coefficient. Default 0.65.
-        opening_mode: 'linear', 'exponential', 'quick_opening', or 'fixed'. Default 'linear'.
-        k_curve: Curve steepness for exponential/quick_opening. Default 4.0.
+        opening_mode: 'linear', 'exponential', 'quick_acting', or 'fixed'. Default 'linear'.
+        k_curve: Curve steepness for exponential/quick_acting. Default 4.0.
         dt: Simulation timestep in seconds.
         property_mode: 'manual' or 'composition'. Default 'manual'.
         composition: Gas composition string for composition mode.
@@ -83,8 +84,13 @@ def run_simulation(
         k = k_ratio
 
     # Initialize results storage
-    # For fixed mode, valve starts at 100%; otherwise starts at 0
-    initial_opening = 100.0 if opening_mode == "fixed" else 0
+    # For closing: starts at 100%; For opening with fixed: 100%; Otherwise: 0%
+    if valve_action == "close":
+        initial_opening = 100.0
+    elif opening_mode == "fixed":
+        initial_opening = 100.0
+    else:
+        initial_opening = 0.0
     results = {
         "time": [0],
         "pressure_psig": [P_down_init_psig],
@@ -103,24 +109,29 @@ def run_simulation(
     # If fixed mode or opening time is 0, use a reasonable safety limit
     if opening_mode == "fixed" or opening_time_s <= 0:
         max_time = 3600  # Safety timeout for fixed/instantaneous opening
+    elif valve_action == "close":
+        max_time = opening_time_s * 1.2  # Limit closing simulation to 1.2x closing time
     else:
-        max_time = opening_time_s * 10
+        max_time = opening_time_s * 10  # Opening simulation can run longer for equilibrium
 
     while t < max_time:
         t += dt
 
         # Calculate current valve opening fraction based on mode
         if opening_mode == "fixed":
-            opening_fraction = 1.0  # Fully open instantly
+            # Fixed only applies to opening (instant 100%); for closing treat as instant 0%
+            opening_fraction = 1.0 if valve_action == "open" else 0.0
         elif opening_mode == "exponential":
             if opening_time_s > 0:
                 # Exponential growth: Slow start, steep end
                 # Formula: (e^(k*x) - 1) / (e^k - 1) where x = t/T
                 ratio = min(t / opening_time_s, 1.0)
-                opening_fraction = (np.exp(k_curve * ratio) - 1) / (np.exp(k_curve) - 1)
+                curve_fraction = (np.exp(k_curve * ratio) - 1) / (np.exp(k_curve) - 1)
+                # Invert for closing: 100% → 0%
+                opening_fraction = (1.0 - curve_fraction) if valve_action == "close" else curve_fraction
             else:
-                opening_fraction = 1.0
-        elif opening_mode == "quick_opening":
+                opening_fraction = 0.0 if valve_action == "close" else 1.0
+        elif opening_mode == "quick_acting":
             if opening_time_s > 0:
                 ratio = min(t / opening_time_s, 1.0)
 
@@ -128,15 +139,17 @@ def run_simulation(
                 # Suggested value for your drawing: k_curve = 5.0
                 numerator = 1 - np.exp(-k_curve * ratio)
                 denominator = 1 - np.exp(-k_curve)
-
-                opening_fraction = numerator / denominator
+                curve_fraction = numerator / denominator
+                # Invert for closing
+                opening_fraction = (1.0 - curve_fraction) if valve_action == "close" else curve_fraction
             else:
-                opening_fraction = 1.0
+                opening_fraction = 0.0 if valve_action == "close" else 1.0
         else:  # linear (default)
             if opening_time_s > 0:
-                opening_fraction = min(t / opening_time_s, 1.0)
+                curve_fraction = min(t / opening_time_s, 1.0)
+                opening_fraction = (1.0 - curve_fraction) if valve_action == "close" else curve_fraction
             else:
-                opening_fraction = 1.0
+                opening_fraction = 0.0 if valve_action == "close" else 1.0
 
         A = A_max * opening_fraction
 
@@ -186,10 +199,16 @@ def run_simulation(
         results["k_ratio"].append(round(k, 4))
         results["molar_mass"].append(round(M, 2))
 
-        # Stop if pressures are equalized AND time has passed the opening duration
-        # This ensures the valve curve is fully plotted even if equilibrium is reached early
-        if P_down >= P_up and t >= opening_time_s:
-            break
+        # Stop conditions based on valve action
+        if valve_action == "close":
+            # For closing: stop when closing time is complete (valve fully closed)
+            if t >= opening_time_s:
+                break
+        else:
+            # For opening: stop if pressures are equalized AND time has passed the opening duration
+            # This ensures the valve curve is fully plotted even if equilibrium is reached early
+            if P_down >= P_up and t >= opening_time_s:
+                break
 
         # Check for equilibrium (flow rate < 0.1% of peak) - redundant but kept for safety logic for now,
         # though the pressure check above likely catches it first.

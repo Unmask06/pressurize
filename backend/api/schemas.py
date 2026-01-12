@@ -29,12 +29,16 @@ class SimulationRequest(BaseModel):
 
     # Valve Characteristics
     discharge_coeff: float = Field(0.65, description="Discharge coefficient (Cd)")
-    opening_mode: Literal["linear", "exponential", "quick_opening", "fixed"] = Field(
+    valve_action: Literal["open", "close"] = Field(
+        "open",
+        description="Valve action: open (0→100%) or close (100→0%)",
+    )
+    opening_mode: Literal["linear", "exponential", "quick_acting", "fixed"] = Field(
         "linear",
-        description="Valve opening mode: linear, exponential, quick_opening, fixed",
+        description="Valve opening mode: linear, exponential, quick_acting, fixed",
     )
     k_curve: float = Field(
-        4.0, description="Curve steepness for exponential/quick_opening"
+        4.0, description="Curve steepness for exponential/quick_acting"
     )
     dt: float = Field(0.05, description="Time step (s)")
 

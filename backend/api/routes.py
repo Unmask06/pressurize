@@ -32,6 +32,7 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
             z_factor=req.z_factor,
             k_ratio=req.k_ratio,
             discharge_coeff=req.discharge_coeff,
+            valve_action=req.valve_action,
             opening_mode=req.opening_mode,
             k_curve=req.k_curve,
             dt=req.dt,

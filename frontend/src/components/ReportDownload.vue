@@ -7,18 +7,33 @@
       </div>
 
       <div class="modal-body">
-        <p class="instructions">Add any notes you'd like to include in the report (optional):</p>
-        <textarea 
-          v-model="notes" 
+        <h3 class="text-lg font-semibold text-slate-800 mb-2">
+          Report Details
+        </h3>
+        <label class="block text-sm font-medium text-slate-600 mb-1">
+          Report Title
+        </label>
+        <textarea
+          v-model="reportTitle"
+          placeholder="Enter report title... (e.g., Simulation Report for Valve S-101)"
+          rows="1"
+          class="mb-4"
+        ></textarea>
+
+        <label class="block text-sm font-medium text-slate-600 mb-1">
+          Additional Notes
+        </label>
+        <textarea
+          v-model="notes"
           placeholder="Enter your notes here... (e.g., purpose of simulation, observations, etc.)"
-          rows="5"
+          rows="4"
         ></textarea>
       </div>
 
       <div class="modal-footer">
         <button class="btn-secondary" @click="$emit('close')">Cancel</button>
         <button class="btn-primary" @click="generatePdf" :disabled="generating">
-          {{ generating ? 'Generating...' : '📄 Generate PDF' }}
+          {{ generating ? "Generating..." : "📄 Generate PDF" }}
         </button>
       </div>
     </div>
@@ -26,8 +41,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { jsPDF } from 'jspdf';
+import { jsPDF } from "jspdf";
+import { ref } from "vue";
 
 const props = defineProps<{
   inputs: Record<string, any>;
@@ -40,16 +55,17 @@ const props = defineProps<{
   chartDataUrl: string | null;
 }>();
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(["close"]);
 
-const notes = ref('');
+const reportTitle = ref("");
+const notes = ref("");
 const generating = ref(false);
 
 function formatValue(value: any, decimals = 2): string {
-  if (typeof value === 'number') {
-    return value.toLocaleString('en-US', { 
-      minimumFractionDigits: decimals, 
-      maximumFractionDigits: decimals 
+  if (typeof value === "number") {
+    return value.toLocaleString("en-US", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
     });
   }
   return String(value);
@@ -57,88 +73,101 @@ function formatValue(value: any, decimals = 2): string {
 
 function formatInputLabel(key: string): string {
   const labels: Record<string, string> = {
-    p_up_psig: 'Upstream Pressure',
-    p_down_init_psig: 'Downstream Pressure',
-    volume_ft3: 'Volume',
-    valve_id_inch: 'Valve ID',
-    opening_time_s: 'Opening Time',
-    temp_f: 'Temperature',
-    molar_mass: 'Molar Mass (MW)',
-    z_factor: 'Z-Factor',
-    k_ratio: 'Heat Capacity Ratio (k)',
-    discharge_coeff: 'Discharge Coefficient (Cd)',
-    opening_mode: 'Opening Mode',
-    k_curve: 'Curve Factor (k)',
-    property_mode: 'Property Mode',
-    composition: 'Gas Composition',
-    dt: 'Time Step'
+    p_up_psig: "Upstream Pressure",
+    p_down_init_psig: "Downstream Pressure",
+    volume_ft3: "Volume",
+    valve_id_inch: "Valve ID",
+    valve_action: "Valve Action",
+    opening_time_s: "Opening/Closing Time",
+    temp_f: "Temperature",
+    molar_mass: "Molar Mass (MW)",
+    z_factor: "Z-Factor",
+    k_ratio: "Heat Capacity Ratio (k)",
+    discharge_coeff: "Discharge Coefficient (Cd)",
+    opening_mode: "Valve Mode",
+    k_curve: "Curve Factor (k)",
+    property_mode: "Property Mode",
+    composition: "Gas Composition",
+    dt: "Time Step",
   };
   return labels[key] || key;
 }
 
 function formatInputUnit(key: string): string {
   const units: Record<string, string> = {
-    p_up_psig: 'psig',
-    p_down_init_psig: 'psig',
-    volume_ft3: 'ft³',
-    valve_id_inch: 'in',
-    opening_time_s: 's',
-    temp_f: '°F',
-    molar_mass: 'g/mol',
-    z_factor: '',
-    k_ratio: '',
-    discharge_coeff: '',
-    opening_mode: '',
-    k_curve: '',
-    property_mode: '',
-    composition: '',
-    dt: 's'
+    p_up_psig: "psig",
+    p_down_init_psig: "psig",
+    volume_ft3: "ft³",
+    valve_id_inch: "in",
+    opening_time_s: "s",
+    temp_f: "°F",
+    molar_mass: "g/mol",
+    z_factor: "",
+    k_ratio: "",
+    discharge_coeff: "",
+    opening_mode: "",
+    k_curve: "",
+    property_mode: "",
+    composition: "",
+    dt: "s",
   };
-  return units[key] || '';
+  return units[key] || "";
 }
 
 async function generatePdf() {
   generating.value = true;
-  
+
   try {
-    const doc = new jsPDF('p', 'mm', 'a4');
+    const doc = new jsPDF("p", "mm", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
     let y = margin;
 
     // === HEADER ===
     doc.setFillColor(30, 41, 59); // Dark slate
-    doc.rect(0, 0, pageWidth, 35, 'F');
-    
+    doc.rect(0, 0, pageWidth, 40, "F");
+
     doc.setTextColor(255, 255, 255);
+
+    // User-entered Report Title (Left)
     doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Pressurization Simulator', margin, 18);
-    
+    doc.setFont("helvetica", "bold");
+    doc.text(reportTitle.value.trim() || "Simulation Report", margin, 25);
+
+    // App Branding and Timestamp (Right)
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    const timestamp = new Date().toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    doc.text("Pressurization Simulator Report", pageWidth - margin, 18, {
+      align: "right",
     });
-    doc.text(`Report Generated: ${timestamp}`, margin, 28);
-    
-    y = 45;
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    const timestamp = new Date().toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    doc.text(`Generated: ${timestamp}`, pageWidth - margin, 28, {
+      align: "right",
+    });
+
+    y = 55;
     doc.setTextColor(30, 41, 59);
 
     // === SIMULATION INPUTS ===
     doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Simulation Inputs', margin, y);
+    doc.setFont("helvetica", "bold");
+    doc.text("Simulation Inputs", margin, y);
     y += 8;
 
     doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    
-    const inputKeys = Object.keys(props.inputs).filter(k => k !== 'dt' && k !== 'composition');
+    doc.setFont("helvetica", "normal");
+
+    const inputKeys = Object.keys(props.inputs).filter(
+      (k) => k !== "dt" && k !== "composition"
+    );
     const colWidth = (pageWidth - 2 * margin) / 2;
     let col = 0;
 
@@ -146,14 +175,14 @@ async function generatePdf() {
       const value = props.inputs[key];
       const label = formatInputLabel(key);
       const unit = formatInputUnit(key);
-      const displayValue = `${formatValue(value, 2)}${unit ? ' ' + unit : ''}`;
-      
+      const displayValue = `${formatValue(value, 2)}${unit ? " " + unit : ""}`;
+
       const xPos = margin + col * colWidth;
-      doc.setFont('helvetica', 'bold');
+      doc.setFont("helvetica", "bold");
       doc.text(`${label}:`, xPos, y);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont("helvetica", "normal");
       doc.text(displayValue, xPos + 50, y);
-      
+
       col++;
       if (col >= 2) {
         col = 0;
@@ -163,75 +192,106 @@ async function generatePdf() {
     if (col !== 0) y += 6;
 
     // Special handling for Composition if in composition mode
-    if (props.inputs.property_mode === 'composition' && props.inputs.composition) {
+    if (
+      props.inputs.property_mode === "composition" &&
+      props.inputs.composition
+    ) {
       y += 2;
-      doc.setFont('helvetica', 'bold');
-      doc.text('Gas Composition:', margin, y);
+      doc.setFont("helvetica", "bold");
+      doc.text("Gas Composition:", margin, y);
       y += 5;
-      doc.setFont('helvetica', 'normal');
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
-      const compLines = doc.splitTextToSize(props.inputs.composition, pageWidth - 2 * margin);
+      const compLines = doc.splitTextToSize(
+        props.inputs.composition,
+        pageWidth - 2 * margin
+      );
       doc.text(compLines, margin, y);
-      y += (compLines.length * 4) + 2;
+      y += compLines.length * 4 + 2;
       doc.setFontSize(9);
     }
-    
+
     y += 5;
 
     // === KPI OUTPUTS ===
     doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Key Performance Indicators', margin, y);
+    doc.setFont("helvetica", "bold");
+    doc.text("Key Performance Indicators", margin, y);
     y += 10;
 
     const kpiData = [
-      { label: 'Peak Flow Rate', value: props.kpis.peakFlow, unit: 'lb/hr', decimals: 0 },
-      { label: 'Final Pressure', value: props.kpis.finalPressure, unit: 'psig', decimals: 1 },
-      { label: 'Equilibrium Time', value: props.kpis.equilibriumTime, unit: 'seconds', decimals: 1 },
-      { label: 'Total Mass Flow', value: props.kpis.totalMass, unit: 'lb', decimals: 1 }
+      {
+        label: "Peak Flow Rate",
+        value: props.kpis.peakFlow,
+        unit: "lb/hr",
+        decimals: 0,
+      },
+      {
+        label: "Final Pressure",
+        value: props.kpis.finalPressure,
+        unit: "psig",
+        decimals: 1,
+      },
+      {
+        label: "Equilibrium Time",
+        value: props.kpis.equilibriumTime,
+        unit: "seconds",
+        decimals: 1,
+      },
+      {
+        label: "Total Mass Flow",
+        value: props.kpis.totalMass,
+        unit: "lb",
+        decimals: 1,
+      },
     ];
 
     const kpiBoxWidth = (pageWidth - 2 * margin - 15) / 4;
     kpiData.forEach((kpi, i) => {
       const xPos = margin + i * (kpiBoxWidth + 5);
-      
+
       // KPI Box
       doc.setFillColor(248, 250, 252);
-      doc.roundedRect(xPos, y, kpiBoxWidth, 22, 2, 2, 'F');
-      
+      doc.roundedRect(xPos, y, kpiBoxWidth, 22, 2, 2, "F");
+
       // Label
       doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont("helvetica", "normal");
       doc.setTextColor(100, 116, 139);
-      doc.text(kpi.label, xPos + kpiBoxWidth / 2, y + 6, { align: 'center' });
-      
+      doc.text(kpi.label, xPos + kpiBoxWidth / 2, y + 6, { align: "center" });
+
       // Value
       doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont("helvetica", "bold");
       doc.setTextColor(30, 41, 59);
-      doc.text(formatValue(kpi.value, kpi.decimals), xPos + kpiBoxWidth / 2, y + 14, { align: 'center' });
-      
+      doc.text(
+        formatValue(kpi.value, kpi.decimals),
+        xPos + kpiBoxWidth / 2,
+        y + 14,
+        { align: "center" }
+      );
+
       // Unit
       doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont("helvetica", "normal");
       doc.setTextColor(100, 116, 139);
-      doc.text(kpi.unit, xPos + kpiBoxWidth / 2, y + 19, { align: 'center' });
+      doc.text(kpi.unit, xPos + kpiBoxWidth / 2, y + 19, { align: "center" });
     });
-    
+
     y += 30;
     doc.setTextColor(30, 41, 59);
 
     // === GRAPH ===
     if (props.chartDataUrl) {
       doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Simulation Results Chart', margin, y);
+      doc.setFont("helvetica", "bold");
+      doc.text("Simulation Results Chart", margin, y);
       y += 5;
 
       const imgWidth = pageWidth - 2 * margin;
       const imgHeight = imgWidth * 0.5; // Aspect ratio
-      
-      doc.addImage(props.chartDataUrl, 'PNG', margin, y, imgWidth, imgHeight);
+
+      doc.addImage(props.chartDataUrl, "PNG", margin, y, imgWidth, imgHeight);
       y += imgHeight + 10;
     }
 
@@ -242,15 +302,15 @@ async function generatePdf() {
         doc.addPage();
         y = margin;
       }
-      
+
       doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Notes', margin, y);
+      doc.setFont("helvetica", "bold");
+      doc.text("Notes", margin, y);
       y += 8;
 
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      
+      doc.setFont("helvetica", "normal");
+
       // Word wrap notes
       const lines = doc.splitTextToSize(notes.value, pageWidth - 2 * margin);
       doc.text(lines, margin, y);
@@ -266,18 +326,27 @@ async function generatePdf() {
         `Page ${i} of ${pageCount}`,
         pageWidth / 2,
         doc.internal.pageSize.getHeight() - 10,
-        { align: 'center' }
+        { align: "center" }
       );
     }
 
     // Save the PDF
-    const filename = `pressurization-report-${new Date().toISOString().slice(0, 10)}.pdf`;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const titleSlug = reportTitle.value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .slice(0, 30);
+
+    const filename = titleSlug
+      ? `${titleSlug}-${dateStr}.pdf`
+      : `pressurization-report-${dateStr}.pdf`;
     doc.save(filename);
-    
-    emit('close');
+
+    emit("close");
   } catch (error) {
-    console.error('PDF generation failed:', error);
-    alert('Failed to generate PDF. Please try again.');
+    console.error("PDF generation failed:", error);
+    alert("Failed to generate PDF. Please try again.");
   } finally {
     generating.value = false;
   }
@@ -289,75 +358,75 @@ async function generatePdf() {
 
 /* Component-specific modal sizing and animation */
 .modal-content.report-modal {
-    @apply w-[90%] max-w-[500px] animate-[slideIn_0.2s_ease-out];
+  @apply w-[90%] max-w-[500px] animate-[slideIn_0.2s_ease-out];
 }
 
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-1.25rem);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(-1.25rem);
+  }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Component-specific modal header styling */
 .modal-header h2 {
-    @apply text-xl text-slate-800;
+  @apply text-xl text-slate-800;
 }
 
 /* Component-specific close button styling */
 .close-btn {
-    @apply p-1 leading-none transition-colors text-slate-400;
+  @apply p-1 leading-none transition-colors text-slate-400;
 }
 
 .close-btn:hover {
-    @apply text-slate-500;
+  @apply text-slate-500;
 }
 
 /* Component-specific body and textarea styling */
 .instructions {
-    @apply m-0 mb-4 text-slate-500 text-sm;
+  @apply m-0 mb-4 text-slate-500 text-sm;
 }
 
 .modal-body textarea {
-    @apply w-full p-3.5 border-2 border-slate-200 rounded-lg text-sm font-sans resize-y transition-all;
+  @apply w-full p-3.5 border-2 border-slate-200 rounded-lg text-sm font-sans resize-y transition-all;
 }
 
 .modal-body textarea:focus {
-    @apply outline-none border-blue-500 ring-4 ring-blue-500/10;
+  @apply outline-none border-blue-500 ring-4 ring-blue-500/10;
 }
 
 .modal-body textarea::placeholder {
-    @apply text-slate-400;
+  @apply text-slate-400;
 }
 
 /* Component-specific footer styling */
 .modal-footer {
-    @apply bg-slate-50 rounded-b-2xl;
+  @apply bg-slate-50 rounded-b-2xl;
 }
 
 /* Component-specific button styles */
 .btn-secondary {
-    @apply border-2 bg-white text-slate-500 font-medium;
+  @apply border-2 bg-white text-slate-500 font-medium;
 }
 
 .btn-secondary:hover {
-    @apply border-slate-300 bg-slate-50;
+  @apply border-slate-300 bg-slate-50;
 }
 
 .btn-primary {
-    @apply bg-gradient-to-br from-blue-500 to-blue-600 font-semibold;
+  @apply bg-gradient-to-br from-blue-500 to-blue-600 font-semibold;
 }
 
 .btn-primary:hover:not(:disabled) {
-    @apply from-blue-600 to-blue-700 -translate-y-px;
+  @apply from-blue-600 to-blue-700 -translate-y-px;
 }
 
 .btn-primary:disabled {
-    @apply opacity-60 cursor-not-allowed;
+  @apply opacity-60 cursor-not-allowed;
 }
 </style>

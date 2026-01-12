@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import KpiCard from './KpiCard.vue';
+import KpiCard from "./KpiCard.vue";
 
 const props = defineProps<{
   peakFlow: number;

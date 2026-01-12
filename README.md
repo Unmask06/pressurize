@@ -52,8 +52,6 @@ A modern web application for simulating gas flow through a valve into a vessel. 
    ```
    UI will be available at `http://localhost:5173`.
 
-## Legacy Version
-The original Dash application has been moved to the `legacy_dash/` directory.
 
 ## License
 MIT License
