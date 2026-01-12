@@ -1,7 +1,8 @@
 """
 Pydantic schemas for API requests and responses.
 """
-from typing import List, Optional
+from typing import List, Literal, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -28,7 +29,7 @@ class SimulationRequest(BaseModel):
 
     # Valve Characteristics
     discharge_coeff: float = Field(0.65, description="Discharge coefficient (Cd)")
-    opening_mode: str = Field(
+    opening_mode: Literal["linear", "exponential", "quick_opening", "fixed"] = Field(
         "linear",
         description="Valve opening mode: linear, exponential, quick_opening, fixed",
     )
@@ -38,7 +39,7 @@ class SimulationRequest(BaseModel):
     dt: float = Field(0.05, description="Time step (s)")
 
     # Composition Mode
-    property_mode: str = Field(
+    property_mode: Literal["manual", "composition"] = Field(
         "manual", description="Property mode: manual or composition"
     )
     composition: Optional[str] = Field(

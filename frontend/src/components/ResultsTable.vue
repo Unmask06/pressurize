@@ -53,4 +53,31 @@ const props = defineProps<{
 const emit = defineEmits(['close']);
 </script>
 
-<style scoped src="../styles/ResultsTable.css"></style>
+<style scoped>
+@import "tailwindcss";
+
+/* Component-specific modal sizing */
+.modal-content {
+    @apply w-[95%] max-w-[1200px] max-h-[85vh];
+}
+
+.table-container {
+    @apply overflow-auto p-0 flex-1;
+}
+
+table {
+    @apply w-full border-collapse text-sm text-slate-800;
+}
+
+th {
+    @apply sticky top-0 bg-slate-100 p-4 text-left border-b-2 border-slate-200 font-semibold whitespace-nowrap;
+}
+
+td {
+    @apply py-3 px-4 border-b border-slate-200 whitespace-nowrap;
+}
+
+tr:hover {
+    @apply bg-slate-100;
+}
+</style>

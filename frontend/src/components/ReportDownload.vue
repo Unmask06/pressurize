@@ -284,4 +284,80 @@ async function generatePdf() {
 }
 </script>
 
-<style scoped src="../styles/ReportDownload.css"></style>
+<style scoped>
+@import "tailwindcss";
+
+/* Component-specific modal sizing and animation */
+.modal-content.report-modal {
+    @apply w-[90%] max-w-[500px] animate-[slideIn_0.2s_ease-out];
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-1.25rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Component-specific modal header styling */
+.modal-header h2 {
+    @apply text-xl text-slate-800;
+}
+
+/* Component-specific close button styling */
+.close-btn {
+    @apply p-1 leading-none transition-colors text-slate-400;
+}
+
+.close-btn:hover {
+    @apply text-slate-500;
+}
+
+/* Component-specific body and textarea styling */
+.instructions {
+    @apply m-0 mb-4 text-slate-500 text-sm;
+}
+
+.modal-body textarea {
+    @apply w-full p-3.5 border-2 border-slate-200 rounded-lg text-sm font-sans resize-y transition-all;
+}
+
+.modal-body textarea:focus {
+    @apply outline-none border-blue-500 ring-4 ring-blue-500/10;
+}
+
+.modal-body textarea::placeholder {
+    @apply text-slate-400;
+}
+
+/* Component-specific footer styling */
+.modal-footer {
+    @apply bg-slate-50 rounded-b-2xl;
+}
+
+/* Component-specific button styles */
+.btn-secondary {
+    @apply border-2 bg-white text-slate-500 font-medium;
+}
+
+.btn-secondary:hover {
+    @apply border-slate-300 bg-slate-50;
+}
+
+.btn-primary {
+    @apply bg-gradient-to-br from-blue-500 to-blue-600 font-semibold;
+}
+
+.btn-primary:hover:not(:disabled) {
+    @apply from-blue-600 to-blue-700 -translate-y-px;
+}
+
+.btn-primary:disabled {
+    @apply opacity-60 cursor-not-allowed;
+}
+</style>

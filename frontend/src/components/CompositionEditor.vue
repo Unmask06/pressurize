@@ -204,4 +204,101 @@ function apply() {
 }
 </script>
 
-<style scoped src="../styles/CompositionEditor.css"></style>
+<style scoped>
+@import "tailwindcss";
+
+/* Component-specific modal sizing */
+.modal-content {
+    @apply w-[90%] max-w-[800px] max-h-[85vh];
+}
+
+/* Component-specific modal body scrolling */
+.modal-body {
+    @apply overflow-y-auto flex-1;
+}
+
+.presets-section {
+    @apply mb-6;
+}
+
+.preset-chips {
+    @apply flex flex-wrap gap-2 mt-2;
+}
+
+.chip {
+    @apply py-1.5 px-3 bg-slate-100 border border-slate-200 rounded-full cursor-pointer text-sm transition-all;
+}
+
+.chip:hover {
+    @apply bg-blue-500 text-white border-blue-500;
+}
+
+.editor-grid {
+    @apply grid grid-cols-2 gap-6 h-[400px];
+}
+
+.list-container {
+    @apply border border-slate-200 rounded-lg p-4 flex flex-col;
+}
+
+h4 {
+    @apply m-0 mb-2 text-base;
+}
+
+.search-input {
+    @apply w-full py-2 px-3 mb-2 border border-slate-200 rounded-md bg-white text-slate-800;
+}
+
+.component-list {
+    @apply flex-1 overflow-y-auto flex flex-col gap-1;
+}
+
+.comp-item {
+    @apply py-2 px-3 flex justify-between items-center rounded cursor-pointer;
+}
+
+.comp-item.add {
+    @apply bg-slate-100 border-none text-left;
+}
+
+.comp-item.add:hover:not(:disabled) {
+    @apply bg-slate-200;
+}
+
+.comp-item.add:disabled {
+    @apply opacity-50 cursor-default;
+}
+
+.comp-item.selected {
+    @apply bg-slate-100 cursor-default;
+}
+
+.comp-name {
+    @apply text-sm flex-1;
+}
+
+.fraction-input {
+    @apply w-[70px] py-1 px-2 mr-2 text-right border border-slate-200 rounded;
+}
+
+.remove-btn {
+    @apply border-none bg-transparent text-red-500 cursor-pointer font-bold;
+}
+
+.total-section {
+    @apply mt-4 p-2 rounded flex justify-between font-bold;
+}
+
+.total-section.valid {
+    @apply bg-emerald-500/10 text-emerald-500;
+}
+
+.total-section.invalid {
+    @apply bg-red-500/10 text-red-500;
+}
+
+/* Component-specific button styles */
+.btn-secondary.small {
+    @apply mt-2 text-sm py-1 px-2.5;
+}
+</style>
