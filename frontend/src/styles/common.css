@@ -2,51 +2,51 @@
 
 /* Modal Styles */
 .modal-overlay {
-    @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000];
+  @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000];
 }
 
 .modal-content {
-    @apply bg-white rounded-xl shadow-2xl flex flex-col;
+  @apply bg-white rounded-xl shadow-2xl flex flex-col;
 }
 
 .modal-header {
-    @apply p-6 border-b border-slate-200 flex justify-between items-center;
+  @apply p-6 border-b border-slate-200 flex justify-between items-center;
 }
 
 .modal-header h2,
 .modal-header h3 {
-    @apply m-0;
+  @apply m-0;
 }
 
 .modal-body {
-    @apply p-6;
+  @apply p-6;
 }
 
 .modal-footer {
-    @apply py-4 px-6 border-t border-slate-200 flex justify-end gap-4;
+  @apply py-4 px-6 border-t border-slate-200 flex justify-end gap-4;
 }
 
 .close-btn {
-    @apply bg-transparent border-none text-2xl cursor-pointer text-slate-500;
+  @apply bg-transparent border-none text-2xl cursor-pointer text-slate-500;
 }
 
 /* Button Styles */
 .btn-primary {
-    @apply py-2.5 px-5 bg-blue-500 text-white border-none rounded-md cursor-pointer font-medium;
+  @apply py-2.5 px-5 bg-blue-500 text-white border-none rounded-md cursor-pointer font-medium;
 }
 
 .btn-primary:hover:not(:disabled) {
-    @apply bg-blue-600;
+  @apply bg-blue-600;
 }
 
 .btn-primary:disabled {
-    @apply opacity-50 cursor-not-allowed;
+  @apply opacity-50 cursor-not-allowed;
 }
 
 .btn-secondary {
-    @apply py-2.5 px-5 bg-transparent border border-slate-200 rounded-md cursor-pointer;
+  @apply py-2.5 px-5 bg-transparent border border-slate-200 rounded-md cursor-pointer;
 }
 
 .btn-secondary:hover {
-    @apply bg-slate-100;
+  @apply bg-slate-100;
 }

@@ -5,12 +5,12 @@
         <h1>Pressurization Simulator</h1>
         <p>Gas Valves</p>
       </div>
-      <SimulationForm 
-        :loading="loading" 
+      <SimulationForm
+        :loading="loading"
         :initial-composition="currentComposition"
         :results-empty="results.length === 0"
         :current-dt="currentDt"
-        @run="runSimulation" 
+        @run="runSimulation"
         @edit-composition="showCompositionEditor = true"
         @view-results="showResultsTable = true"
         @edit-settings="showSettingsEditor = true"
@@ -25,8 +25,8 @@
           :equilibrium-time="kpis.equilibriumTime"
           :total-mass="kpis.totalMass"
         />
-        <button 
-          class="btn-download" 
+        <button
+          class="btn-download"
           @click="showReportModal = true"
           :disabled="results.length === 0"
         >
@@ -78,22 +78,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
-import { apiClient } from './api/client';
-import SimulationForm from './components/SimulationForm.vue';
-import KpiCards from './components/KpiCards.vue';
-import ResultsChart from './components/ResultsChart.vue';
-import CompositionEditor from './components/CompositionEditor.vue';
-import ResultsTable from './components/ResultsTable.vue';
-import ReportDownload from './components/ReportDownload.vue';
-import SettingsEditor from './components/SettingsEditor.vue';
+import { computed, reactive, ref } from "vue";
+import { apiClient } from "./api/client";
+import CompositionEditor from "./components/CompositionEditor.vue";
+import KpiCards from "./components/KpiCards.vue";
+import ReportDownload from "./components/ReportDownload.vue";
+import ResultsChart from "./components/ResultsChart.vue";
+import ResultsTable from "./components/ResultsTable.vue";
+import SettingsEditor from "./components/SettingsEditor.vue";
+import SimulationForm from "./components/SimulationForm.vue";
 
 const loading = ref(false);
 const showCompositionEditor = ref(false);
 const showResultsTable = ref(false);
 const showReportModal = ref(false);
 const showSettingsEditor = ref(false);
-const currentComposition = ref('Methane=0.9387, Ethane=0.0121, Propane=0.0004, Carbon dioxide=0.0054, Nitrogen=0.0433');
+const currentComposition = ref(
+  "Methane=0.9387, Ethane=0.0121, Propane=0.0004, Carbon dioxide=0.0054, Nitrogen=0.0433"
+);
 const currentDt = ref(0.05);
 
 // Refs for report generation
@@ -113,7 +115,7 @@ const kpis = reactive({
   peakFlow: 0,
   finalPressure: 0,
   equilibriumTime: 0,
-  totalMass: 0
+  totalMass: 0,
 });
 
 async function runSimulation(params: any) {
@@ -121,11 +123,11 @@ async function runSimulation(params: any) {
   // Store form params for report
   lastFormParams.value = { ...params };
   try {
-    const res = await apiClient.post('/simulate', params);
-    
+    const res = await apiClient.post("/simulate", params);
+
     // Update Results
     results.value = res.data.results;
-    
+
     // Update KPIs
     kpis.peakFlow = res.data.peak_flow;
     kpis.finalPressure = res.data.final_pressure;
@@ -154,50 +156,50 @@ function updateSettings(newDt: number) {
 @import "tailwindcss";
 
 .app-container {
-    @apply flex h-screen w-screen overflow-hidden;
+  @apply flex h-screen w-screen overflow-hidden;
 }
 
 .sidebar {
-    @apply w-[350px] bg-white border-r border-slate-200 flex flex-col shrink-0;
+  @apply w-[350px] bg-white border-r border-slate-200 flex flex-col shrink-0;
 }
 
 .sidebar-header {
-    @apply p-6 border-b border-slate-200;
+  @apply p-6 border-b border-slate-200;
 }
 
 .sidebar-header h1 {
-    @apply m-0 text-2xl font-extrabold text-blue-500 tracking-tight;
+  @apply m-0 text-2xl font-extrabold text-blue-500 tracking-tight;
 }
 
 .sidebar-header p {
-    @apply mt-1 mb-0 text-sm text-slate-400 font-medium uppercase tracking-widest;
+  @apply mt-1 mb-0 text-sm text-slate-400 font-medium uppercase tracking-widest;
 }
 
 .main-content {
-    @apply flex-1 flex flex-col p-8 bg-slate-50 overflow-hidden;
+  @apply flex-1 flex flex-col p-8 bg-slate-50 overflow-hidden;
 }
 
 .results-header {
-    @apply flex justify-between items-start gap-4 mb-4;
+  @apply flex justify-between items-start gap-4 mb-4;
 }
 
 .results-header .kpi-grid {
-    @apply flex-1;
+  @apply flex-1;
 }
 
 .btn-download {
-    @apply shrink-0 py-3 px-5 border-none bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-emerald-500/30;
+  @apply shrink-0 py-3 px-5 border-none bg-linear-to-br from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-emerald-500/30;
 }
 
 .btn-download:hover:not(:disabled) {
-    @apply from-emerald-600 to-emerald-700 -translate-y-0.5 shadow-xl shadow-emerald-500/40;
+  @apply from-emerald-600 to-emerald-700 -translate-y-0.5 shadow-xl shadow-emerald-500/40;
 }
 
 .btn-download:disabled {
-    @apply opacity-50 cursor-not-allowed transform-none shadow-none;
+  @apply opacity-50 cursor-not-allowed transform-none shadow-none;
 }
 
 .chart-wrapper {
-    @apply flex-1 min-h-0 w-full;
+  @apply flex-1 min-h-0 w-full;
 }
 </style>
