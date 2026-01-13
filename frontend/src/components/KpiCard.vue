@@ -3,7 +3,10 @@
     <div class="kpi-icon">{{ icon }}</div>
     <div class="kpi-content">
       <div class="kpi-label">{{ label }}</div>
-      <div class="kpi-value">{{ formattedValue }}</div>
+      <div class="kpi-value" v-if="!loading">{{ formattedValue }}</div>
+      <div class="kpi-value loading" v-else>
+        <span class="loading-dots">•••</span>
+      </div>
       <div class="kpi-unit">{{ unit }}</div>
     </div>
   </div>
@@ -19,13 +22,31 @@ const props = defineProps<{
   icon: string;
   color: string;
   decimals?: number;
+  loading?: boolean;
 }>();
 
 const formattedValue = computed(() => {
+  const value = props.value;
+  
+  // Use compact notation for large numbers
+  if (Math.abs(value) >= 1_000_000) {
+    return new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      compactDisplay: "short",
+      maximumFractionDigits: 2,
+    }).format(value);
+  } else if (Math.abs(value) >= 10_000) {
+    return new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      compactDisplay: "short",
+      maximumFractionDigits: 1,
+    }).format(value);
+  }
+  
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: props.decimals ?? 0,
     maximumFractionDigits: props.decimals ?? 0,
-  }).format(props.value);
+  }).format(value);
 });
 </script>
 
@@ -33,7 +54,7 @@ const formattedValue = computed(() => {
 @import "tailwindcss";
 
 .kpi-card {
-  @apply bg-white rounded-xl p-6 flex items-center gap-4 shadow-sm transition-all duration-200 border border-slate-200;
+  @apply bg-white rounded-xl p-6 flex items-center gap-4 shadow-sm transition-all duration-200 border border-slate-200 min-w-0 overflow-hidden;
 }
 
 .kpi-card:hover {
@@ -45,7 +66,7 @@ const formattedValue = computed(() => {
 }
 
 .kpi-content {
-  @apply flex flex-col;
+  @apply flex flex-col min-w-0 flex-1;
 }
 
 .kpi-label {
@@ -53,7 +74,7 @@ const formattedValue = computed(() => {
 }
 
 .kpi-value {
-  @apply text-2xl font-bold text-slate-800 leading-tight;
+  @apply text-xl font-bold text-slate-800 leading-tight truncate;
 }
 
 .kpi-unit {
@@ -75,5 +96,20 @@ const formattedValue = computed(() => {
 
 .kpi-card.mass .kpi-value {
   @apply text-violet-500;
+}
+
+/* Loading state */
+.kpi-value.loading {
+  @apply text-slate-400;
+}
+
+.loading-dots {
+  @apply inline-block;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
 }
 </style>

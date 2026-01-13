@@ -24,6 +24,7 @@
           :final-pressure="kpis.finalPressure"
           :equilibrium-time="kpis.equilibriumTime"
           :total-mass="kpis.totalMass"
+          :loading="!kpisReady"
         />
         <button
           class="btn-download"
@@ -79,7 +80,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
-import { apiClient } from "./api/client";
+import { streamSimulation, type SimulationRow } from "./api/client";
 import CompositionEditor from "./components/CompositionEditor.vue";
 import KpiCards from "./components/KpiCards.vue";
 import ReportDownload from "./components/ReportDownload.vue";
@@ -110,7 +111,8 @@ const chartDataUrl = computed(() => {
   return null;
 });
 
-const results = ref<any[]>([]);
+const results = ref<SimulationRow[]>([]);
+const loadedRows = ref(0);
 const kpis = reactive({
   peakFlow: 0,
   finalPressure: 0,
@@ -118,26 +120,48 @@ const kpis = reactive({
   totalMass: 0,
 });
 
+// Track if KPIs are ready (simulation complete)
+const kpisReady = ref(true);
+
 async function runSimulation(params: any) {
   loading.value = true;
+  kpisReady.value = false;
   // Store form params for report
   lastFormParams.value = { ...params };
+  // Clear previous results
+  results.value = [];
+  loadedRows.value = 0;
+  // Reset KPIs
+  kpis.peakFlow = 0;
+  kpis.finalPressure = 0;
+  kpis.equilibriumTime = 0;
+  kpis.totalMass = 0;
+
   try {
-    const res = await apiClient.post("/simulate", params);
-
-    // Update Results
-    results.value = res.data.results;
-
-    // Update KPIs
-    kpis.peakFlow = res.data.peak_flow;
-    kpis.finalPressure = res.data.final_pressure;
-    kpis.equilibriumTime = res.data.equilibrium_time;
-    kpis.totalMass = res.data.total_mass_lb;
+    await streamSimulation(params, {
+      onChunk: (rows, totalRows) => {
+        // Append new rows to results
+        results.value = [...results.value, ...rows];
+        loadedRows.value = totalRows;
+      },
+      onComplete: (kpiData) => {
+        kpis.peakFlow = kpiData.peak_flow;
+        kpis.finalPressure = kpiData.final_pressure;
+        kpis.equilibriumTime = kpiData.equilibrium_time;
+        kpis.totalMass = kpiData.total_mass_lb;
+        kpisReady.value = true;
+      },
+      onError: (message) => {
+        console.error("Simulation failed:", message);
+        alert(`Simulation failed: ${message}`);
+      },
+    });
   } catch (e) {
     console.error("Simulation failed", e);
     alert("Simulation failed. Check console for details.");
   } finally {
     loading.value = false;
+    kpisReady.value = true;
   }
 }
 

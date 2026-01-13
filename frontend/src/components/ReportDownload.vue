@@ -72,13 +72,17 @@ function formatValue(value: any, decimals = 2): string {
 }
 
 function formatInputLabel(key: string): string {
+  // Handle dynamic label for opening/closing time based on valve action
+  if (key === "opening_time_s") {
+    return props.inputs.valve_action === "close" ? "Closing Time" : "Opening Time";
+  }
+
   const labels: Record<string, string> = {
     p_up_psig: "Upstream Pressure",
     p_down_init_psig: "Downstream Pressure",
     volume_ft3: "Volume",
     valve_id_inch: "Valve ID",
     valve_action: "Valve Action",
-    opening_time_s: "Opening/Closing Time",
     temp_f: "Temperature",
     molar_mass: "Molar Mass (MW)",
     z_factor: "Z-Factor",
@@ -165,9 +169,13 @@ async function generatePdf() {
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
 
-    const inputKeys = Object.keys(props.inputs).filter(
-      (k) => k !== "dt" && k !== "composition"
-    );
+    const inputKeys = Object.keys(props.inputs).filter((k) => {
+      // Always exclude dt and composition
+      if (k === "dt" || k === "composition") return false;
+      // Exclude k_curve (Curve Factor) for Linear mode since it's not used
+      if (k === "k_curve" && props.inputs.opening_mode === "linear") return false;
+      return true;
+    });
     const colWidth = (pageWidth - 2 * margin) / 2;
     let col = 0;
 
