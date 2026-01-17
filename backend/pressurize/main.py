@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(routes.router, prefix="/pressurize")
+app.include_router(routes.router)
 
 
 @app.get("/")
@@ -31,6 +31,7 @@ def read_root() -> dict[str, str]:
 def run_server(host: str = "0.0.0.0", port: int = 8000) -> None:
     """Run the Pressurize API server."""
     import uvicorn
+
     uvicorn.run("pressurize.main:app", host=host, port=port, reload=True)
 
 

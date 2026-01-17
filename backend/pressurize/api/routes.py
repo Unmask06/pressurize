@@ -5,6 +5,8 @@ API routes for gas pressurization simulation.
 import json
 from collections.abc import AsyncGenerator
 
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pressurize.api.schemas import (
     PropertiesRequest,
     PropertiesResponse,
@@ -17,8 +19,6 @@ from pressurize.api.schemas import (
 from pressurize.core.properties import GasState, get_gas_properties_at_conditions
 from pressurize.core.simulation import run_simulation
 from pressurize.utils.converters import fahrenheit_to_kelvin, psig_to_pa
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
 
 router = APIRouter()
 
