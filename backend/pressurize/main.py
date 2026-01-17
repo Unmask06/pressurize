@@ -1,4 +1,4 @@
-from app.api import routes
+from pressurize.api import routes
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -31,7 +31,7 @@ def read_root() -> dict[str, str]:
 def run_server(host: str = "0.0.0.0", port: int = 8000) -> None:
     """Run the Pressurize API server."""
     import uvicorn
-    uvicorn.run("app.main:app", host=host, port=port, reload=True)
+    uvicorn.run("pressurize.main:app", host=host, port=port, reload=True)
 
 
 if __name__ == "__main__":

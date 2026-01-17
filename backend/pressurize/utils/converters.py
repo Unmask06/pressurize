@@ -1,6 +1,6 @@
 """Unit conversion utilities for temperature and pressure."""
 
-from app.config.settings import ATM_PSI, PA_TO_PSI, PSI_TO_PA
+from pressurize.config.settings import ATM_PSI, PA_TO_PSI, PSI_TO_PA
 
 
 def fahrenheit_to_kelvin(temp_f: float) -> float:

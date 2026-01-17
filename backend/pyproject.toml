@@ -41,7 +41,7 @@ dev = [
 ]
 
 [project.scripts]
-pressurize = "app.main:run_server"
+pressurize = "pressurize.main:run_server"
 
 [build-system]
 requires = ["hatchling"]
@@ -51,7 +51,7 @@ build-backend = "hatchling.build"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = ["pressurize"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

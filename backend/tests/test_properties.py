@@ -5,7 +5,7 @@ including composition parsing and property calculations.
 """
 
 import pytest
-from app.core.properties import (
+from pressurize.core.properties import (
     GasProperties,
     GasState,
     get_gas_properties_at_conditions,

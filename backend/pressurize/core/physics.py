@@ -1,7 +1,7 @@
 """Physics calculations for gas flow through orifices (ISO 5167-2)."""
 
 import numpy as np
-from app.config.settings import R_UNIVERSAL
+from pressurize.config.settings import R_UNIVERSAL
 
 
 def calculate_density(
