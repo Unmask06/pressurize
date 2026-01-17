@@ -10,8 +10,7 @@ This module tests the gas flow physics calculations including:
 
 import numpy as np
 import pytest
-
-from backend.core.physics import (
+from app.core.physics import (
     calculate_choked_flow,
     calculate_critical_pressure_ratio,
     calculate_dp_dt,

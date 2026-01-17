@@ -1,9 +1,22 @@
 [project]
 name = "pressurize"
 version = "0.1.0"
-description = "Add your description here"
+description = "Gas blowdown simulation API for pressure vessel depressurization analysis"
 readme = "README.md"
 requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "Unmask06"}
+]
+keywords = ["gas", "blowdown", "simulation", "pressure", "vessel", "depressurization"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
 dependencies = [
     "dash>=2.14.0",
     "dash-bootstrap-components>=1.5.0",
@@ -17,7 +30,6 @@ dependencies = [
     "uvicorn>=0.27.0",
     "pydantic>=2.6.0",
     "fluids @ git+https://github.com/Unmask06/fluids.git@master",
-    
 ]
 
 [project.optional-dependencies]
@@ -26,3 +38,20 @@ dev = [
     "pytest-cov>=4.1.0",
     "httpx>=0.26.0",
 ]
+
+[project.scripts]
+pressurize = "app.main:run_server"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
