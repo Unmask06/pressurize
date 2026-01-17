@@ -30,6 +30,7 @@ dependencies = [
     "uvicorn>=0.27.0",
     "pydantic>=2.6.0",
     "fluids @ git+https://github.com/Unmask06/fluids.git@master",
+    "pytest>=9.0.2",
 ]
 
 [project.optional-dependencies]
@@ -50,7 +51,8 @@ build-backend = "hatchling.build"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = ["api", "config", "core", "utils"]
+include = ["main.py", "__init__.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

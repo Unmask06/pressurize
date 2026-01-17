@@ -8,6 +8,8 @@ app = FastAPI(title="Pressurize API", version="0.1.0")
 origins: list[str] = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://xergiz.com",
+    "https://www.xergiz.com",
 ]
 
 app.add_middleware(
@@ -18,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(routes.router, prefix="/api")
+app.include_router(routes.router, prefix="/pressurize")
 
 
 @app.get("/")
