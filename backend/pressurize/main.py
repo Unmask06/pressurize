@@ -1,8 +1,12 @@
-from pressurize.api import routes
+import os
+from importlib.metadata import version
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="Pressurize API", version="0.1.0")
+from pressurize.api import routes
+
+app = FastAPI(title="Pressurize API", version=version("pressurize"))
 
 # Allow CORS for Vue frontend (assuming runs on port 5173 by default)
 origins: list[str] = [
@@ -20,7 +24,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(routes.router)
+# When running standalone (local dev), add /pressurize prefix to match frontend expectations.
+# In production, the app is mounted at /pressurize by the main xergiz backend, so no prefix needed.
+is_standalone = os.environ.get("PRESSURIZE_STANDALONE", "false").lower() == "true"
+router_prefix = "/pressurize" if is_standalone else ""
+
+app.include_router(routes.router, prefix=router_prefix)
 
 
 @app.get("/")
