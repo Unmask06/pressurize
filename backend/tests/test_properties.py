@@ -5,8 +5,7 @@ including composition parsing and property calculations.
 """
 
 import pytest
-
-from backend.core.properties import (
+from app.core.properties import (
     GasProperties,
     GasState,
     get_gas_properties_at_conditions,

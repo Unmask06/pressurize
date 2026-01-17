@@ -1,5 +1,5 @@
+from app.main import app
 from fastapi.testclient import TestClient
-from backend.main import app
 
 client = TestClient(app)
 
@@ -9,14 +9,14 @@ def test_read_main():
     assert response.json() == {"message": "Pressurize API is running"}
 
 def test_get_components():
-    response = client.get("/api/components")
+    response = client.get("/pressurize/components")
     assert response.status_code == 200
     components = response.json()
     assert isinstance(components, list)
     assert "Methane" in components
 
 def test_get_presets():
-    response = client.get("/api/presets")
+    response = client.get("/pressurize/presets")
     assert response.status_code == 200
     presets = response.json()
     assert isinstance(presets, list)
@@ -39,7 +39,7 @@ def test_simulation_workflow():
         "dt": 0.5 # Larger dt for faster test
     }
     
-    response = client.post("/api/simulate", json=payload)
+    response = client.post("/pressurize/simulate", json=payload)
     assert response.status_code == 200
     data = response.json()
     
@@ -55,7 +55,7 @@ def test_property_calculation():
         "temp_f": 70
     }
     
-    response = client.post("/api/properties", json=payload)
+    response = client.post("/pressurize/properties", json=payload)
     assert response.status_code == 200
     props = response.json()
     

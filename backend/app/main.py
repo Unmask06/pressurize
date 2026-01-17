@@ -1,7 +1,6 @@
+from app.api import routes
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from backend.api import routes
 
 app = FastAPI(title="Pressurize API", version="0.1.0")
 
@@ -9,6 +8,8 @@ app = FastAPI(title="Pressurize API", version="0.1.0")
 origins: list[str] = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://xergiz.com",
+    "https://www.xergiz.com",
 ]
 
 app.add_middleware(
@@ -19,9 +20,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(routes.router, prefix="/api")
+app.include_router(routes.router, prefix="/pressurize")
 
 
 @app.get("/")
 def read_root() -> dict[str, str]:
     return {"message": "Pressurize API is running"}
+
+
+def run_server(host: str = "0.0.0.0", port: int = 8000) -> None:
+    """Run the Pressurize API server."""
+    import uvicorn
+    uvicorn.run("app.main:app", host=host, port=port, reload=True)
+
+
+if __name__ == "__main__":
+    run_server()

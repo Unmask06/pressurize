@@ -4,15 +4,14 @@ from typing import Literal, Optional
 
 import numpy as np
 import pandas as pd
-
-from backend.config.settings import FT3_TO_M3, INCH_TO_M, KG_S_TO_LB_HR, TIME_STEP
-from backend.core.physics import (
+from app.config.settings import FT3_TO_M3, INCH_TO_M, KG_S_TO_LB_HR, TIME_STEP
+from app.core.physics import (
     calculate_critical_pressure_ratio,
     calculate_dp_dt,
     calculate_mass_flow_rate,
 )
-from backend.core.properties import GasState
-from backend.utils.converters import fahrenheit_to_kelvin, pa_to_psig, psig_to_pa
+from app.core.properties import GasState
+from app.utils.converters import fahrenheit_to_kelvin, pa_to_psig, psig_to_pa
 
 
 def run_simulation(

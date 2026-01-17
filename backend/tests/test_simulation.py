@@ -4,9 +4,9 @@ This module tests the main simulation engine that integrates
 all physics calculations over time.
 """
 
-import pytest
 import pandas as pd
-from backend.core.simulation import run_simulation
+import pytest
+from app.core.simulation import run_simulation
 
 
 def _find_time_index(df, target_time):
@@ -461,9 +461,9 @@ class TestCompositionMode:
         )
         
         # Should have additional columns
-        assert 'Z_factor' in df.columns
+        assert 'z_factor' in df.columns
         assert 'k_ratio' in df.columns
-        assert 'molar_mass_g_mol' in df.columns
+        assert 'molar_mass' in df.columns
 
 
 class TestEdgeCases:

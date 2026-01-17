@@ -5,7 +5,7 @@ loaded and used with the thermo library for property calculations.
 """
 
 import pytest
-from backend.core.properties import GasState, DEFAULT_COMPONENTS
+from app.core.properties import DEFAULT_COMPONENTS, GasState
 
 
 class TestComponentCompatibility:

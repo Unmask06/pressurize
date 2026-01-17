@@ -1,8 +1,7 @@
 """Physics calculations for gas flow through orifices (ISO 5167-2)."""
 
 import numpy as np
-
-from backend.config.settings import R_UNIVERSAL
+from app.config.settings import R_UNIVERSAL
 
 
 def calculate_density(
@@ -48,6 +47,81 @@ def calculate_critical_pressure(P_up: float, k: float) -> float:
     """
     r_c = calculate_critical_pressure_ratio(k)
     return P_up * r_c
+
+
+def calculate_choked_flow(
+    Cd: float,
+    A: float,
+    P_up: float,
+    k: float,
+    molar_mass_g_mol: float,
+    Z: float,
+    T: float,
+) -> float:
+    """Calculate mass flow rate for choked (sonic) flow conditions.
+
+    Uses the standard choked flow equation with real gas corrections.
+
+    Args:
+        Cd: Discharge coefficient (dimensionless).
+        A: Effective flow area in m².
+        P_up: Upstream absolute pressure in Pa.
+        k: Heat capacity ratio (Cp/Cv).
+        molar_mass_g_mol: Molar mass in g/mol.
+        Z: Compressibility factor (dimensionless).
+        T: Gas temperature in Kelvin.
+
+    Returns:
+        Mass flow rate in kg/s.
+    """
+    molar_mass_kg_mol = molar_mass_g_mol / 1000.0
+
+    # Choked flow formula
+    term1 = Cd * A * P_up
+    term2 = np.sqrt(
+        (k * molar_mass_kg_mol) / (Z * R_UNIVERSAL * T) * (2 / (k + 1)) ** ((k + 1) / (k - 1))
+    )
+    return term1 * term2
+
+
+def calculate_subsonic_flow(
+    Cd: float,
+    A: float,
+    P_up: float,
+    P_down: float,
+    k: float,
+    molar_mass_g_mol: float,
+    Z: float,
+    T: float,
+) -> float:
+    """Calculate mass flow rate for subsonic flow conditions.
+
+    Uses the isentropic flow equation with real gas corrections.
+
+    Args:
+        Cd: Discharge coefficient (dimensionless).
+        A: Effective flow area in m².
+        P_up: Upstream absolute pressure in Pa.
+        P_down: Downstream absolute pressure in Pa.
+        k: Heat capacity ratio (Cp/Cv).
+        molar_mass_g_mol: Molar mass in g/mol.
+        Z: Compressibility factor (dimensionless).
+        T: Gas temperature in Kelvin.
+
+    Returns:
+        Mass flow rate in kg/s.
+    """
+    molar_mass_kg_mol = molar_mass_g_mol / 1000.0
+    r = P_down / P_up
+
+    # Subsonic flow formula
+    term1 = Cd * A * P_up
+    term2 = np.sqrt(
+        (2 * k * molar_mass_kg_mol)
+        / ((k - 1) * Z * R_UNIVERSAL * T)
+        * (r ** (2 / k) - r ** ((k + 1) / k))
+    )
+    return term1 * term2
 
 
 def calculate_orifice_mass_flow(
