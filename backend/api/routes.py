@@ -13,6 +13,7 @@ from backend.api.schemas import (
     PropertiesResponse,
     SimulationRequest,
     SimulationResponse,
+    SimulationResultPoint,
     StreamingChunk,
     StreamingComplete,
 )
@@ -65,7 +66,7 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
         dt = req.dt  # Approximate integration using fixed time step provided in request
         total_mass = (df["flowrate_lb_hr"].sum() * dt) / 3600
 
-        results = df.to_dict(orient="records")
+        results = [SimulationResultPoint.model_validate(row) for row in df.to_dict(orient="records")]
 
         return SimulationResponse(
             results=results,

@@ -27,7 +27,7 @@ const props = defineProps<{
 
 const formattedValue = computed(() => {
   const value = props.value;
-  
+
   // Use compact notation for large numbers
   if (Math.abs(value) >= 1_000_000) {
     return new Intl.NumberFormat("en-US", {
@@ -42,7 +42,7 @@ const formattedValue = computed(() => {
       maximumFractionDigits: 1,
     }).format(value);
   }
-  
+
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: props.decimals ?? 0,
     maximumFractionDigits: props.decimals ?? 0,
@@ -54,7 +54,7 @@ const formattedValue = computed(() => {
 @import "tailwindcss";
 
 .kpi-card {
-  @apply bg-white rounded-xl p-6 flex items-center gap-4 shadow-sm transition-all duration-200 border border-slate-200 min-w-0 overflow-hidden;
+  @apply bg-white rounded-lg p-2 sm:p-3 flex flex-row items-center gap-2 shadow-sm transition-all duration-200 border border-slate-200;
 }
 
 .kpi-card:hover {
@@ -62,19 +62,19 @@ const formattedValue = computed(() => {
 }
 
 .kpi-icon {
-  @apply text-3xl bg-slate-100 p-3 rounded-full leading-none;
+  @apply text-lg sm:text-xl bg-slate-100 p-1.5 sm:p-2 rounded-lg leading-none flex-shrink-0;
 }
 
 .kpi-content {
-  @apply flex flex-col min-w-0 flex-1;
+  @apply flex flex-col flex-1;
 }
 
 .kpi-label {
-  @apply text-sm text-slate-500 font-medium mb-1;
+  @apply text-xs text-slate-500 font-medium whitespace-nowrap;
 }
 
 .kpi-value {
-  @apply text-xl font-bold text-slate-800 leading-tight truncate;
+  @apply text-sm sm:text-base md:text-lg font-bold text-slate-800 leading-tight whitespace-nowrap;
 }
 
 .kpi-unit {
@@ -109,7 +109,12 @@ const formattedValue = computed(() => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 </style>

@@ -54,6 +54,6 @@ const props = defineProps<{
 @reference "tailwindcss";
 
 .kpi-grid {
-  @apply grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6 mb-8;
+  @apply grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4;
 }
 </style>

@@ -200,11 +200,11 @@ function updateSettings(newDt: number) {
 }
 
 .main-content {
-  @apply flex-1 flex flex-col p-8 bg-slate-50 overflow-hidden;
+  @apply flex-1 flex flex-col p-4 sm:p-6 md:p-8 bg-slate-50 overflow-hidden gap-3 sm:gap-4;
 }
 
 .results-header {
-  @apply flex justify-between items-start gap-4 mb-4;
+  @apply flex flex-col sm:flex-row justify-between items-stretch sm:items-start gap-3 sm:gap-4 shrink-0;
 }
 
 .results-header .kpi-grid {
@@ -212,7 +212,7 @@ function updateSettings(newDt: number) {
 }
 
 .btn-download {
-  @apply shrink-0 py-3 px-5 border-none bg-linear-to-br from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-emerald-500/30;
+  @apply shrink-0 py-2 sm:py-3 px-4 sm:px-5 border-none bg-linear-to-br from-emerald-500 to-emerald-600 text-white rounded-lg sm:rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-emerald-500/30;
 }
 
 .btn-download:hover:not(:disabled) {

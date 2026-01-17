@@ -366,7 +366,7 @@ async function generatePdf() {
 
 /* Component-specific modal sizing and animation */
 .modal-content.report-modal {
-  @apply w-[90%] max-w-[500px] animate-[slideIn_0.2s_ease-out];
+  @apply w-[90%] max-w-125 animate-[slideIn_0.2s_ease-out];
 }
 
 @keyframes slideIn {
