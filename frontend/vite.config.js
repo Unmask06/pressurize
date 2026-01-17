@@ -6,4 +6,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
   base: "/products/pressurize/",
+  build: {
+    outDir: "dist/products/pressurize",
+  },
 });
