@@ -77,9 +77,9 @@ const props = defineProps<{
   inputs: Record<string, any>;
   kpis: {
     peakFlow: number;
-    final_pressure: number;
-    equilibrium_time: number;
-    total_mass_lb: number;
+    finalPressure: number;
+    equilibriumTime: number;
+    totalMass: number;
   };
   chartDataUrl: string | null;
   results: SimulationRow[];
@@ -265,19 +265,19 @@ async function getPdfBlob(): Promise<Blob> {
       },
       {
         label: "Final Pressure",
-        value: props.kpis.final_pressure,
+        value: props.kpis.finalPressure,
         unit: "psig",
         decimals: 1,
       },
       {
         label: "Equilibrium Time",
-        value: props.kpis.equilibrium_time,
+        value: props.kpis.equilibriumTime,
         unit: "seconds",
         decimals: 1,
       },
       {
         label: "Total Mass Flow",
-        value: props.kpis.total_mass_lb,
+        value: props.kpis.totalMass,
         unit: "lb",
         decimals: 1,
       },
