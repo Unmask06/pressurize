@@ -150,7 +150,8 @@ function formatInputUnit(key: string): string {
 }
 
 async function getPdfBlob(): Promise<Blob> {
-  const doc = new jsPDF("p", "mm", "a4");
+  try {
+    const doc = new jsPDF("p", "mm", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
     let y = margin;
@@ -372,6 +373,7 @@ async function getPdfBlob(): Promise<Blob> {
     throw error;
   }
 }
+
 
 function generateCsv(data: SimulationRow[]): string {
   if (!data || data.length === 0) return "";
