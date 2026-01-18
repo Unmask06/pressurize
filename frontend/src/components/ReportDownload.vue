@@ -30,11 +30,38 @@
         ></textarea>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-secondary" @click="$emit('close')">Cancel</button>
-        <button class="btn-primary" @click="generatePdf" :disabled="generating">
-          {{ generating ? "Generating..." : "📄 Generate PDF" }}
-        </button>
+      <div class="modal-footer flex-col gap-4">
+        <div class="flex w-full justify-between items-center gap-3">
+          <button class="btn-secondary flex-1" @click="$emit('close')">
+            Cancel
+          </button>
+          <button
+            class="btn-primary flex-1"
+            @click="handleDownload('pdf')"
+            :disabled="generating || zipping"
+          >
+            {{ generating ? "Generating..." : "📄 Download Report" }}
+          </button>
+          <button
+            class="btn-assets flex-1"
+            @click="handleDownload('all')"
+            :disabled="generating || zipping"
+          >
+            {{ zipping ? "Zipping..." : "📦 Download All Assets" }}
+          </button>
+        </div>
+
+        <div class="footer-credits">
+          Developed by
+          <a
+            href="https://github.com/Unmask06"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="author-link"
+          >
+            Unmask06
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -42,17 +69,20 @@
 
 <script setup lang="ts">
 import { jsPDF } from "jspdf";
+import JSZip from "jszip";
+import { type SimulationRow } from "../api/client";
 import { ref } from "vue";
 
 const props = defineProps<{
   inputs: Record<string, any>;
   kpis: {
     peakFlow: number;
-    finalPressure: number;
-    equilibriumTime: number;
-    totalMass: number;
+    final_pressure: number;
+    equilibrium_time: number;
+    total_mass_lb: number;
   };
   chartDataUrl: string | null;
+  results: SimulationRow[];
 }>();
 
 const emit = defineEmits(["close"]);
@@ -60,6 +90,7 @@ const emit = defineEmits(["close"]);
 const reportTitle = ref("");
 const notes = ref("");
 const generating = ref(false);
+const zipping = ref(false);
 
 function formatValue(value: any, decimals = 2): string {
   if (typeof value === "number") {
@@ -118,11 +149,8 @@ function formatInputUnit(key: string): string {
   return units[key] || "";
 }
 
-async function generatePdf() {
-  generating.value = true;
-
-  try {
-    const doc = new jsPDF("p", "mm", "a4");
+async function getPdfBlob(): Promise<Blob> {
+  const doc = new jsPDF("p", "mm", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
     let y = margin;
@@ -236,19 +264,19 @@ async function generatePdf() {
       },
       {
         label: "Final Pressure",
-        value: props.kpis.finalPressure,
+        value: props.kpis.final_pressure,
         unit: "psig",
         decimals: 1,
       },
       {
         label: "Equilibrium Time",
-        value: props.kpis.equilibriumTime,
+        value: props.kpis.equilibrium_time,
         unit: "seconds",
         decimals: 1,
       },
       {
         label: "Total Mass Flow",
-        value: props.kpis.totalMass,
+        value: props.kpis.total_mass_lb,
         unit: "lb",
         decimals: 1,
       },
@@ -338,25 +366,90 @@ async function generatePdf() {
       );
     }
 
-    // Save the PDF
-    const dateStr = new Date().toISOString().slice(0, 10);
-    const titleSlug = reportTitle.value
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .slice(0, 30);
-
-    const filename = titleSlug
-      ? `${titleSlug}-${dateStr}.pdf`
-      : `pressurization-report-${dateStr}.pdf`;
-    doc.save(filename);
-
-    emit("close");
+    return doc.output("blob");
   } catch (error) {
     console.error("PDF generation failed:", error);
-    alert("Failed to generate PDF. Please try again.");
-  } finally {
-    generating.value = false;
+    throw error;
+  }
+}
+
+function generateCsv(data: SimulationRow[]): string {
+  if (!data || data.length === 0) return "";
+
+  const headers = Object.keys(data[0]);
+  const csvRows = [
+    headers.join(","),
+    ...data.map((row) =>
+      headers.map((header) => (row as any)[header]).join(",")
+    ),
+  ];
+
+  return csvRows.join("\n");
+}
+
+function getFilename(extension: string): string {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const titleSlug = reportTitle.value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .slice(0, 30);
+
+  return titleSlug
+    ? `${titleSlug}-${dateStr}.${extension}`
+    : `pressurization-report-${dateStr}.${extension}`;
+}
+
+async function handleDownload(type: "pdf" | "all") {
+  if (type === "pdf") {
+    generating.value = true;
+    try {
+      const blob = await getPdfBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = getFilename("pdf");
+      link.click();
+      URL.revokeObjectURL(url);
+      emit("close");
+    } catch (e) {
+      alert("Failed to generate PDF.");
+    } finally {
+      generating.value = false;
+    }
+  } else {
+    zipping.value = true;
+    try {
+      const zip = new JSZip();
+
+      // 1. PDF Report
+      const pdfBlob = await getPdfBlob();
+      zip.file(getFilename("pdf"), pdfBlob);
+
+      // 2. CSV Data
+      const csvData = generateCsv(props.results);
+      zip.file(getFilename("csv"), csvData);
+
+      // 3. PNG Graph
+      if (props.chartDataUrl) {
+        const base64Data = props.chartDataUrl.split(",")[1];
+        zip.file(getFilename("png"), base64Data, { base64: true });
+      }
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = getFilename("zip");
+      link.click();
+      URL.revokeObjectURL(url);
+      emit("close");
+    } catch (e) {
+      console.error("ZIP creation failed:", e);
+      alert("Failed to create ZIP file.");
+    } finally {
+      zipping.value = false;
+    }
   }
 }
 </script>
@@ -427,11 +520,31 @@ async function generatePdf() {
 }
 
 .btn-primary {
-  @apply bg-gradient-to-br from-blue-500 to-blue-600 font-semibold;
+  @apply bg-gradient-to-br from-blue-500 to-blue-600 font-semibold text-xs sm:text-sm;
 }
 
 .btn-primary:hover:not(:disabled) {
   @apply from-blue-600 to-blue-700 -translate-y-px;
+}
+
+.btn-assets {
+  @apply bg-gradient-to-br from-emerald-500 to-emerald-600 font-semibold text-white rounded-lg text-xs sm:text-sm transition-all;
+}
+
+.btn-assets:hover:not(:disabled) {
+  @apply from-emerald-600 to-emerald-700 -translate-y-px shadow-md;
+}
+
+.btn-assets:disabled {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+.footer-credits {
+  @apply text-center text-[10px] text-slate-400 mt-2;
+}
+
+.author-link {
+  @apply text-blue-400 hover:text-blue-500 hover:underline transition-colors font-medium;
 }
 
 .btn-primary:disabled {

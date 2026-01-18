@@ -62,6 +62,7 @@
         v-if="showReportModal"
         :inputs="lastFormParams"
         :kpis="kpis"
+        :results="results"
         :chart-data-url="chartDataUrl"
         @close="showReportModal = false"
       />
