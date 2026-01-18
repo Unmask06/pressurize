@@ -522,7 +522,7 @@ async function handleDownload(type: "pdf" | "all") {
 }
 
 .btn-primary {
-  @apply bg-gradient-to-br from-blue-500 to-blue-600 font-semibold text-xs sm:text-sm;
+  @apply bg-linear-to-br from-blue-500 to-blue-600 font-semibold text-xs sm:text-sm;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -530,7 +530,7 @@ async function handleDownload(type: "pdf" | "all") {
 }
 
 .btn-assets {
-  @apply bg-gradient-to-br from-emerald-500 to-emerald-600 font-semibold text-white rounded-lg text-xs sm:text-sm transition-all;
+  @apply bg-linear-to-br from-emerald-500 to-emerald-600 font-semibold text-white rounded-lg text-xs sm:text-sm transition-all;
 }
 
 .btn-assets:hover:not(:disabled) {
