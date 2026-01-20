@@ -5,8 +5,10 @@ const API_BASE_URL = import.meta.env.DEV
   ? "http://localhost:8000"
   : "https://api.xergiz.com";
 
+  const API_BASE_URL_WITH_PREFIX = `${API_BASE_URL}/pressurize`;
+
 export const apiClient = axios.create({
-  baseURL: `${API_BASE_URL}/pressurize`,
+  baseURL: `${API_BASE_URL_WITH_PREFIX}`,
   headers: {
     "Content-Type": "application/json",
   },
@@ -63,7 +65,7 @@ export async function streamSimulation(
   callbacks: StreamCallbacks,
   signal?: AbortSignal,
 ): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/pressurize/simulate/stream`, {
+  const response = await fetch(`${API_BASE_URL_WITH_PREFIX}/simulate/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
