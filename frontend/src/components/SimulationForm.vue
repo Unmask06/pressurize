@@ -25,8 +25,8 @@
     </div>
 
     <div class="form-grid">
-      <!-- Vessel Column -->
-      <div class="form-column">
+      <!-- Row 1: Upstream and Downstream side by side -->
+      <div class="grid-row vessels-row">
         <!-- Upstream Section -->
         <div class="section-container">
           <div class="section-header">📤 Upstream Vessel</div>
@@ -66,24 +66,20 @@
         </div>
       </div>
 
-      <!-- Settings Column -->
-      <div class="form-column">
-        <!-- Valve Section -->
+      <!-- Row 2: Valve Configuration (full width) -->
+      <div class="grid-row full-width">
         <div class="section-container">
           <div class="section-header">🔧 Valve Configuration</div>
           <div class="row">
-            <div class="form-group half">
+            <div class="form-group quarter">
               <label>Valve ID (in)</label>
               <input type="number" v-model.number="form.valve_id_inch" />
             </div>
-            <div class="form-group half">
+            <div class="form-group quarter">
               <label>Discharge Coeff (Cd)</label>
               <input type="number" v-model.number="form.discharge_coeff" step="0.05" />
             </div>
-          </div>
-
-          <div class="row">
-            <div class="form-group half">
+            <div class="form-group quarter">
               <label>Valve Action</label>
               <div class="toggle-group">
                 <button :class="{ active: form.valve_action === 'open' }" @click="form.valve_action = 'open'">
@@ -94,8 +90,7 @@
                 </button>
               </div>
             </div>
-
-            <div class="form-group half">
+            <div class="form-group quarter">
               <label>{{
                 form.valve_action === "close" ? "Closing Time (s)" : "Opening Time (s)"
               }}</label>
@@ -104,7 +99,7 @@
           </div>
 
           <div class="row">
-            <div class="form-group half">
+            <div class="form-group quarter">
               <label>{{
                 form.valve_action === "close" ? "Closing Mode" : "Opening Mode"
               }}</label>
@@ -117,37 +112,41 @@
                 </option>
               </select>
             </div>
-            <div class="form-group half" v-if="['exponential', 'quick_acting'].includes(form.opening_mode)">
+            <div class="form-group quarter" v-if="['exponential', 'quick_acting'].includes(form.opening_mode)">
               <label>Curve Factor (k)</label>
               <input type="number" v-model.number="form.k_curve" step="0.1" />
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Gas Section -->
+      <!-- Row 3: Gas Properties (full width) -->
+      <div class="grid-row full-width">
         <div class="section-container">
           <div class="section-header">🧪 Gas Properties</div>
-          <div class="form-group">
-            <label>Property Mode</label>
-            <div class="toggle-group">
-              <button :class="{ active: form.property_mode === 'manual' }" @click="form.property_mode = 'manual'">
-                Manual
-              </button>
-              <button :class="{ active: form.property_mode === 'composition' }"
-                @click="form.property_mode = 'composition'">
-                Composition
-              </button>
+          <div class="row">
+            <div class="form-group half">
+              <label>Property Mode</label>
+              <div class="toggle-group">
+                <button :class="{ active: form.property_mode === 'manual' }" @click="form.property_mode = 'manual'">
+                  Manual
+                </button>
+                <button :class="{ active: form.property_mode === 'composition' }"
+                  @click="form.property_mode = 'composition'">
+                  Composition
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div v-show="form.property_mode === 'composition'" class="composition-summary">
-            <div class="summary-card">
-              <div class="summary-icon">🧪</div>
-              <div class="summary-text">{{ compositionSummary }}</div>
+            <div class="form-group half" v-show="form.property_mode === 'composition'">
+              <label>Composition</label>
+              <div class="composition-summary-inline">
+                <span class="summary-text">🧪 {{ compositionSummary }}</span>
+                <button class="btn-secondary" @click="$emit('edit-composition')">
+                  ✏️ Edit
+                </button>
+              </div>
             </div>
-            <button class="btn-secondary" @click="$emit('edit-composition')">
-              ✏️ Edit
-            </button>
           </div>
 
           <div class="row">
@@ -310,16 +309,26 @@ function runSimulation() {
 .simulation-form {
   @apply bg-white p-8 rounded-2xl border border-slate-200 flex flex-col gap-6 h-full overflow-y-auto;
   width: 100%;
-  max-width: 950px;
-  margin: 0 auto;
 }
 
 .form-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+  @apply flex flex-col gap-4;
 }
 
-.form-column {
-  @apply flex flex-col gap-6;
+.grid-row {
+  @apply flex flex-col gap-4;
+}
+
+.grid-row.vessels-row {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.grid-row.full-width {
+  @apply w-full;
+}
+
+.quarter {
+  @apply flex-1 min-w-[120px];
 }
 
 .actions {
@@ -399,6 +408,10 @@ input.read-only {
 
 .summary-text {
   @apply text-sm font-semibold text-blue-900;
+}
+
+.composition-summary-inline {
+  @apply flex items-center gap-2 bg-blue-50/50 py-2 px-3 rounded-lg border border-blue-100;
 }
 
 .btn-table {

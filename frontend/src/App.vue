@@ -185,7 +185,7 @@ function updateSettings(newDt: number) {
 }
 
 .sidebar {
-  @apply w-87.5 bg-white border-r border-slate-200 flex flex-col shrink-0;
+  @apply w-[30%] min-w-80 bg-white border-r border-slate-200 flex flex-col shrink-0;
 }
 
 .sidebar-header {
@@ -201,7 +201,7 @@ function updateSettings(newDt: number) {
 }
 
 .main-content {
-  @apply flex-1 flex flex-col p-4 sm:p-6 md:p-8 bg-slate-50 overflow-hidden gap-3 sm:gap-4;
+  @apply w-[70%] flex-1 flex flex-col p-4 sm:p-6 md:p-8 bg-slate-50 overflow-hidden gap-3 sm:gap-4;
 }
 
 .results-header {
