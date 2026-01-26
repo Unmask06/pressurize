@@ -62,6 +62,7 @@
         v-if="showReportModal"
         :inputs="lastFormParams"
         :kpis="kpis"
+        :results="results"
         :chart-data-url="chartDataUrl"
         @close="showReportModal = false"
       />
@@ -184,7 +185,7 @@ function updateSettings(newDt: number) {
 }
 
 .sidebar {
-  @apply w-[350px] bg-white border-r border-slate-200 flex flex-col shrink-0;
+  @apply w-87.5 bg-white border-r border-slate-200 flex flex-col shrink-0;
 }
 
 .sidebar-header {
