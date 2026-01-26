@@ -20,7 +20,7 @@ from pressurize.core.properties import GasState, get_gas_properties_at_condition
 from pressurize.core.simulation import run_simulation
 from pressurize.utils.converters import fahrenheit_to_kelvin, psig_to_pa
 
-router = APIRouter()
+router = APIRouter(tags=["pressurize"])
 
 CHUNK_SIZE = 10  # Number of rows per streaming chunk
 

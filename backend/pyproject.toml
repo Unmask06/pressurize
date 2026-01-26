@@ -1,6 +1,6 @@
 [project]
 name = "pressurize"
-version = "0.2.0"
+version = "0.4"
 description = "Gas blowdown simulation API for pressure vessel depressurization analysis"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -18,9 +18,6 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "dash>=2.14.0",
-    "dash-bootstrap-components>=1.5.0",
-    "plotly>=5.18.0",
     "pandas>=2.0.0",
     "numpy>=1.24.0",
     "thermo>=0.3.0",
@@ -29,7 +26,7 @@ dependencies = [
     "fastapi>=0.109.0",
     "uvicorn>=0.27.0",
     "pydantic>=2.6.0",
-    "fluids @ git+https://github.com/Unmask06/fluids.git@master",
+    "fluids",
     "pytest>=9.0.2",
 ]
 
@@ -39,6 +36,8 @@ dev = [
     "pytest-cov>=4.1.0",
     "httpx>=0.26.0",
 ]
+[tool.uv.sources]
+fluids = { git = "https://github.com/Unmask06/fluids.git", branch = "master" }
 
 [project.scripts]
 pressurize = "pressurize.main:run_server"
