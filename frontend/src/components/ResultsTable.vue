@@ -13,6 +13,8 @@
               <th>Time (s)</th>
               <th>P Up (psig)</th>
               <th>P Down (psig)</th>
+              <th>dP/dt Up (psi/s)</th>
+              <th>dP/dt Down (psi/s)</th>
               <th>Flow (lb/hr)</th>
               <th>Valve (%)</th>
               <th>Regime</th>
@@ -25,7 +27,9 @@
             <tr v-for="(row, idx) in data" :key="idx">
               <td>{{ row.time?.toFixed(2) ?? "-" }}</td>
               <td>{{ row.upstream_pressure_psig?.toFixed(1) ?? "-" }}</td>
-              <td>{{ row.pressure_psig?.toFixed(1) ?? "-" }}</td>
+              <td>{{ row.downstream_pressure_psig?.toFixed(1) ?? "-" }}</td>
+              <td>{{ row.dp_dt_upstream_psig_s?.toFixed(6) ?? "-" }}</td>
+              <td>{{ row.dp_dt_downstream_psig_s?.toFixed(6) ?? "-" }}</td>
               <td>{{ row.flowrate_lb_hr?.toFixed(1) ?? "-" }}</td>
               <td>{{ row.valve_opening_pct?.toFixed(1) ?? "-" }}</td>
               <td>{{ row.flow_regime ?? "-" }}</td>

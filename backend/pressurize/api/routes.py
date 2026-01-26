@@ -1,12 +1,11 @@
-"""
-API routes for gas pressurization simulation.
-"""
+"""API routes for gas pressurization simulation."""
 
 import json
 from collections.abc import AsyncGenerator
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+
 from pressurize.api.schemas import (
     PropertiesRequest,
     PropertiesResponse,
@@ -46,16 +45,23 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
             dt=req.dt,
             property_mode=req.property_mode,
             composition=req.composition,
+            mode=req.mode,
+            upstream_volume_ft3=req.upstream_volume_ft3,
+            upstream_temp_f=req.upstream_temp_f,
+            downstream_volume_ft3=req.downstream_volume_ft3,
+            downstream_temp_f=req.downstream_temp_f,
         )
 
         # Calculate KPIs
         peak_flow = float(df["flowrate_lb_hr"].max())
-        final_pressure = float(df["pressure_psig"].iloc[-1])
+        final_pressure = float(df["downstream_pressure_psig"].iloc[-1])
 
         # Find equilibrium time
         # Use simple logic: first time pressure >= upstream OR last time
         # The simulation logic already handles this somewhat, but let's be safe
-        equilibrium_mask = df["pressure_psig"] >= df["upstream_pressure_psig"]
+        equilibrium_mask = (
+            df["downstream_pressure_psig"] >= df["upstream_pressure_psig"]
+        )
         if equilibrium_mask.any():
             equil_time = float(df.loc[equilibrium_mask, "time"].iloc[0])
         else:
@@ -104,6 +110,11 @@ async def generate_simulation_stream(
             dt=req.dt,
             property_mode=req.property_mode,
             composition=req.composition,
+            mode=req.mode,
+            upstream_volume_ft3=req.upstream_volume_ft3,
+            upstream_temp_f=req.upstream_temp_f,
+            downstream_volume_ft3=req.downstream_volume_ft3,
+            downstream_temp_f=req.downstream_temp_f,
         )
 
         results = df.to_dict(orient="records")
@@ -120,10 +131,12 @@ async def generate_simulation_stream(
 
         # Calculate KPIs after all data is processed
         peak_flow = float(df["flowrate_lb_hr"].max())
-        final_pressure = float(df["pressure_psig"].iloc[-1])
+        final_pressure = float(df["downstream_pressure_psig"].iloc[-1])
 
         # Find equilibrium time
-        equilibrium_mask = df["pressure_psig"] >= df["upstream_pressure_psig"]
+        equilibrium_mask = (
+            df["downstream_pressure_psig"] >= df["upstream_pressure_psig"]
+        )
         if equilibrium_mask.any():
             equil_time = float(df.loc[equilibrium_mask, "time"].iloc[0])
         else:

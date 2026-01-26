@@ -13,21 +13,14 @@
         <label class="block text-sm font-medium text-slate-600 mb-1">
           Report Title
         </label>
-        <textarea
-          v-model="reportTitle"
-          placeholder="Enter report title... (e.g., Simulation Report for Valve S-101)"
-          rows="1"
-          class="mb-4"
-        ></textarea>
+        <textarea v-model="reportTitle" placeholder="Enter report title... (e.g., Simulation Report for Valve S-101)"
+          rows="1" class="mb-4"></textarea>
 
         <label class="block text-sm font-medium text-slate-600 mb-1">
           Additional Notes
         </label>
-        <textarea
-          v-model="notes"
-          placeholder="Enter your notes here... (e.g., purpose of simulation, observations, etc.)"
-          rows="4"
-        ></textarea>
+        <textarea v-model="notes"
+          placeholder="Enter your notes here... (e.g., purpose of simulation, observations, etc.)" rows="4"></textarea>
       </div>
 
       <div class="modal-footer flex-col gap-4">
@@ -35,30 +28,17 @@
           <button class="btn-secondary flex-1" @click="$emit('close')">
             Cancel
           </button>
-          <button
-            class="btn-primary flex-1"
-            @click="handleDownload('pdf')"
-            :disabled="generating || zipping"
-          >
+          <button class="btn-primary flex-1" @click="handleDownload('pdf')" :disabled="generating || zipping">
             {{ generating ? "Generating..." : "📄 Download Report" }}
           </button>
-          <button
-            class="btn-assets flex-1"
-            @click="handleDownload('all')"
-            :disabled="generating || zipping"
-          >
+          <button class="btn-assets flex-1" @click="handleDownload('all')" :disabled="generating || zipping">
             {{ zipping ? "Zipping..." : "📦 Download All Assets" }}
           </button>
         </div>
 
         <div class="footer-credits">
           Developed by
-          <a
-            href="https://github.com/Unmask06"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="author-link"
-          >
+          <a href="https://github.com/Unmask06" target="_blank" rel="noopener noreferrer" class="author-link">
             Unmask06
           </a>
         </div>
@@ -70,8 +50,8 @@
 <script setup lang="ts">
 import { jsPDF } from "jspdf";
 import JSZip from "jszip";
-import { type SimulationRow } from "../api/client";
 import { ref } from "vue";
+import { type SimulationRow } from "../api/client";
 
 const props = defineProps<{
   inputs: Record<string, any>;
@@ -109,9 +89,14 @@ function formatInputLabel(key: string): string {
   }
 
   const labels: Record<string, string> = {
+    mode: "Simulation Mode",
     p_up_psig: "Upstream Pressure",
+    upstream_volume_ft3: "Upstream Volume",
+    upstream_temp_f: "Upstream Temperature",
     p_down_init_psig: "Downstream Pressure",
-    volume_ft3: "Volume",
+    downstream_volume_ft3: "Downstream Volume",
+    downstream_temp_f: "Downstream Temperature",
+    volume_ft3: "Volume (Fallback)",
     valve_id_inch: "Valve ID",
     valve_action: "Valve Action",
     temp_f: "Temperature",
@@ -130,8 +115,13 @@ function formatInputLabel(key: string): string {
 
 function formatInputUnit(key: string): string {
   const units: Record<string, string> = {
+    mode: "",
     p_up_psig: "psig",
+    upstream_volume_ft3: "ft³",
+    upstream_temp_f: "°F",
     p_down_init_psig: "psig",
+    downstream_volume_ft3: "ft³",
+    downstream_temp_f: "°F",
     volume_ft3: "ft³",
     valve_id_inch: "in",
     opening_time_s: "s",
@@ -203,6 +193,9 @@ async function getPdfBlob(): Promise<Blob> {
       if (k === "dt" || k === "composition") return false;
       // Exclude k_curve (Curve Factor) for Linear mode since it's not used
       if (k === "k_curve" && props.inputs.opening_mode === "linear") return false;
+      // Exclude upstream volume in pressurize mode and downstream volume in depressurize mode
+      if (k === "upstream_volume_ft3" && props.inputs.mode === "pressurize") return false;
+      if (k === "downstream_volume_ft3" && props.inputs.mode === "depressurize") return false;
       return true;
     });
     const colWidth = (pageWidth - 2 * margin) / 2;

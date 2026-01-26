@@ -1,8 +1,6 @@
-"""
-Pydantic schemas for API requests and responses.
-"""
+"""Pydantic schemas for API requests and responses."""
 
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -14,10 +12,34 @@ class SimulationRequest(BaseModel):
     including vessel properties, valve characteristics, and gas properties.
     """
 
+    # Mode: pressurize (upstream only dp/dt), depressurize (downstream only dp/dt), equalize (both dp/dt)
+    mode: Literal["pressurize", "depressurize", "equalize"] = Field(
+        "equalize", description="Simulation mode: pressurize, depressurize, or equalize"
+    )
+
+    # Upstream vessel properties
     p_up_psig: float = Field(..., description="Upstream pressure (psig)", ge=0)
+    upstream_volume_ft3: float | None = Field(
+        None, description="Upstream vessel volume (ft3)", gt=0
+    )
+    upstream_temp_f: float | None = Field(
+        None,
+        description="Upstream vessel temperature (°F). TODO: Currently constant; may add dynamic model later.",
+    )
+
+    # Downstream vessel properties
     p_down_init_psig: float = Field(
         0.0, description="Initial downstream pressure (psig)", ge=0
     )
+    downstream_volume_ft3: float | None = Field(
+        None, description="Downstream vessel volume (ft3)", gt=0
+    )
+    downstream_temp_f: float | None = Field(
+        None,
+        description="Downstream vessel temperature (°F). TODO: Currently constant; may add dynamic model later.",
+    )
+
+    # Legacy field for backward compatibility; if not provided, defaults to downstream_volume_ft3
     volume_ft3: float = Field(..., description="Vessel volume (ft3)", gt=0)
     valve_id_inch: float = Field(..., description="Valve ID (inches)", gt=0)
     opening_time_s: float = Field(..., description="Valve opening time (s)", ge=0)
@@ -47,7 +69,7 @@ class SimulationRequest(BaseModel):
     property_mode: Literal["manual", "composition"] = Field(
         "manual", description="Property mode: manual or composition"
     )
-    composition: Optional[str] = Field(
+    composition: str | None = Field(
         None, description="Composition string, e.g., 'Methane=0.9, Ethane=0.1'"
     )
 
@@ -61,14 +83,19 @@ class SimulationResultPoint(BaseModel):
     time: float
     pressure_psig: float
     upstream_pressure_psig: float
+    downstream_pressure_psig: float
     flowrate_lb_hr: float
     valve_opening_pct: float
     flow_regime: str
 
+    # Optional dp/dt rates (depending on mode)
+    dp_dt_upstream_psig_s: float | None = None
+    dp_dt_downstream_psig_s: float | None = None
+
     # Composition properties
-    z_factor: Optional[float] = None
-    k_ratio: Optional[float] = None
-    molar_mass: Optional[float] = None
+    z_factor: float | None = None
+    k_ratio: float | None = None
+    molar_mass: float | None = None
 
 
 class SimulationResponse(BaseModel):
@@ -77,7 +104,7 @@ class SimulationResponse(BaseModel):
     Includes time-series results and calculated KPIs like peak flow and equilibrium time.
     """
 
-    results: List[SimulationResultPoint]
+    results: list[SimulationResultPoint]
     peak_flow: float
     final_pressure: float
     equilibrium_time: float
@@ -113,7 +140,7 @@ class StreamingChunk(BaseModel):
     """
 
     type: Literal["chunk"] = "chunk"
-    rows: List[SimulationResultPoint]
+    rows: list[SimulationResultPoint]
     total_rows: int  # Running total of rows sent so far
 
 

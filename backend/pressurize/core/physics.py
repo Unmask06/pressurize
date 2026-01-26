@@ -245,3 +245,66 @@ def calculate_dp_dt(
         / (volume * molar_mass_kg_mol)
         * mass_flow
     )
+
+
+def calculate_dual_dp_dt(
+    mode: str,
+    mass_flow_upstream: float,
+    mass_flow_downstream: float,
+    z_factor: float,
+    temperature: float,
+    upstream_volume: float,
+    downstream_volume: float,
+    molar_mass_g_mol: float,
+) -> tuple[float, float]:
+    """Calculate dp/dt for upstream and downstream volumes based on mode.
+
+    Args:
+        mode: "pressurize" (skip upstream), "depressurize" (skip downstream), "equalize" (both)
+        mass_flow_upstream: Mass flow rate entering/leaving upstream volume (kg/s)
+        mass_flow_downstream: Mass flow rate entering/leaving downstream volume (kg/s)
+        z_factor: Compressibility factor
+        temperature: Gas temperature (K)
+        upstream_volume: Upstream volume (m³)
+        downstream_volume: Downstream volume (m³)
+        molar_mass_g_mol: Molar mass (g/mol)
+
+    Returns:
+        Tuple of (dp_dt_upstream, dp_dt_downstream) in Pa/s.
+        Returns 0 for sides that are not calculated based on mode.
+    """
+    molar_mass_kg_mol = molar_mass_g_mol / 1000.0
+
+    dp_dt_upstream = 0.0
+    dp_dt_downstream = 0.0
+
+    if mode == "pressurize":
+        # Pressurize: skip upstream dp/dt (upstream is constant)
+        # Only downstream changes
+        dp_dt_downstream = (
+            (z_factor * R_UNIVERSAL * temperature)
+            / (downstream_volume * molar_mass_kg_mol)
+            * mass_flow_downstream
+        )
+    elif mode == "depressurize":
+        # Depressurize: skip downstream dp/dt (downstream is constant)
+        # Only upstream changes
+        dp_dt_upstream = (
+            (z_factor * R_UNIVERSAL * temperature)
+            / (upstream_volume * molar_mass_kg_mol)
+            * mass_flow_upstream
+        )
+    elif mode == "equalize":
+        # Equalize: both sides change
+        dp_dt_upstream = (
+            (z_factor * R_UNIVERSAL * temperature)
+            / (upstream_volume * molar_mass_kg_mol)
+            * mass_flow_upstream
+        )
+        dp_dt_downstream = (
+            (z_factor * R_UNIVERSAL * temperature)
+            / (downstream_volume * molar_mass_kg_mol)
+            * mass_flow_downstream
+        )
+
+    return dp_dt_upstream, dp_dt_downstream
