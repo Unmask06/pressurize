@@ -99,7 +99,8 @@ class GasState:
 
         # Calculate mixture molar mass
         self.molar_mass = sum(
-            z * mw for z, mw in zip(self.molar_fraction, self.constants.MWs)
+            z * mw
+            for z, mw in zip(self.molar_fraction, self.constants.MWs, strict=True)
         )
 
     def get_properties(self, pressure: float, temperature: float) -> GasProperties:
@@ -139,7 +140,12 @@ class GasState:
         rho = (pressure * self.molar_mass / 1000) / (Z * R * temperature)  # kg/m³
 
         return GasProperties(
-            Z=Z, k=k, M=self.molar_mass, rho=rho, Cp=Cp, Cv=Cv  # g/mol
+            Z=Z,
+            k=k,
+            M=self.molar_mass,
+            rho=rho,
+            Cp=Cp,
+            Cv=Cv,  # g/mol
         )
 
     @staticmethod

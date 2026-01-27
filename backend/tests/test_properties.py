@@ -47,7 +47,7 @@ class TestGasStateInitialization:
 
     def test_default_composition_on_none(self):
         """Test that None defaults to pure methane."""
-        gas = GasState(None)
+        gas = GasState(None)  # type: ignore
         assert len(gas.components) == 1
         assert gas.components[0] == "Methane"
         assert gas.molar_fraction[0] == 1.0

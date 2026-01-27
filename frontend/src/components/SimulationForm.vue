@@ -323,7 +323,7 @@ function runSimulation() {
 }
 
 .quarter {
-  @apply flex-1 min-w-[120px];
+  @apply flex-1 min-w-30;
 }
 
 .actions {
@@ -343,11 +343,11 @@ h3 {
 }
 
 .half {
-  @apply flex-1 min-w-[200px];
+  @apply flex-1 min-w-50;
 }
 
 .third {
-  @apply flex-1 min-w-[140px];
+  @apply flex-1 min-w-35;
 }
 
 label {
