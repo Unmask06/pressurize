@@ -145,6 +145,7 @@ async def generate_simulation_stream(
         # Calculate total mass
         dt_val = req.dt
         total_mass = (df["flowrate_lb_hr"].sum() * dt_val) / 3600
+        print(equil_time)
 
         # Send completion message with KPIs
         complete = StreamingComplete(

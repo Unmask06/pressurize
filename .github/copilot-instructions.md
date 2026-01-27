@@ -42,7 +42,7 @@ Pressurize is a gas blowdown and valve pressurization simulator. It calculates g
 
 ### Environment Setup
 
-- **Backend**: Uses `uv`. Run `uv sync` to install dependencies.
+- **Backend**: Uses `uv`. Run `uv sync` to install dependencies. no pip.
 - **Frontend**: Uses `npm`. Run `npm install` in the [frontend/](frontend/) directory.
 
 ### Running the App
