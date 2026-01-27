@@ -213,13 +213,11 @@ const form = reactive({
   p_down_init_psig: 0,
   upstream_volume_ft3: 100,
   downstream_volume_ft3: 100,
-  volume_ft3: 100,
   valve_id_inch: 2.0,
   opening_time_s: 5,
   valve_action: "open" as "open" | "close",
   upstream_temp_f: 70,
   downstream_temp_f: 70,
-  temp_f: 70,
   molar_mass: 28.97,
   z_factor: 1.0,
   k_ratio: 1.4,
@@ -296,9 +294,6 @@ const compositionSummary = computed(() => {
 });
 
 function runSimulation() {
-  // Sync legacy fields with new vessel fields for API compatibility
-  form.temp_f = form.upstream_temp_f;
-  form.volume_ft3 = form.downstream_volume_ft3;
   emit("run", { ...form });
 }
 </script>

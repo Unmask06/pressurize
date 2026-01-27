@@ -19,11 +19,11 @@ class SimulationRequest(BaseModel):
 
     # Upstream vessel properties
     p_up_psig: float = Field(..., description="Upstream pressure (psig)", ge=0)
-    upstream_volume_ft3: float | None = Field(
-        None, description="Upstream vessel volume (ft3)", gt=0
+    upstream_volume_ft3: float = Field(
+        ..., description="Upstream vessel volume (ft3)", gt=0
     )
-    upstream_temp_f: float | None = Field(
-        None,
+    upstream_temp_f: float = Field(
+        ...,
         description="Upstream vessel temperature (°F). TODO: Currently constant; may add dynamic model later.",
     )
 
@@ -31,19 +31,16 @@ class SimulationRequest(BaseModel):
     p_down_init_psig: float = Field(
         0.0, description="Initial downstream pressure (psig)", ge=0
     )
-    downstream_volume_ft3: float | None = Field(
-        None, description="Downstream vessel volume (ft3)", gt=0
+    downstream_volume_ft3: float = Field(
+        ..., description="Downstream vessel volume (ft3)", gt=0
     )
-    downstream_temp_f: float | None = Field(
-        None,
+    downstream_temp_f: float = Field(
+        ...,
         description="Downstream vessel temperature (°F). TODO: Currently constant; may add dynamic model later.",
     )
 
-    # Legacy field for backward compatibility; if not provided, defaults to downstream_volume_ft3
-    volume_ft3: float = Field(..., description="Vessel volume (ft3)", gt=0)
     valve_id_inch: float = Field(..., description="Valve ID (inches)", gt=0)
     opening_time_s: float = Field(..., description="Valve opening time (s)", ge=0)
-    temp_f: float = Field(..., description="Temperature (F)")
 
     # Gas Properties (Manual)
     molar_mass: float = Field(28.97, description="Molar mass (g/mol)")

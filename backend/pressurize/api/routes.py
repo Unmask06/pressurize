@@ -21,7 +21,7 @@ from pressurize.utils.converters import fahrenheit_to_kelvin, psig_to_pa
 
 router = APIRouter(tags=["pressurize"])
 
-CHUNK_SIZE = 10  # Number of rows per streaming chunk
+CHUNK_SIZE = 5  # Number of rows per streaming chunk
 
 
 @router.post("/simulate", response_model=SimulationResponse)
@@ -31,10 +31,12 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
         df = run_simulation(
             P_up_psig=req.p_up_psig,
             P_down_init_psig=req.p_down_init_psig,
-            volume_ft3=req.volume_ft3,
             valve_id_inch=req.valve_id_inch,
             opening_time_s=req.opening_time_s,
-            temp_f=req.temp_f,
+            upstream_volume_ft3=req.upstream_volume_ft3,
+            upstream_temp_f=req.upstream_temp_f,
+            downstream_volume_ft3=req.downstream_volume_ft3,
+            downstream_temp_f=req.downstream_temp_f,
             molar_mass=req.molar_mass,
             z_factor=req.z_factor,
             k_ratio=req.k_ratio,
@@ -46,10 +48,6 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
             property_mode=req.property_mode,
             composition=req.composition,
             mode=req.mode,
-            upstream_volume_ft3=req.upstream_volume_ft3,
-            upstream_temp_f=req.upstream_temp_f,
-            downstream_volume_ft3=req.downstream_volume_ft3,
-            downstream_temp_f=req.downstream_temp_f,
         )
 
         # Calculate KPIs
@@ -96,10 +94,12 @@ async def generate_simulation_stream(
         df = run_simulation(
             P_up_psig=req.p_up_psig,
             P_down_init_psig=req.p_down_init_psig,
-            volume_ft3=req.volume_ft3,
             valve_id_inch=req.valve_id_inch,
             opening_time_s=req.opening_time_s,
-            temp_f=req.temp_f,
+            upstream_volume_ft3=req.upstream_volume_ft3,
+            upstream_temp_f=req.upstream_temp_f,
+            downstream_volume_ft3=req.downstream_volume_ft3,
+            downstream_temp_f=req.downstream_temp_f,
             molar_mass=req.molar_mass,
             z_factor=req.z_factor,
             k_ratio=req.k_ratio,
@@ -111,10 +111,6 @@ async def generate_simulation_stream(
             property_mode=req.property_mode,
             composition=req.composition,
             mode=req.mode,
-            upstream_volume_ft3=req.upstream_volume_ft3,
-            upstream_temp_f=req.upstream_temp_f,
-            downstream_volume_ft3=req.downstream_volume_ft3,
-            downstream_temp_f=req.downstream_temp_f,
         )
 
         results = df.to_dict(orient="records")
@@ -145,7 +141,6 @@ async def generate_simulation_stream(
         # Calculate total mass
         dt_val = req.dt
         total_mass = (df["flowrate_lb_hr"].sum() * dt_val) / 3600
-        print(equil_time)
 
         # Send completion message with KPIs
         complete = StreamingComplete(

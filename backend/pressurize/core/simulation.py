@@ -33,7 +33,6 @@ class SimulationState:
     P_down: float
     V_up: float
     V_down: float
-    T: float
     T_up: float
     T_down: float
     A_max: float
@@ -48,9 +47,7 @@ class SimulationState:
 def _initialize_simulation_state(
     P_up_psig: float,
     P_down_init_psig: float,
-    volume_ft3: float,
     valve_id_inch: float,
-    temp_f: float,
     molar_mass: float,
     z_factor: float,
     k_ratio: float,
@@ -58,19 +55,17 @@ def _initialize_simulation_state(
     property_mode: Literal["manual", "composition"],
     composition: str | None,
     mode: Literal["pressurize", "depressurize", "equalize"],
-    upstream_volume_ft3: float | None,
-    upstream_temp_f: float | None,
-    downstream_volume_ft3: float | None,
-    downstream_temp_f: float | None,
+    upstream_volume_ft3: float,
+    upstream_temp_f: float,
+    downstream_volume_ft3: float,
+    downstream_temp_f: float,
 ) -> SimulationState:
     """Initialize all simulation state variables.
 
     Args:
         P_up_psig: Upstream pressure in psig.
         P_down_init_psig: Initial downstream pressure in psig.
-        volume_ft3: Vessel volume in ft³.
         valve_id_inch: Valve inner diameter in inches.
-        temp_f: Gas temperature in °F.
         molar_mass: Gas molar mass in g/mol (manual mode).
         z_factor: Compressibility factor (manual mode).
         k_ratio: Heat capacity ratio Cp/Cv (manual mode).
@@ -96,14 +91,13 @@ def _initialize_simulation_state(
     logger.debug(f"Converted pressures: P_up={P_up:.0f} Pa, P_down={P_down:.0f} Pa")
 
     # Setup volumes and temperatures
-    V_down = (downstream_volume_ft3 or volume_ft3) * FT3_TO_M3
-    V_up = (upstream_volume_ft3 or volume_ft3) * FT3_TO_M3
+    V_down = downstream_volume_ft3 * FT3_TO_M3
+    V_up = upstream_volume_ft3 * FT3_TO_M3
     logger.debug(f"Volumes: V_up={V_up:.2f} m³, V_down={V_down:.2f} m³")
 
-    T = fahrenheit_to_kelvin(temp_f)
-    T_up = fahrenheit_to_kelvin(upstream_temp_f or temp_f)
-    T_down = fahrenheit_to_kelvin(downstream_temp_f or temp_f)
-    logger.debug(f"Temperatures: T={T:.1f} K, T_up={T_up:.1f} K, T_down={T_down:.1f} K")
+    T_up = fahrenheit_to_kelvin(upstream_temp_f)
+    T_down = fahrenheit_to_kelvin(downstream_temp_f)
+    logger.debug(f"Temperatures: T_up={T_up:.1f} K, T_down={T_down:.1f} K")
 
     # Setup valve parameters
     valve_radius = (valve_id_inch * INCH_TO_M) / 2
@@ -149,7 +143,6 @@ def _initialize_simulation_state(
         P_down=P_down,
         V_up=V_up,
         V_down=V_down,
-        T=T,
         T_up=T_up,
         T_down=T_down,
         A_max=A_max,
@@ -501,10 +494,12 @@ def _calculate_max_simulation_time(
 def run_simulation(
     P_up_psig: float,
     P_down_init_psig: float,
-    volume_ft3: float,
     valve_id_inch: float,
     opening_time_s: float,
-    temp_f: float,
+    upstream_volume_ft3: float,
+    upstream_temp_f: float,
+    downstream_volume_ft3: float,
+    downstream_temp_f: float,
     molar_mass: float,
     z_factor: float,
     k_ratio: float,
@@ -516,10 +511,6 @@ def run_simulation(
     property_mode: Literal["manual", "composition"] = "manual",
     composition: str | None = None,
     mode: Literal["pressurize", "depressurize", "equalize"] = "equalize",
-    upstream_volume_ft3: float | None = None,
-    upstream_temp_f: float | None = None,
-    downstream_volume_ft3: float | None = None,
-    downstream_temp_f: float | None = None,
 ) -> pd.DataFrame:
     """Run the valve pressurization simulation.
 
@@ -529,10 +520,12 @@ def run_simulation(
     Args:
         P_up_psig: Upstream pressure in psig.
         P_down_init_psig: Initial downstream pressure in psig.
-        volume_ft3: Vessel volume in ft³ (if downstream_volume_ft3 not provided).
         valve_id_inch: Valve inner diameter in inches.
         opening_time_s: Time for valve to fully open in seconds.
-        temp_f: Gas temperature in °F.
+        upstream_volume_ft3: Upstream vessel volume in ft³.
+        upstream_temp_f: Upstream vessel temperature in °F.
+        downstream_volume_ft3: Downstream vessel volume in ft³.
+        downstream_temp_f: Downstream vessel temperature in °F.
         molar_mass: Gas molar mass in g/mol (manual mode).
         z_factor: Compressibility factor (manual mode).
         k_ratio: Heat capacity ratio Cp/Cv (manual mode).
@@ -544,10 +537,6 @@ def run_simulation(
         property_mode: 'manual' or 'composition'. Default 'manual'.
         composition: Gas composition string for composition mode.
         mode: Controls which sides compute dp/dt. Default "equalize".
-        upstream_volume_ft3: Upstream vessel volume in ft³.
-        upstream_temp_f: Upstream vessel temperature in °F.
-        downstream_volume_ft3: Downstream vessel volume in ft³.
-        downstream_temp_f: Downstream vessel temperature in °F.
 
     Returns:
         DataFrame with columns: time, pressure_psig, upstream_pressure_psig,
@@ -560,16 +549,15 @@ def run_simulation(
     )
     logger.debug(
         f"Initial conditions: P_up={P_up_psig} psig, P_down={P_down_init_psig} psig, "
-        f"temp={temp_f}°F, volume={volume_ft3} ft³"
+        f"upstream_temp={upstream_temp_f}°F, downstream_temp={downstream_temp_f}°F, "
+        f"upstream_volume={upstream_volume_ft3} ft³, downstream_volume={downstream_volume_ft3} ft³"
     )
 
     # Initialize simulation state
     state = _initialize_simulation_state(
         P_up_psig=P_up_psig,
         P_down_init_psig=P_down_init_psig,
-        volume_ft3=volume_ft3,
         valve_id_inch=valve_id_inch,
-        temp_f=temp_f,
         molar_mass=molar_mass,
         z_factor=z_factor,
         k_ratio=k_ratio,
@@ -647,7 +635,7 @@ def run_simulation(
             k=k,
             M=M,
             Z=Z,
-            T=state.T,
+            T=state.T_up,
             Cd=state.Cd,
         )
 
@@ -658,7 +646,7 @@ def run_simulation(
             pressure_diff=pressure_diff,
             massflow_kgs=massflow_kgs,
             Z=Z,
-            T=state.T,
+            T=state.T_up,
             V_up=state.V_up,
             V_down=state.V_down,
             M=M,
