@@ -70,8 +70,8 @@
 <script setup lang="ts">
 import { jsPDF } from "jspdf";
 import JSZip from "jszip";
-import { type SimulationRow } from "../api/client";
 import { ref } from "vue";
+import { type SimulationRow } from "../api/client";
 
 const props = defineProps<{
   inputs: Record<string, any>;
@@ -105,16 +105,21 @@ function formatValue(value: any, decimals = 2): string {
 function formatInputLabel(key: string): string {
   // Handle dynamic label for opening/closing time based on valve action
   if (key === "opening_time_s") {
-    return props.inputs.valve_action === "close" ? "Closing Time" : "Opening Time";
+    return props.inputs.valve_action === "close"
+      ? "Closing Time"
+      : "Opening Time";
   }
 
   const labels: Record<string, string> = {
+    mode: "Simulation Mode",
     p_up_psig: "Upstream Pressure",
+    upstream_volume_ft3: "Upstream Volume",
+    upstream_temp_f: "Upstream Temperature",
     p_down_init_psig: "Downstream Pressure",
-    volume_ft3: "Volume",
+    downstream_volume_ft3: "Downstream Volume",
+    downstream_temp_f: "Downstream Temperature",
     valve_id_inch: "Valve ID",
     valve_action: "Valve Action",
-    temp_f: "Temperature",
     molar_mass: "Molar Mass (MW)",
     z_factor: "Z-Factor",
     k_ratio: "Heat Capacity Ratio (k)",
@@ -130,12 +135,15 @@ function formatInputLabel(key: string): string {
 
 function formatInputUnit(key: string): string {
   const units: Record<string, string> = {
+    mode: "",
     p_up_psig: "psig",
+    upstream_volume_ft3: "ft³",
+    upstream_temp_f: "°F",
     p_down_init_psig: "psig",
-    volume_ft3: "ft³",
+    downstream_volume_ft3: "ft³",
+    downstream_temp_f: "°F",
     valve_id_inch: "in",
     opening_time_s: "s",
-    temp_f: "°F",
     molar_mass: "g/mol",
     z_factor: "",
     k_ratio: "",
@@ -162,10 +170,17 @@ async function getPdfBlob(): Promise<Blob> {
 
     doc.setTextColor(255, 255, 255);
 
-    // User-entered Report Title (Left)
+    // User-entered Report Title (Left) - with wrapping
     doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
-    doc.text(reportTitle.value.trim() || "Simulation Report", margin, 25);
+    const titleText = reportTitle.value.trim() || "Simulation Report";
+    const maxTitleWidth = pageWidth - 2 * margin - 80; // Leave space for right-side text
+    const titleLines = doc.splitTextToSize(titleText, maxTitleWidth);
+    let titleY = 25;
+    titleLines.forEach((line: string) => {
+      doc.text(line, margin, titleY);
+      titleY += 7; // Approximate line height for font size 20
+    });
 
     // App Branding and Timestamp (Right)
     doc.setFontSize(10);
@@ -186,7 +201,7 @@ async function getPdfBlob(): Promise<Blob> {
       align: "right",
     });
 
-    y = 55;
+    y = Math.max(55, titleY + 10); // Adjust y to start after title, ensuring minimum 55
     doc.setTextColor(30, 41, 59);
 
     // === SIMULATION INPUTS ===
@@ -201,8 +216,18 @@ async function getPdfBlob(): Promise<Blob> {
     const inputKeys = Object.keys(props.inputs).filter((k) => {
       // Always exclude dt and composition
       if (k === "dt" || k === "composition") return false;
-      // Exclude k_curve (Curve Factor) for Linear mode since it's not used
-      if (k === "k_curve" && props.inputs.opening_mode === "linear") return false;
+      // Exclude k_curve (Curve Factor) for Linear and Fixed modes since it's not used
+      if (
+        k === "k_curve" &&
+        (props.inputs.opening_mode === "linear" ||
+          props.inputs.opening_mode === "fixed")
+      )
+        return false;
+      // Exclude upstream volume in pressurize mode and downstream volume in depressurize mode
+      if (k === "upstream_volume_ft3" && props.inputs.mode === "pressurize")
+        return false;
+      if (k === "downstream_volume_ft3" && props.inputs.mode === "depressurize")
+        return false;
       return true;
     });
     const colWidth = (pageWidth - 2 * margin) / 2;
@@ -241,7 +266,7 @@ async function getPdfBlob(): Promise<Blob> {
       doc.setFontSize(8);
       const compLines = doc.splitTextToSize(
         props.inputs.composition,
-        pageWidth - 2 * margin
+        pageWidth - 2 * margin,
       );
       doc.text(compLines, margin, y);
       y += compLines.length * 4 + 2;
@@ -305,7 +330,7 @@ async function getPdfBlob(): Promise<Blob> {
         formatValue(kpi.value, kpi.decimals),
         xPos + kpiBoxWidth / 2,
         y + 14,
-        { align: "center" }
+        { align: "center" },
       );
 
       // Unit
@@ -363,7 +388,13 @@ async function getPdfBlob(): Promise<Blob> {
         `Page ${i} of ${pageCount}`,
         pageWidth / 2,
         doc.internal.pageSize.getHeight() - 10,
-        { align: "center" }
+        { align: "center" },
+      );
+      doc.text(
+        "Developed by Unmask06",
+        pageWidth - margin,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: "right" },
       );
     }
 
@@ -374,7 +405,6 @@ async function getPdfBlob(): Promise<Blob> {
   }
 }
 
-
 function generateCsv(data: SimulationRow[]): string {
   if (!data || data.length === 0) return "";
 
@@ -382,7 +412,7 @@ function generateCsv(data: SimulationRow[]): string {
   const csvRows = [
     headers.join(","),
     ...data.map((row) =>
-      headers.map((header) => (row as any)[header]).join(",")
+      headers.map((header) => (row as any)[header]).join(","),
     ),
   ];
 
