@@ -136,7 +136,7 @@ const option = computed(() => {
         type: "line",
         smooth: true,
         showSymbol: false,
-        lineStyle: { width: 3, color: "#007aff" },
+        lineStyle: { type: "dashed", color: "#007aff" },
         data: downstream,
       },
       {
@@ -168,7 +168,7 @@ const option = computed(() => {
         yAxisIndex: 2,
         step: "end",
         showSymbol: false,
-        lineStyle: { width: 2, color: "#34c759", type: "dashed" },
+        lineStyle: { width: 2, color: "#34c759", type: "solid" },
         data: openings,
       },
     ],
@@ -183,6 +183,7 @@ const option = computed(() => {
         xAxisIndex: 0,
         filterMode: "filter",
         brushSelect: false,
+        bottom: 0,
       },
     ],
   };
