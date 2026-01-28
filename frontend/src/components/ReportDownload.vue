@@ -30,11 +30,38 @@
         ></textarea>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-secondary" @click="$emit('close')">Cancel</button>
-        <button class="btn-primary" @click="generatePdf" :disabled="generating">
-          {{ generating ? "Generating..." : "📄 Generate PDF" }}
-        </button>
+      <div class="modal-footer flex-col gap-4">
+        <div class="flex w-full justify-between items-center gap-3">
+          <button class="btn-secondary flex-1" @click="$emit('close')">
+            Cancel
+          </button>
+          <button
+            class="btn-primary flex-1"
+            @click="handleDownload('pdf')"
+            :disabled="generating || zipping"
+          >
+            {{ generating ? "Generating..." : "📄 Download Report" }}
+          </button>
+          <button
+            class="btn-assets flex-1"
+            @click="handleDownload('all')"
+            :disabled="generating || zipping"
+          >
+            {{ zipping ? "Zipping..." : "📦 Download All Assets" }}
+          </button>
+        </div>
+
+        <div class="footer-credits">
+          Developed by
+          <a
+            href="https://github.com/Unmask06"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="author-link"
+          >
+            Unmask06
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -42,7 +69,9 @@
 
 <script setup lang="ts">
 import { jsPDF } from "jspdf";
+import JSZip from "jszip";
 import { ref } from "vue";
+import { type SimulationRow } from "../api/client";
 
 const props = defineProps<{
   inputs: Record<string, any>;
@@ -53,6 +82,7 @@ const props = defineProps<{
     totalMass: number;
   };
   chartDataUrl: string | null;
+  results: SimulationRow[];
 }>();
 
 const emit = defineEmits(["close"]);
@@ -60,6 +90,7 @@ const emit = defineEmits(["close"]);
 const reportTitle = ref("");
 const notes = ref("");
 const generating = ref(false);
+const zipping = ref(false);
 
 function formatValue(value: any, decimals = 2): string {
   if (typeof value === "number") {
@@ -74,16 +105,21 @@ function formatValue(value: any, decimals = 2): string {
 function formatInputLabel(key: string): string {
   // Handle dynamic label for opening/closing time based on valve action
   if (key === "opening_time_s") {
-    return props.inputs.valve_action === "close" ? "Closing Time" : "Opening Time";
+    return props.inputs.valve_action === "close"
+      ? "Closing Time"
+      : "Opening Time";
   }
 
   const labels: Record<string, string> = {
+    mode: "Simulation Mode",
     p_up_psig: "Upstream Pressure",
+    upstream_volume_ft3: "Upstream Volume",
+    upstream_temp_f: "Upstream Temperature",
     p_down_init_psig: "Downstream Pressure",
-    volume_ft3: "Volume",
+    downstream_volume_ft3: "Downstream Volume",
+    downstream_temp_f: "Downstream Temperature",
     valve_id_inch: "Valve ID",
     valve_action: "Valve Action",
-    temp_f: "Temperature",
     molar_mass: "Molar Mass (MW)",
     z_factor: "Z-Factor",
     k_ratio: "Heat Capacity Ratio (k)",
@@ -99,12 +135,15 @@ function formatInputLabel(key: string): string {
 
 function formatInputUnit(key: string): string {
   const units: Record<string, string> = {
+    mode: "",
     p_up_psig: "psig",
+    upstream_volume_ft3: "ft³",
+    upstream_temp_f: "°F",
     p_down_init_psig: "psig",
-    volume_ft3: "ft³",
+    downstream_volume_ft3: "ft³",
+    downstream_temp_f: "°F",
     valve_id_inch: "in",
     opening_time_s: "s",
-    temp_f: "°F",
     molar_mass: "g/mol",
     z_factor: "",
     k_ratio: "",
@@ -118,9 +157,7 @@ function formatInputUnit(key: string): string {
   return units[key] || "";
 }
 
-async function generatePdf() {
-  generating.value = true;
-
+async function getPdfBlob(): Promise<Blob> {
   try {
     const doc = new jsPDF("p", "mm", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -133,10 +170,17 @@ async function generatePdf() {
 
     doc.setTextColor(255, 255, 255);
 
-    // User-entered Report Title (Left)
+    // User-entered Report Title (Left) - with wrapping
     doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
-    doc.text(reportTitle.value.trim() || "Simulation Report", margin, 25);
+    const titleText = reportTitle.value.trim() || "Simulation Report";
+    const maxTitleWidth = pageWidth - 2 * margin - 80; // Leave space for right-side text
+    const titleLines = doc.splitTextToSize(titleText, maxTitleWidth);
+    let titleY = 25;
+    titleLines.forEach((line: string) => {
+      doc.text(line, margin, titleY);
+      titleY += 7; // Approximate line height for font size 20
+    });
 
     // App Branding and Timestamp (Right)
     doc.setFontSize(10);
@@ -157,7 +201,7 @@ async function generatePdf() {
       align: "right",
     });
 
-    y = 55;
+    y = Math.max(55, titleY + 10); // Adjust y to start after title, ensuring minimum 55
     doc.setTextColor(30, 41, 59);
 
     // === SIMULATION INPUTS ===
@@ -172,8 +216,18 @@ async function generatePdf() {
     const inputKeys = Object.keys(props.inputs).filter((k) => {
       // Always exclude dt and composition
       if (k === "dt" || k === "composition") return false;
-      // Exclude k_curve (Curve Factor) for Linear mode since it's not used
-      if (k === "k_curve" && props.inputs.opening_mode === "linear") return false;
+      // Exclude k_curve (Curve Factor) for Linear and Fixed modes since it's not used
+      if (
+        k === "k_curve" &&
+        (props.inputs.opening_mode === "linear" ||
+          props.inputs.opening_mode === "fixed")
+      )
+        return false;
+      // Exclude upstream volume in pressurize mode and downstream volume in depressurize mode
+      if (k === "upstream_volume_ft3" && props.inputs.mode === "pressurize")
+        return false;
+      if (k === "downstream_volume_ft3" && props.inputs.mode === "depressurize")
+        return false;
       return true;
     });
     const colWidth = (pageWidth - 2 * margin) / 2;
@@ -212,7 +266,7 @@ async function generatePdf() {
       doc.setFontSize(8);
       const compLines = doc.splitTextToSize(
         props.inputs.composition,
-        pageWidth - 2 * margin
+        pageWidth - 2 * margin,
       );
       doc.text(compLines, margin, y);
       y += compLines.length * 4 + 2;
@@ -276,7 +330,7 @@ async function generatePdf() {
         formatValue(kpi.value, kpi.decimals),
         xPos + kpiBoxWidth / 2,
         y + 14,
-        { align: "center" }
+        { align: "center" },
       );
 
       // Unit
@@ -334,29 +388,100 @@ async function generatePdf() {
         `Page ${i} of ${pageCount}`,
         pageWidth / 2,
         doc.internal.pageSize.getHeight() - 10,
-        { align: "center" }
+        { align: "center" },
+      );
+      doc.text(
+        "Developed by Unmask06",
+        pageWidth - margin,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: "right" },
       );
     }
 
-    // Save the PDF
-    const dateStr = new Date().toISOString().slice(0, 10);
-    const titleSlug = reportTitle.value
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .slice(0, 30);
-
-    const filename = titleSlug
-      ? `${titleSlug}-${dateStr}.pdf`
-      : `pressurization-report-${dateStr}.pdf`;
-    doc.save(filename);
-
-    emit("close");
+    return doc.output("blob");
   } catch (error) {
     console.error("PDF generation failed:", error);
-    alert("Failed to generate PDF. Please try again.");
-  } finally {
-    generating.value = false;
+    throw error;
+  }
+}
+
+function generateCsv(data: SimulationRow[]): string {
+  if (!data || data.length === 0) return "";
+
+  const headers = Object.keys(data[0]);
+  const csvRows = [
+    headers.join(","),
+    ...data.map((row) =>
+      headers.map((header) => (row as any)[header]).join(","),
+    ),
+  ];
+
+  return csvRows.join("\n");
+}
+
+function getFilename(extension: string): string {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const titleSlug = reportTitle.value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .slice(0, 30);
+
+  return titleSlug
+    ? `${titleSlug}-${dateStr}.${extension}`
+    : `pressurization-report-${dateStr}.${extension}`;
+}
+
+async function handleDownload(type: "pdf" | "all") {
+  if (type === "pdf") {
+    generating.value = true;
+    try {
+      const blob = await getPdfBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = getFilename("pdf");
+      link.click();
+      URL.revokeObjectURL(url);
+      emit("close");
+    } catch (e) {
+      alert("Failed to generate PDF.");
+    } finally {
+      generating.value = false;
+    }
+  } else {
+    zipping.value = true;
+    try {
+      const zip = new JSZip();
+
+      // 1. PDF Report
+      const pdfBlob = await getPdfBlob();
+      zip.file(getFilename("pdf"), pdfBlob);
+
+      // 2. CSV Data
+      const csvData = generateCsv(props.results);
+      zip.file(getFilename("csv"), csvData);
+
+      // 3. PNG Graph
+      if (props.chartDataUrl) {
+        const base64Data = props.chartDataUrl.split(",")[1];
+        zip.file(getFilename("png"), base64Data, { base64: true });
+      }
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = getFilename("zip");
+      link.click();
+      URL.revokeObjectURL(url);
+      emit("close");
+    } catch (e) {
+      console.error("ZIP creation failed:", e);
+      alert("Failed to create ZIP file.");
+    } finally {
+      zipping.value = false;
+    }
   }
 }
 </script>
@@ -427,11 +552,31 @@ async function generatePdf() {
 }
 
 .btn-primary {
-  @apply bg-gradient-to-br from-blue-500 to-blue-600 font-semibold;
+  @apply bg-linear-to-br from-blue-500 to-blue-600 font-semibold text-xs sm:text-sm;
 }
 
 .btn-primary:hover:not(:disabled) {
   @apply from-blue-600 to-blue-700 -translate-y-px;
+}
+
+.btn-assets {
+  @apply bg-linear-to-br from-emerald-500 to-emerald-600 font-semibold text-white rounded-lg text-xs sm:text-sm transition-all;
+}
+
+.btn-assets:hover:not(:disabled) {
+  @apply from-emerald-600 to-emerald-700 -translate-y-px shadow-md;
+}
+
+.btn-assets:disabled {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+.footer-credits {
+  @apply text-center text-[10px] text-slate-400 mt-2;
+}
+
+.author-link {
+  @apply text-blue-400 hover:text-blue-500 hover:underline transition-colors font-medium;
 }
 
 .btn-primary:disabled {

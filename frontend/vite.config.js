@@ -9,4 +9,13 @@ export default defineConfig({
   build: {
     outDir: "dist/products/pressurize",
   },
+  server: {
+    port: 5173,
+    strictPort: false,
+    host: "127.0.0.1",
+    middlewareMode: false,
+    fs: {
+      allow: [".", "../docs"],
+    },
+  },
 });

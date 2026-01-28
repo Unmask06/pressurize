@@ -5,174 +5,183 @@
       <button class="btn-icon" @click="$emit('edit-settings')">⚙️</button>
     </div>
 
-    <div class="row">
-      <div class="form-group half">
-        <label>Upstream Pressure (psig)</label>
-        <input type="number" v-model.number="form.p_up_psig" />
-      </div>
-      <div class="form-group half">
-        <label>Downstream Pressure (psig)</label>
-        <input type="number" v-model.number="form.p_down_init_psig" />
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="form-group half">
-        <label>Volume (ft³)</label>
-        <input type="number" v-model.number="form.volume_ft3" />
-      </div>
-      <div class="form-group half">
-        <label>Valve ID (in)</label>
-        <input type="number" v-model.number="form.valve_id_inch" />
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Valve Action</label>
+    <!-- Mode Selection -->
+    <div class="section-container">
+      <div class="section-header">📈 Simulation Mode</div>
       <div class="toggle-group">
-        <button
-          :class="{ active: form.valve_action === 'open' }"
-          @click="form.valve_action = 'open'"
-        >
-          🔓 Open
+        <button :class="{ active: form.mode === 'pressurize' }" @click="form.mode = 'pressurize'"
+          title="Pressurize: upstream pressure constant, downstream evolves">
+          🔼 Pressurize
         </button>
-        <button
-          :class="{ active: form.valve_action === 'close' }"
-          @click="form.valve_action = 'close'"
-        >
-          🔒 Close
+        <button :class="{ active: form.mode === 'depressurize' }" @click="form.mode = 'depressurize'"
+          title="Depressurize: downstream pressure constant, upstream evolves">
+          🔽 Depressurize
         </button>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>{{
-        form.valve_action === "close" ? "Closing Time (s)" : "Opening Time (s)"
-      }}</label>
-      <input type="number" v-model.number="form.opening_time_s" />
-    </div>
-
-    <div class="row">
-      <div class="form-group half">
-        <label>{{
-          form.valve_action === "close" ? "Closing Mode" : "Opening Mode"
-        }}</label>
-        <select v-model="form.opening_mode">
-          <option value="linear">Linear</option>
-          <option value="exponential">Exponential</option>
-          <option value="quick_acting">Quick Acting</option>
-          <option v-if="form.valve_action === 'open'" value="fixed">
-            Fixed (Instant)
-          </option>
-        </select>
-      </div>
-      <div
-        class="form-group half"
-        v-if="['exponential', 'quick_acting'].includes(form.opening_mode)"
-      >
-        <label>Curve Factor (k)</label>
-        <input type="number" v-model.number="form.k_curve" step="0.1" />
-      </div>
-    </div>
-
-    <hr />
-
-    <div class="form-group">
-      <label>Property Mode</label>
-      <div class="toggle-group">
-        <button
-          :class="{ active: form.property_mode === 'manual' }"
-          @click="form.property_mode = 'manual'"
-        >
-          Manual
-        </button>
-        <button
-          :class="{ active: form.property_mode === 'composition' }"
-          @click="form.property_mode = 'composition'"
-        >
-          Composition
+        <button :class="{ active: form.mode === 'equalize' }" @click="form.mode = 'equalize'"
+          title="Equalize: both upstream and downstream pressures evolve">
+          ⇌ Equalize
         </button>
       </div>
     </div>
 
-    <div
-      v-show="form.property_mode === 'composition'"
-      class="composition-summary"
-    >
-      <div class="summary-card">
-        <div class="summary-icon">🧪</div>
-        <div class="summary-text">{{ compositionSummary }}</div>
+    <div class="form-grid">
+      <!-- Row 1: Upstream and Downstream side by side -->
+      <div class="grid-row vessels-row">
+        <!-- Upstream Section -->
+        <div class="section-container">
+          <div class="section-header">📤 Upstream Vessel</div>
+          <div class="row">
+            <div class="form-group" :class="form.mode !== 'pressurize' ? 'third' : 'half'">
+              <label>Pressure (psig)</label>
+              <input type="number" v-model.number="form.p_up_psig" />
+            </div>
+            <div class="form-group" :class="form.mode !== 'pressurize' ? 'third' : 'half'">
+              <label>Temperature (°F)</label>
+              <input type="number" v-model.number="form.upstream_temp_f" step="5" />
+            </div>
+            <div class="form-group third" v-if="form.mode !== 'pressurize'">
+              <label>Volume (ft³)</label>
+              <input type="number" v-model.number="form.upstream_volume_ft3" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Downstream Section -->
+        <div class="section-container">
+          <div class="section-header">📥 Downstream Vessel</div>
+          <div class="row">
+            <div class="form-group" :class="form.mode !== 'depressurize' ? 'third' : 'half'">
+              <label>Pressure (psig)</label>
+              <input type="number" v-model.number="form.p_down_init_psig" />
+            </div>
+            <div class="form-group" :class="form.mode !== 'depressurize' ? 'third' : 'half'">
+              <label>Temperature (°F)</label>
+              <input type="number" v-model.number="form.downstream_temp_f" step="5" />
+            </div>
+            <div class="form-group third" v-if="form.mode !== 'depressurize'">
+              <label>Volume (ft³)</label>
+              <input type="number" v-model.number="form.downstream_volume_ft3" />
+            </div>
+          </div>
+        </div>
       </div>
-      <button class="btn-secondary" @click="$emit('edit-composition')">
-        ✏️ Edit
+
+      <!-- Row 2: Valve Configuration (full width) -->
+      <div class="grid-row full-width">
+        <div class="section-container">
+          <div class="section-header">🔧 Valve Configuration</div>
+          <div class="row">
+            <div class="form-group quarter">
+              <label>Valve ID (in)</label>
+              <input type="number" v-model.number="form.valve_id_inch" />
+            </div>
+            <div class="form-group quarter">
+              <label>Discharge Coeff (Cd)</label>
+              <input type="number" v-model.number="form.discharge_coeff" step="0.05" />
+            </div>
+            <div class="form-group quarter">
+              <label>Valve Action</label>
+              <div class="toggle-group">
+                <button :class="{ active: form.valve_action === 'open' }" @click="form.valve_action = 'open'">
+                  🔓 Open
+                </button>
+                <button :class="{ active: form.valve_action === 'close' }" @click="form.valve_action = 'close'">
+                  🔒 Close
+                </button>
+              </div>
+            </div>
+            <div class="form-group quarter">
+              <label>{{
+                form.valve_action === "close" ? "Closing Time (s)" : "Opening Time (s)"
+              }}</label>
+              <input type="number" v-model.number="form.opening_time_s" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-group quarter">
+              <label>{{
+                form.valve_action === "close" ? "Closing Mode" : "Opening Mode"
+              }}</label>
+              <select v-model="form.opening_mode">
+                <option value="linear">Linear</option>
+                <option value="exponential">Exponential</option>
+                <option value="quick_acting">Quick Acting</option>
+                <option v-if="form.valve_action === 'open'" value="fixed">
+                  Fixed (Instant)
+                </option>
+              </select>
+            </div>
+            <div class="form-group quarter" v-if="['exponential', 'quick_acting'].includes(form.opening_mode)">
+              <label>Curve Factor (k)</label>
+              <input type="number" v-model.number="form.k_curve" step="0.1" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Gas Properties (full width) -->
+      <div class="grid-row full-width">
+        <div class="section-container">
+          <div class="section-header">🧪 Gas Properties</div>
+          <div class="row">
+            <div class="form-group half">
+              <label>Property Mode</label>
+              <div class="toggle-group">
+                <button :class="{ active: form.property_mode === 'manual' }" @click="form.property_mode = 'manual'">
+                  Manual
+                </button>
+                <button :class="{ active: form.property_mode === 'composition' }"
+                  @click="form.property_mode = 'composition'">
+                  Composition
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group half" v-show="form.property_mode === 'composition'">
+              <label>Composition</label>
+              <div class="composition-summary-inline">
+                <span class="summary-text">🧪 {{ compositionSummary }}</span>
+                <button class="btn-secondary" @click="$emit('edit-composition')">
+                  ✏️ Edit
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-group third">
+              <label title="Molar Mass">MW (g/mol)</label>
+              <input type="number" v-model.number="form.molar_mass" step="0.1"
+                :disabled="form.property_mode === 'composition'"
+                :class="{ 'read-only': form.property_mode === 'composition' }" />
+            </div>
+            <div class="form-group third">
+              <label title="Z-Factor">Z-Factor</label>
+              <input type="number" v-model.number="form.z_factor" step="0.01"
+                :disabled="form.property_mode === 'composition'"
+                :class="{ 'read-only': form.property_mode === 'composition' }" />
+            </div>
+            <div class="form-group third">
+              <label title="Heat Capacity Ratio">k (Cp/Cv)</label>
+              <input type="number" v-model.number="form.k_ratio" step="0.01"
+                :disabled="form.property_mode === 'composition'"
+                :class="{ 'read-only': form.property_mode === 'composition' }" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn-table" @click="viewResults" :disabled="resultsEmpty">
+        {{ resultsEmpty ? "No Data Available" : "📊 View Results Table" }}
+      </button>
+
+      <button type="button" class="btn-primary" @click="runSimulation" :disabled="loading">
+        {{ loading ? "Running..." : "Run Simulation" }}
       </button>
     </div>
-
-    <div class="row">
-      <div class="form-group third">
-        <label title="Molar Mass">MW (g/mol)</label>
-        <input
-          type="number"
-          v-model.number="form.molar_mass"
-          step="0.1"
-          :disabled="form.property_mode === 'composition'"
-          :class="{ 'read-only': form.property_mode === 'composition' }"
-        />
-      </div>
-      <div class="form-group third">
-        <label title="Z-Factor">Z-Factor</label>
-        <input
-          type="number"
-          v-model.number="form.z_factor"
-          step="0.01"
-          :disabled="form.property_mode === 'composition'"
-          :class="{ 'read-only': form.property_mode === 'composition' }"
-        />
-      </div>
-      <div class="form-group third">
-        <label title="Heat Capacity Ratio">k (Cp/Cv)</label>
-        <input
-          type="number"
-          v-model.number="form.k_ratio"
-          step="0.01"
-          :disabled="form.property_mode === 'composition'"
-          :class="{ 'read-only': form.property_mode === 'composition' }"
-        />
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="form-group half">
-        <label>Temp (°F)</label>
-        <input type="number" v-model.number="form.temp_f" step="5" />
-      </div>
-      <div class="form-group half">
-        <label>Cd</label>
-        <input
-          type="number"
-          v-model.number="form.discharge_coeff"
-          step="0.05"
-        />
-      </div>
-    </div>
-
-    <button
-      type="button"
-      class="btn-table"
-      @click="viewResults"
-      :disabled="resultsEmpty"
-    >
-      {{ resultsEmpty ? "No Data Available" : "📊 View Results Table" }}
-    </button>
-
-    <button
-      type="button"
-      class="btn-primary"
-      @click="runSimulation"
-      :disabled="loading"
-    >
-      {{ loading ? "Running..." : "Run Simulation" }}
-    </button>
   </div>
 </template>
 
@@ -199,13 +208,16 @@ function viewResults() {
 }
 
 const form = reactive({
+  mode: "equalize" as "pressurize" | "depressurize" | "equalize",
   p_up_psig: 500,
   p_down_init_psig: 0,
-  volume_ft3: 100,
+  upstream_volume_ft3: 100,
+  downstream_volume_ft3: 100,
   valve_id_inch: 2.0,
   opening_time_s: 5,
   valve_action: "open" as "open" | "close",
-  temp_f: 70,
+  upstream_temp_f: 70,
+  downstream_temp_f: 70,
   molar_mass: 28.97,
   z_factor: 1.0,
   k_ratio: 1.4,
@@ -243,17 +255,23 @@ watch(
   { immediate: true }
 );
 
-// Auto-calculate properties in composition mode
+// Auto-calculate properties in composition mode based on mode and conditions
 watch(
   [
     () => form.property_mode,
     () => form.composition,
-    () => form.temp_f,
+    () => form.mode,
+    () => form.upstream_temp_f,
+    () => form.downstream_temp_f,
+    () => form.p_up_psig,
     () => form.p_down_init_psig,
   ],
-  async ([mode, comp, temp, press]) => {
-    if (mode === "composition" && comp) {
+  async ([propMode, comp, simMode, tempUp, tempDown, pressUp, pressDown]) => {
+    if (propMode === "composition" && comp) {
       try {
+        // Use upstream conditions for pressurize/equalize, downstream for depressurize
+        const temp = simMode === "depressurize" ? tempDown : tempUp;
+        const press = simMode === "depressurize" ? pressDown : pressUp;
         const res = await apiClient.post("/properties", {
           composition: comp,
           pressure_psig: press || 0,
@@ -284,117 +302,151 @@ function runSimulation() {
 @import "tailwindcss";
 
 .simulation-form {
-  @apply bg-white p-6 rounded-xl border border-slate-200 flex flex-col gap-4 h-full overflow-y-auto;
+  @apply bg-white p-8 rounded-2xl border border-slate-200 flex flex-col gap-6 h-full overflow-y-auto;
+  width: 100%;
+}
+
+.form-grid {
+  @apply flex flex-col gap-4;
+}
+
+.grid-row {
+  @apply flex flex-col gap-4;
+}
+
+.grid-row.vessels-row {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.grid-row.full-width {
+  @apply w-full;
+}
+
+.quarter {
+  @apply flex-1 min-w-30;
+}
+
+.actions {
+  @apply flex flex-col gap-3 mt-4;
 }
 
 h3 {
-  @apply m-0 mb-2 text-xl font-semibold text-slate-800;
+  @apply m-0 text-2xl font-bold text-slate-800 tracking-tight;
 }
 
 .form-group {
-  @apply flex flex-col gap-1;
+  @apply flex flex-col gap-1.5;
 }
 
 .row {
-  @apply flex gap-3;
+  @apply flex flex-wrap gap-4;
 }
 
 .half {
-  @apply w-1/2;
+  @apply flex-1 min-w-50;
 }
 
 .third {
-  @apply w-1/3;
+  @apply flex-1 min-w-35;
 }
 
 label {
-  @apply text-sm text-slate-500 font-medium;
+  @apply text-xs text-slate-500 font-bold uppercase tracking-wider;
 }
 
 input,
 select {
-  @apply py-2.5 px-3 border border-slate-200 rounded-md bg-white text-slate-800 text-base transition-colors;
+  @apply py-3 px-4 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-base transition-all duration-200;
+}
+
+input:hover,
+select:hover {
+  @apply border-slate-300 bg-white;
 }
 
 input:focus,
 select:focus {
-  @apply outline-none border-blue-500 ring-2 ring-blue-500/20;
+  @apply outline-none border-blue-500 ring-4 ring-blue-500/10 bg-white;
 }
 
 hr {
-  @apply border-none border-t border-slate-200 my-2;
+  @apply border-none border-t border-slate-100 my-2;
 }
 
 .toggle-group {
-  @apply flex bg-slate-100 p-1 rounded-md;
+  @apply flex bg-slate-100 p-1.5 rounded-xl gap-1;
 }
 
 .toggle-group button {
-  @apply flex-1 py-1.5 px-2 border-none bg-transparent text-slate-500 rounded cursor-pointer text-sm font-medium transition-all;
+  @apply flex-1 py-2 px-3 border-none bg-transparent text-slate-600 rounded-lg cursor-pointer text-sm font-semibold transition-all duration-200;
 }
 
 .toggle-group button.active {
-  @apply bg-white text-blue-500 shadow-sm;
+  @apply bg-white text-blue-600 shadow-md shadow-blue-500/10;
 }
 
 input.read-only {
-  @apply bg-slate-100 text-slate-500 cursor-not-allowed border-dashed;
+  @apply bg-slate-100 text-slate-400 cursor-not-allowed border-dashed;
 }
 
 .composition-summary {
-  @apply flex items-center justify-between bg-slate-100 py-2 px-3 rounded-lg border border-slate-200;
+  @apply flex items-center justify-between bg-blue-50/50 py-3 px-4 rounded-xl border border-blue-100;
 }
 
 .summary-card {
-  @apply flex items-center gap-2;
+  @apply flex items-center gap-3;
+}
+
+.summary-icon {
+  @apply text-xl;
+}
+
+.summary-text {
+  @apply text-sm font-semibold text-blue-900;
+}
+
+.composition-summary-inline {
+  @apply flex items-center gap-2 bg-blue-50/50 py-2 px-3 rounded-lg border border-blue-100;
 }
 
 .btn-table {
-  @apply mt-2 py-2.5 px-4 bg-transparent border border-blue-500 text-blue-500 rounded-lg font-semibold cursor-pointer transition-all;
+  @apply py-3 px-4 bg-white border-2 border-slate-200 text-slate-600 rounded-xl font-bold cursor-pointer transition-all hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
-.btn-table:hover:not(:disabled) {
-  @apply bg-blue-500/10;
-}
-
-.btn-table:disabled {
-  @apply opacity-50 cursor-not-allowed border-slate-200 text-slate-400;
-}
-
-/* Component-specific button styles */
 .btn-primary {
-  @apply mt-auto py-3 px-4 font-semibold transition-colors;
-}
-
-.btn-primary:hover {
-  @apply bg-blue-600;
-}
-
-.btn-primary:disabled {
-  @apply opacity-70 cursor-not-allowed;
+  @apply py-4 px-6 bg-blue-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all hover:bg-blue-700 disabled:bg-slate-300 disabled:shadow-none;
 }
 
 .btn-secondary {
-  @apply py-1.5 px-3 rounded-md text-slate-800 text-sm;
+  @apply py-1.5 px-3 rounded-lg text-blue-600 text-xs font-bold uppercase tracking-wider bg-white border border-blue-100;
 }
 
 .btn-secondary:hover {
-  @apply bg-slate-100;
+  @apply bg-blue-50 border-blue-200;
 }
 
 .header-with-settings {
-  @apply flex justify-between items-center;
+  @apply flex justify-between items-start;
 }
 
 .btn-icon {
-  @apply bg-transparent border-none cursor-pointer text-xl p-1 rounded-full w-8 h-8 flex justify-center items-center;
+  @apply bg-slate-100 border-none cursor-pointer text-xl p-2 rounded-xl w-10 h-10 flex justify-center items-center transition-all hover:bg-slate-200 hover:rotate-90 active:scale-90;
 }
 
-.btn-icon:hover {
-  @apply bg-slate-100;
+.section-container {
+  @apply bg-slate-50/50 p-5 rounded-2xl border border-slate-100 flex flex-col gap-4;
 }
 
-.settings-group {
-  @apply bg-slate-50 p-3 rounded-lg mb-2 border border-dashed border-slate-200;
+.section-header {
+  @apply text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2;
+}
+
+.section-header::after {
+  content: "";
+  @apply h-px bg-slate-100 flex-1;
+}
+
+small {
+  @apply text-[10px] text-slate-400 font-medium;
 }
 </style>

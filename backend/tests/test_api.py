@@ -1,5 +1,5 @@
-from pressurize.main import app
 from fastapi.testclient import TestClient
+from pressurize.main import app
 
 client = TestClient(app)
 
@@ -31,10 +31,13 @@ def test_get_presets():
 def test_simulation_workflow():
     payload = {
         "p_up_psig": 500,
-        "volume_ft3": 100,
+        "p_down_init_psig": 0,
+        "upstream_volume_ft3": 100,
+        "upstream_temp_f": 70,
+        "downstream_volume_ft3": 100,
+        "downstream_temp_f": 70,
         "valve_id_inch": 2,
         "opening_time_s": 5,
-        "temp_f": 70,
         "molar_mass": 28.97,
         "z_factor": 1.0,
         "k_ratio": 1.4,

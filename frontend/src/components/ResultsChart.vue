@@ -55,7 +55,7 @@ defineExpose({
 const option = computed(() => {
   if (!props.data || props.data.length === 0) return {};
 
-  const pressures = props.data.map((d) => [d.time, d.pressure_psig]);
+  const downstream = props.data.map((d) => [d.time, d.downstream_pressure_psig]);
   const upstream = props.data.map((d) => [d.time, d.upstream_pressure_psig]);
   const flows = props.data.map((d) => [d.time, d.flowrate_lb_hr]);
   const openings = props.data.map((d) => [d.time, d.valve_opening_pct]);
@@ -136,8 +136,8 @@ const option = computed(() => {
         type: "line",
         smooth: true,
         showSymbol: false,
-        lineStyle: { width: 3, color: "#007aff" },
-        data: pressures,
+        lineStyle: { type: "dashed", color: "#007aff" },
+        data: downstream,
       },
       {
         name: "Upstream Pressure",
@@ -168,7 +168,7 @@ const option = computed(() => {
         yAxisIndex: 2,
         step: "end",
         showSymbol: false,
-        lineStyle: { width: 2, color: "#34c759", type: "dashed" },
+        lineStyle: { width: 2, color: "#34c759", type: "solid" },
         data: openings,
       },
     ],
@@ -183,6 +183,7 @@ const option = computed(() => {
         xAxisIndex: 0,
         filterMode: "filter",
         brushSelect: false,
+        bottom: 0,
       },
     ],
   };

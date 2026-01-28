@@ -8,6 +8,7 @@ $BackendPort = 8000
 $FrontendPort = 5173
 $BackendUrl = "http://localhost:$BackendPort"
 $FrontendUrl = "http://localhost:$FrontendPort"
+$DocsUrl = "http://localhost:$FrontendPort/docs/"
 
 # Get the script directory
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -38,3 +39,4 @@ Start-Process $FrontendUrl
 Write-Host "Application launched!" -ForegroundColor Green
 Write-Host "  Backend:  $BackendUrl" -ForegroundColor White
 Write-Host "  Frontend: $FrontendUrl" -ForegroundColor White
+Write-Host "  Docs:     $DocsUrl (available after build)" -ForegroundColor DarkYellow

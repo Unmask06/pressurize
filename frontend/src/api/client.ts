@@ -5,7 +5,6 @@ const API_BASE_URL = import.meta.env.DEV
   ? "http://localhost:8000"
   : "https://api.xergiz.com/pressurize";
 
-
 export const apiClient = axios.create({
   baseURL: `${API_BASE_URL}`,
   headers: {
@@ -17,9 +16,12 @@ export interface SimulationRow {
   time: number;
   pressure_psig: number;
   upstream_pressure_psig: number;
+  downstream_pressure_psig: number;
   flowrate_lb_hr: number;
   valve_opening_pct: number;
   flow_regime: string;
+  dp_dt_upstream_psig_s?: number;
+  dp_dt_downstream_psig_s?: number;
   z_factor?: number;
   k_ratio?: number;
   molar_mass?: number;

@@ -2,35 +2,22 @@
   <div class="app-container">
     <div class="sidebar">
       <div class="sidebar-header">
-        <h1>Pressurization Simulator</h1>
+        <div class="header-top">
+          <h1>Pressurization Simulator</h1>
+          <a href="/products/pressurize/docs/" class="btn-docs" title="View Documentation">📖</a>
+        </div>
         <p>Gas Valves</p>
       </div>
-      <SimulationForm
-        :loading="loading"
-        :initial-composition="currentComposition"
-        :results-empty="results.length === 0"
-        :current-dt="currentDt"
-        @run="runSimulation"
-        @edit-composition="showCompositionEditor = true"
-        @view-results="showResultsTable = true"
-        @edit-settings="showSettingsEditor = true"
-      />
+      <SimulationForm :loading="loading" :initial-composition="currentComposition" :results-empty="results.length === 0"
+        :current-dt="currentDt" @run="runSimulation" @edit-composition="showCompositionEditor = true"
+        @view-results="showResultsTable = true" @edit-settings="showSettingsEditor = true" />
     </div>
 
     <div class="main-content">
       <div class="results-header">
-        <KpiCards
-          :peak-flow="kpis.peakFlow"
-          :final-pressure="kpis.finalPressure"
-          :equilibrium-time="kpis.equilibriumTime"
-          :total-mass="kpis.totalMass"
-          :loading="!kpisReady"
-        />
-        <button
-          class="btn-download"
-          @click="showReportModal = true"
-          :disabled="results.length === 0"
-        >
+        <KpiCards :peak-flow="kpis.peakFlow" :final-pressure="kpis.finalPressure"
+          :equilibrium-time="kpis.equilibriumTime" :total-mass="kpis.totalMass" :loading="!kpisReady" />
+        <button class="btn-download" @click="showReportModal = true" :disabled="results.length === 0">
           📥 Download Report
         </button>
       </div>
@@ -41,39 +28,22 @@
     </div>
 
     <Transition name="fade">
-      <CompositionEditor
-        v-if="showCompositionEditor"
-        :current-composition="currentComposition"
-        @close="showCompositionEditor = false"
-        @apply="updateComposition"
-      />
+      <CompositionEditor v-if="showCompositionEditor" :current-composition="currentComposition"
+        @close="showCompositionEditor = false" @apply="updateComposition" />
     </Transition>
 
     <Transition name="fade">
-      <ResultsTable
-        v-if="showResultsTable"
-        :data="results"
-        @close="showResultsTable = false"
-      />
+      <ResultsTable v-if="showResultsTable" :data="results" @close="showResultsTable = false" />
     </Transition>
 
     <Transition name="fade">
-      <ReportDownload
-        v-if="showReportModal"
-        :inputs="lastFormParams"
-        :kpis="kpis"
-        :chart-data-url="chartDataUrl"
-        @close="showReportModal = false"
-      />
+      <ReportDownload v-if="showReportModal" :inputs="lastFormParams" :kpis="kpis" :results="results"
+        :chart-data-url="chartDataUrl" @close="showReportModal = false" />
     </Transition>
 
     <Transition name="fade">
-      <SettingsEditor
-        v-if="showSettingsEditor"
-        :current-dt="currentDt"
-        @close="showSettingsEditor = false"
-        @apply="updateSettings"
-      />
+      <SettingsEditor v-if="showSettingsEditor" :current-dt="currentDt" @close="showSettingsEditor = false"
+        @apply="updateSettings" />
     </Transition>
   </div>
 </template>
@@ -184,15 +154,23 @@ function updateSettings(newDt: number) {
 }
 
 .sidebar {
-  @apply w-[350px] bg-white border-r border-slate-200 flex flex-col shrink-0;
+  @apply w-[30%] min-w-80 bg-white border-r border-slate-200 flex flex-col shrink-0;
 }
 
 .sidebar-header {
   @apply p-6 border-b border-slate-200;
 }
 
+.header-top {
+  @apply flex items-center justify-between gap-2;
+}
+
 .sidebar-header h1 {
   @apply m-0 text-2xl font-extrabold text-blue-500 tracking-tight;
+}
+
+.btn-docs {
+  @apply text-xl hover:scale-110 transition-transform cursor-pointer no-underline;
 }
 
 .sidebar-header p {
@@ -200,7 +178,7 @@ function updateSettings(newDt: number) {
 }
 
 .main-content {
-  @apply flex-1 flex flex-col p-4 sm:p-6 md:p-8 bg-slate-50 overflow-hidden gap-3 sm:gap-4;
+  @apply w-[70%] flex-1 flex flex-col p-4 sm:p-6 md:p-8 bg-slate-50 overflow-hidden gap-3 sm:gap-4;
 }
 
 .results-header {

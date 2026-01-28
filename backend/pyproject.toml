@@ -1,6 +1,6 @@
 [project]
 name = "pressurize"
-version = "0.4"
+version = "0.5"
 description = "Gas blowdown simulation API for pressure vessel depressurization analysis"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -34,7 +34,7 @@ dependencies = [
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
-    "httpx>=0.26.0",
+    "httpx>=0.26.0"
 ]
 [tool.uv.sources]
 fluids = { git = "https://github.com/Unmask06/fluids.git", branch = "master" }
@@ -45,6 +45,14 @@ pressurize = "pressurize.main:run_server"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pandas-stubs>=2.3.3.260113",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true

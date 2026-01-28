@@ -7,6 +7,7 @@ An open-source engineering application for simulating gas flow dynamics through 
 **Pressurize** is designed for process engineers, mechanical engineers, and safety analysts working with pressurized gas systems. The simulator models the transient behavior of gas flowing from a high-pressure source through a control valve into a downstream vessel.
 
 ### Key Applications:
+
 - **Pressure Vessel Filling Analysis**: Calculate filling times and pressure profiles for gas storage vessels
 - **Valve Sizing & Selection**: Evaluate valve performance under different opening modes and discharge coefficients
 - **Flow Regime Analysis**: Understand the transition between sonic (choked) and subsonic flow conditions
@@ -14,7 +15,9 @@ An open-source engineering application for simulating gas flow dynamics through 
 - **Gas Composition Effects**: Analyze how different gas mixtures affect pressurization dynamics
 
 ### Technical Approach:
+
 The simulator uses rigorous thermodynamic calculations based on:
+
 - **Real Gas Law (PV = ZnRT)**: Accounts for gas non-ideality using compressibility factors
 - **ISO 5167-2 Flow Standards**: Industry-standard orifice flow calculations
 - **Dual Flow Regimes**: Automatic handling of choked (sonic) and subsonic flow based on pressure ratios
@@ -23,6 +26,7 @@ The simulator uses rigorous thermodynamic calculations based on:
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **FastAPI** - Modern Python web framework for high-performance APIs
 - **Thermo** - Thermodynamic and chemical property calculations
 - **SciPy** - Scientific computing and numerical integration
@@ -32,6 +36,7 @@ The simulator uses rigorous thermodynamic calculations based on:
 - **Uvicorn** - ASGI server for production deployment
 
 ### Frontend
+
 - **Vue 3** - Progressive JavaScript framework with Composition API
 - **Vite** - Next-generation frontend build tool
 - **ECharts** - Professional data visualization library
@@ -40,6 +45,7 @@ The simulator uses rigorous thermodynamic calculations based on:
 - **jsPDF** - Client-side PDF generation for reports
 
 ### Development Tools
+
 - **Python 3.12+** - Backend runtime
 - **Node.js** - Frontend build tools
 - **uv** - Fast Python package installer and resolver
@@ -59,6 +65,7 @@ The simulator uses rigorous thermodynamic calculations based on:
 ## Installation
 
 ### Backend
+
 1. Install Python dependencies:
    ```bash
    uv sync
@@ -67,6 +74,7 @@ The simulator uses rigorous thermodynamic calculations based on:
    ```
 
 ### Frontend
+
 1. Navigate to frontend directory:
    ```bash
    cd frontend
@@ -78,11 +86,28 @@ The simulator uses rigorous thermodynamic calculations based on:
 
 ## Usage
 
+### Quick Start (Recommended)
+
+For a streamlined setup, use the provided PowerShell script to launch both servers simultaneously:
+
+1. **Run the Launch Script**:
+   ```powershell
+   # From root directory (Windows PowerShell)
+   .\launch.ps1
+   ```
+   This will automatically start the backend API at `http://localhost:8000` and the frontend at `http://localhost:5173`, then open your browser to the application.
+
+### Manual Setup
+
+If you prefer to start services individually:
+
 1. **Start the Backend API**:
+
    ```bash
    # From root directory
    uv run uvicorn backend.main:app --reload
    ```
+
    API will run at `http://localhost:8000`.
 
 2. **Start the Frontend Development Server**:
@@ -92,10 +117,20 @@ The simulator uses rigorous thermodynamic calculations based on:
    ```
    UI will be available at `http://localhost:5173`.
 
+## 📚 Documentation
 
-## 📋 API Documentation
+### End-User Documentation
+The full user guide is available in the application. To view it locally during development:
+```bash
+cd frontend
+npm run docs:dev
+```
+Access it at: `http://localhost:5173/products/pressurize/docs/`
+
+### API Documentation
 
 Once the backend is running, interactive API documentation is available at:
+
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
@@ -104,6 +139,7 @@ Once the backend is running, interactive API documentation is available at:
 Contributions are welcome! This is an open-source project, and we appreciate your help in making it better.
 
 ### How to Contribute:
+
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
@@ -113,6 +149,7 @@ Contributions are welcome! This is an open-source project, and we appreciate you
 7. Open a Pull Request
 
 ### Development Guidelines:
+
 - Follow existing code style and conventions
 - Add tests for new features
 - Update documentation as needed
@@ -123,6 +160,7 @@ Contributions are welcome! This is an open-source project, and we appreciate you
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 This means you are free to:
+
 - ✅ Use this software for commercial purposes
 - ✅ Modify and distribute the software
 - ✅ Use this software privately
