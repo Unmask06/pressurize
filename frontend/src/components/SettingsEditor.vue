@@ -9,17 +9,15 @@
       <div class="modal-body">
         <div class="form-group">
           <label for="step_time">Step Time (s)</label>
-          <input
-            id="step_time"
-            type="number"
-            v-model.number="localDt"
-            step="0.01"
-            min="0.001"
-          />
-          <span class="hint"
-            >Controls simulation resolution. Smaller = more accurate,
-            slower.</span
-          >
+          <input id="step_time" type="number" v-model.number="localDt" step="0.01" min="0.001" />
+          <span class="hint">Controls simulation resolution. Smaller = more accurate,
+            slower.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="max_sim_time">Max Simulation Time (s)</label>
+          <input id="max_sim_time" type="number" v-model.number="localMaxSimTime" step="1" min="1" />
+          <span class="hint">Maximum time to run simulation. Prevents infinite loops.</span>
         </div>
       </div>
 
@@ -36,14 +34,16 @@ import { ref } from "vue";
 
 const props = defineProps<{
   currentDt: number;
+  currentMaxSimTime: number;
 }>();
 
 const emit = defineEmits(["close", "apply"]);
 
 const localDt = ref(props.currentDt);
+const localMaxSimTime = ref(props.currentMaxSimTime);
 
 function apply() {
-  emit("apply", localDt.value);
+  emit("apply", { dt: localDt.value, maxSimTime: localMaxSimTime.value });
 }
 </script>
 

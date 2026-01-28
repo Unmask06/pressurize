@@ -7,7 +7,13 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 
-from pressurize.config.settings import FT3_TO_M3, INCH_TO_M, KG_S_TO_LB_HR, TIME_STEP
+from pressurize.config.settings import (
+    FT3_TO_M3,
+    INCH_TO_M,
+    KG_S_TO_LB_HR,
+    MAX_SIMULATION_TIME_FIXED,
+    TIME_STEP,
+)
 from pressurize.core.physics import (
     calculate_critical_pressure_ratio,
     calculate_dual_dp_dt,
@@ -484,7 +490,7 @@ def _calculate_max_simulation_time(
         Maximum simulation time in seconds.
     """
     if opening_mode == "fixed" or opening_time_s <= 0:
-        return 3600  # Safety timeout for fixed/instantaneous opening
+        return MAX_SIMULATION_TIME_FIXED
     elif valve_action == "close":
         return opening_time_s * 1.2  # Closing: 1.2x closing time
     else:
