@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitepress'
-import mathjax3 from 'markdown-it-mathjax3';
+import mathjax3 from "markdown-it-mathjax3";
+import { defineConfig } from "vitepress";
 
 export default defineConfig({
   title: "Pressurize",
@@ -9,29 +9,29 @@ export default defineConfig({
   markdown: {
     config: (md) => {
       md.use(mathjax3);
-    }
+    },
   },
   themeConfig: {
     nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Overview', link: '/overview' },
-      { text: 'How to Use', link: '/how-to-use' },
-      { text: 'Technical Background', link: '/technical-background' },
-      { text: 'Use Cases', link: '/use-cases' }
+      { text: "Home", link: "/" },
+      { text: "Overview", link: "/overview" },
+      { text: "How to Use", link: "/how-to-use" },
+      { text: "Technical Background", link: "/technical-background" },
+      { text: "Use Cases", link: "/use-cases" },
     ],
     sidebar: [
       {
-        text: 'Guide',
+        text: "Guide",
         items: [
-          { text: 'Overview', link: '/overview' },
-          { text: 'How to Use', link: '/how-to-use' },
-          { text: 'Technical Background', link: '/technical-background' },
-          { text: 'Real World Use Cases', link: '/use-cases' }
-        ]
-      }
+          { text: "Overview", link: "/overview" },
+          { text: "How to Use", link: "/how-to-use" },
+          { text: "Technical Background", link: "/technical-background" },
+          { text: "Real World Use Cases", link: "/use-cases" },
+        ],
+      },
     ],
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/Unmask06/pressurize' }
-    ]
-  }
-})
+      { icon: "github", link: "https://github.com/Unmask06/pressurize" },
+    ],
+  },
+});

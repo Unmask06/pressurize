@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build && npm run docs:build",
+    "dev": "npm run docs:build && vite",
+    "dev:all": "concurrently \"npm run docs:build && vite\" \"vitepress dev docs\"",
+    "build": "npm run docs:build && vite build",
     "preview": "vite preview",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
+    "concurrently": "^8.2.2",
     "markdown-it-mathjax3": "^4.3.2",
     "vite": "^7.2.4",
     "vitepress": "^1.6.4"
