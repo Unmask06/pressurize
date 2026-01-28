@@ -117,7 +117,17 @@ If you prefer to start services individually:
    ```
    UI will be available at `http://localhost:5173`.
 
-## 📋 API Documentation
+## 📚 Documentation
+
+### End-User Documentation
+The full user guide is available in the application. To view it locally during development:
+```bash
+cd frontend
+npm run docs:dev
+```
+Access it at: `http://localhost:5173/products/pressurize/docs/`
+
+### API Documentation
 
 Once the backend is running, interactive API documentation is available at:
 
