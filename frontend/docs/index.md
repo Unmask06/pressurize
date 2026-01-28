@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Pressurize"
   text: "Dynamic Valve Pressurization Simulator"
-  tagline: Simulate and analyze gas flow dynamics through valves into pressure vessels.
+  tagline: Simulate gas flow through valves into vessels with real-gas accuracy.
   actions:
     - theme: brand
       text: Get Started
