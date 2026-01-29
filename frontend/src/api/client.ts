@@ -39,6 +39,7 @@ export interface StreamingComplete {
   final_pressure: number;
   equilibrium_time: number;
   total_mass_lb: number;
+  completed: boolean;
 }
 
 export interface StreamingError {
@@ -111,6 +112,7 @@ export async function streamSimulation(
                 final_pressure: msg.final_pressure,
                 equilibrium_time: msg.equilibrium_time,
                 total_mass_lb: msg.total_mass_lb,
+                completed: msg.completed,
               });
             } else if (msg.type === "error") {
               callbacks.onError(msg.message);
@@ -121,6 +123,13 @@ export async function streamSimulation(
         }
       }
     }
+  } catch (e: any) {
+    // Re-throw AbortError so the caller can detect cancellation
+    if (e.name === "AbortError") {
+      throw e;
+    }
+    console.error("Stream reading error:", e);
+    throw e;
   } finally {
     reader.releaseLock();
   }

@@ -5,11 +5,8 @@ Gas blowdown simulation API for pressure vessel depressurization analysis.
 ## Installation
 
 ```bash
-# Install from source
-pip install -e .
-
-# Install with dev dependencies
-pip install -e ".[dev]"
+# Install dependencies
+uv sync
 ```
 
 ## Usage
@@ -23,19 +20,26 @@ pressurize
 ### As a Python module
 
 ```bash
-python -m backend.main
+python -m pressurize.main
 ```
 
 ### Using uvicorn directly
 
 ```bash
-uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn pressurize.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## API Endpoints
 
+When running standalone with `PRESSURIZE_STANDALONE=true`, all endpoints are prefixed with `/pressurize`.
+
 - `GET /` - Health check
-- `POST /api/simulate/stream` - Run blowdown simulation with streaming results
+- `POST /simulate` - Run simulation and return full results
+- `POST /simulate/stream` - Stream simulation results (SSE) and KPIs
+- `GET /components` - List available composition components
+- `GET /presets` - List preset compositions
+- `GET /presets/{preset_id}` - Fetch a preset composition map
+- `POST /properties` - Calculate Z, k, and M from composition and conditions
 
 ## Development
 
@@ -44,5 +48,5 @@ uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 pytest
 
 # Run tests with coverage
-pytest --cov=backend
+pytest --cov=pressurize
 ```

@@ -420,16 +420,14 @@ function generateCsv(data: SimulationRow[]): string {
 }
 
 function getFilename(extension: string): string {
-  const dateStr = new Date().toISOString().slice(0, 10);
   const titleSlug = reportTitle.value
     .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^a-zA-Z0-9\s]+/g, "-")
     .slice(0, 30);
 
   return titleSlug
-    ? `${titleSlug}-${dateStr}.${extension}`
-    : `pressurization-report-${dateStr}.${extension}`;
+    ? `${titleSlug}.${extension}`
+    : `pressurization-report.${extension}`;
 }
 
 async function handleDownload(type: "pdf" | "all") {

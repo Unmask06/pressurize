@@ -152,3 +152,4 @@ class StreamingComplete(BaseModel):
     final_pressure: float
     equilibrium_time: float
     total_mass_lb: float
+    completed: bool = True  # False if aborted early

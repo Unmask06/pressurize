@@ -1,3 +1,5 @@
+import json
+
 from fastapi.testclient import TestClient
 from pressurize.main import app
 
@@ -28,6 +30,15 @@ def test_get_presets():
     assert "name" in presets[0]
 
 
+def test_get_preset_details():
+    response = client.get("/presets/natural_gas")
+    assert response.status_code == 200
+    comp = response.json()
+    assert isinstance(comp, dict)
+    assert "Methane" in comp
+    assert comp["Methane"] > 0
+
+
 def test_simulation_workflow():
     payload = {
         "p_up_psig": 500,
@@ -54,6 +65,51 @@ def test_simulation_workflow():
     assert "peak_flow" in data
     assert len(data["results"]) > 0
     assert data["results"][0]["pressure_psig"] >= 0
+
+
+def test_streaming_simulation():
+    payload = {
+        "p_up_psig": 500,
+        "p_down_init_psig": 0,
+        "upstream_volume_ft3": 100,
+        "upstream_temp_f": 70,
+        "downstream_volume_ft3": 100,
+        "downstream_temp_f": 70,
+        "valve_id_inch": 2,
+        "opening_time_s": 5,
+        "molar_mass": 28.97,
+        "z_factor": 1.0,
+        "k_ratio": 1.4,
+        "discharge_coeff": 0.65,
+        "opening_mode": "linear",
+        "dt": 0.5,
+    }
+
+    complete = None
+    chunk_count = 0
+
+    with client.stream("POST", "/simulate/stream", json=payload) as response:
+        assert response.status_code == 200
+
+        for line in response.iter_lines():
+            if not line:
+                continue
+
+            if isinstance(line, bytes):
+                line = line.decode("utf-8")
+
+            if line.startswith("data: "):
+                msg = json.loads(line[6:])
+                if msg.get("type") == "chunk":
+                    chunk_count += 1
+                elif msg.get("type") == "complete":
+                    complete = msg
+                    break
+
+    assert chunk_count >= 1
+    assert complete is not None
+    assert complete["peak_flow"] >= 0
+    assert "final_pressure" in complete
 
 
 def test_property_calculation():

@@ -1,9 +1,9 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay" @click.self="close">
     <div class="modal-content settings-modal">
       <div class="modal-header">
         <h3>Simulation Settings</h3>
-        <button class="close-btn" @click="$emit('close')">×</button>
+        <button class="close-btn" @click="close">×</button>
       </div>
 
       <div class="modal-body">
@@ -13,18 +13,32 @@
             id="step_time"
             type="number"
             v-model.number="localDt"
-            step="0.01"
-            min="0.001"
+            step="0.1"
+            min="0.5"
           />
           <span class="hint"
             >Controls simulation resolution. Smaller = more accurate,
             slower.</span
           >
         </div>
+
+        <div class="form-group">
+          <label for="max_sim_time">Max Simulation Time (s)</label>
+          <input
+            id="max_sim_time"
+            type="number"
+            v-model.number="localMaxSimTime"
+            step="50"
+            min="1"
+          />
+          <span class="hint"
+            >Maximum time to run simulation. Prevents infinite loops.</span
+          >
+        </div>
       </div>
 
       <div class="modal-footer">
-        <button class="btn-secondary" @click="$emit('close')">Cancel</button>
+        <button class="btn-secondary" @click="close">Cancel</button>
         <button class="btn-primary" @click="apply">Apply Settings</button>
       </div>
     </div>
@@ -36,14 +50,24 @@ import { ref } from "vue";
 
 const props = defineProps<{
   currentDt: number;
+  currentMaxSimTime: number;
 }>();
 
 const emit = defineEmits(["close", "apply"]);
 
 const localDt = ref(props.currentDt);
+const localMaxSimTime = ref(props.currentMaxSimTime);
 
 function apply() {
-  emit("apply", localDt.value);
+  emit("apply", { dt: localDt.value, maxSimTime: localMaxSimTime.value });
+  console.log("Applied settings:", {
+    dt: localDt.value,
+    maxSimTime: localMaxSimTime.value,
+  });
+}
+
+function close() {
+  emit("close");
 }
 </script>
 
@@ -52,7 +76,7 @@ function apply() {
 
 /* Component-specific modal sizing */
 .modal-content.settings-modal {
-  @apply w-[90%] max-w-[400px];
+  @apply w-[90%] max-w-100;
 }
 
 /* Component-specific header styling */
