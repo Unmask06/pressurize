@@ -2,7 +2,11 @@
 
 from dataclasses import dataclass
 
-from thermo import PRMIX, CEOSGas, ChemicalConstantsPackage
+from thermo import (  # type: ignore[import-untyped]
+    PRMIX,
+    CEOSGas,
+    ChemicalConstantsPackage,
+)
 
 # Top 20 components for natural gas and industrial applications
 DEFAULT_COMPONENTS = [

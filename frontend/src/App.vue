@@ -4,20 +4,43 @@
       <div class="sidebar-header">
         <div class="header-top">
           <h1>Pressurization Simulator</h1>
-          <a href="/products/pressurize/docs/" class="btn-docs" title="View Documentation">📖</a>
+          <a
+            href="/products/pressurize/docs/"
+            class="btn-docs"
+            title="View Documentation"
+            >📖</a
+          >
         </div>
         <p>Gas Valves</p>
       </div>
-      <SimulationForm :loading="loading" :initial-composition="currentComposition" :results-empty="results.length === 0"
-        :current-dt="currentDt" @run="runSimulation" @edit-composition="showCompositionEditor = true"
-        @view-results="showResultsTable = true" @edit-settings="showSettingsEditor = true" />
+      <SimulationForm
+        :loading="loading"
+        :initial-composition="currentComposition"
+        :results-empty="results.length === 0"
+        :current-dt="currentDt"
+        :simulation-completed="simulationCompleted"
+        @run="runSimulation"
+        @stop="stopSimulation"
+        @edit-composition="showCompositionEditor = true"
+        @view-results="showResultsTable = true"
+        @edit-settings="showSettingsEditor = true"
+      />
     </div>
 
     <div class="main-content">
       <div class="results-header">
-        <KpiCards :peak-flow="kpis.peakFlow" :final-pressure="kpis.finalPressure"
-          :equilibrium-time="kpis.equilibriumTime" :total-mass="kpis.totalMass" :loading="!kpisReady" />
-        <button class="btn-download" @click="showReportModal = true" :disabled="results.length === 0">
+        <KpiCards
+          :peak-flow="kpis.peakFlow"
+          :final-pressure="kpis.finalPressure"
+          :equilibrium-time="kpis.equilibriumTime"
+          :total-mass="kpis.totalMass"
+          :loading="!kpisReady"
+        />
+        <button
+          class="btn-download"
+          @click="showReportModal = true"
+          :disabled="results.length === 0"
+        >
           📥 Download Report
         </button>
       </div>
@@ -28,22 +51,45 @@
     </div>
 
     <Transition name="fade">
-      <CompositionEditor v-if="showCompositionEditor" :current-composition="currentComposition"
-        @close="showCompositionEditor = false" @apply="updateComposition" />
+      <CompositionEditor
+        v-if="showCompositionEditor"
+        key="composition-editor"
+        :current-composition="currentComposition"
+        @close="showCompositionEditor = false"
+        @apply="updateComposition"
+      />
     </Transition>
 
     <Transition name="fade">
-      <ResultsTable v-if="showResultsTable" :data="results" @close="showResultsTable = false" />
+      <ResultsTable
+        v-if="showResultsTable"
+        key="results-table"
+        :data="results"
+        @close="showResultsTable = false"
+      />
     </Transition>
 
     <Transition name="fade">
-      <ReportDownload v-if="showReportModal" :inputs="lastFormParams" :kpis="kpis" :results="results"
-        :chart-data-url="chartDataUrl" @close="showReportModal = false" />
+      <ReportDownload
+        v-if="showReportModal"
+        key="report-download"
+        :inputs="lastFormParams"
+        :kpis="kpis"
+        :results="results"
+        :chart-data-url="chartDataUrl"
+        @close="showReportModal = false"
+      />
     </Transition>
 
     <Transition name="fade">
-      <SettingsEditor v-if="showSettingsEditor" :current-dt="currentDt" :current-max-sim-time="currentMaxSimTime"
-        @close="showSettingsEditor = false" @apply="updateSettings" />
+      <SettingsEditor
+        v-if="showSettingsEditor"
+        key="settings-editor"
+        :current-dt="currentDt"
+        :current-max-sim-time="currentMaxSimTime"
+        @close="closeSettingsEditor"
+        @apply="updateSettings"
+      />
     </Transition>
   </div>
 </template>
@@ -65,10 +111,13 @@ const showResultsTable = ref(false);
 const showReportModal = ref(false);
 const showSettingsEditor = ref(false);
 const currentComposition = ref(
-  "Methane=0.9387, Ethane=0.0121, Propane=0.0004, Carbon dioxide=0.0054, Nitrogen=0.0433"
+  "Methane=0.9387, Ethane=0.0121, Propane=0.0004, Carbon dioxide=0.0054, Nitrogen=0.0433",
 );
 const currentDt = ref(0.05);
 const currentMaxSimTime = ref(10000);
+
+// AbortController for stopping simulation
+let abortController: AbortController | null = null;
 
 // Refs for report generation
 const chartRef = ref<InstanceType<typeof ResultsChart> | null>(null);
@@ -77,7 +126,12 @@ const lastFormParams = ref<Record<string, any>>({});
 // Compute chart data URL when modal opens
 const chartDataUrl = computed(() => {
   if (showReportModal.value && chartRef.value) {
-    return chartRef.value.getChartDataUrl();
+    try {
+      return chartRef.value.getChartDataUrl();
+    } catch (e) {
+      console.warn("Failed to get chart data URL:", e);
+      return null;
+    }
   }
   return null;
 });
@@ -93,10 +147,12 @@ const kpis = reactive({
 
 // Track if KPIs are ready (simulation complete)
 const kpisReady = ref(true);
+const simulationCompleted = ref(true);
 
 async function runSimulation(params: any) {
   loading.value = true;
   kpisReady.value = false;
+  simulationCompleted.value = true;
   // Store form params for report
   lastFormParams.value = { ...params };
   // Clear previous results
@@ -108,31 +164,52 @@ async function runSimulation(params: any) {
   kpis.equilibriumTime = 0;
   kpis.totalMass = 0;
 
+  // Create new AbortController
+  abortController = new AbortController();
+
   try {
-    await streamSimulation(params, {
-      onChunk: (rows, totalRows) => {
-        // Append new rows to results
-        results.value = [...results.value, ...rows];
-        loadedRows.value = totalRows;
+    await streamSimulation(
+      params,
+      {
+        onChunk: (rows, totalRows) => {
+          // Append new rows to results
+          results.value = [...results.value, ...rows];
+          loadedRows.value = totalRows;
+        },
+        onComplete: (kpiData) => {
+          kpis.peakFlow = kpiData.peak_flow;
+          kpis.finalPressure = kpiData.final_pressure;
+          kpis.equilibriumTime = kpiData.equilibrium_time;
+          kpis.totalMass = kpiData.total_mass_lb;
+          simulationCompleted.value =
+            kpiData.completed !== undefined ? kpiData.completed : true;
+          kpisReady.value = true;
+        },
+        onError: (message) => {
+          console.error("Simulation failed:", message);
+          alert(`Simulation failed: ${message}`);
+        },
       },
-      onComplete: (kpiData) => {
-        kpis.peakFlow = kpiData.peak_flow;
-        kpis.finalPressure = kpiData.final_pressure;
-        kpis.equilibriumTime = kpiData.equilibrium_time;
-        kpis.totalMass = kpiData.total_mass_lb;
-        kpisReady.value = true;
-      },
-      onError: (message) => {
-        console.error("Simulation failed:", message);
-        alert(`Simulation failed: ${message}`);
-      },
-    });
-  } catch (e) {
-    console.error("Simulation failed", e);
-    alert("Simulation failed. Check console for details.");
+      abortController.signal,
+    );
+  } catch (e: any) {
+    if (e.name === "AbortError") {
+      console.log("Simulation stopped by user");
+    } else {
+      console.error("Simulation failed", e);
+      alert("Simulation failed. Check console for details.");
+    }
   } finally {
     loading.value = false;
     kpisReady.value = true;
+    abortController = null;
+  }
+}
+
+function stopSimulation() {
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
   }
 }
 
@@ -144,6 +221,10 @@ function updateComposition(newComp: string) {
 function updateSettings(settings: { dt: number; maxSimTime: number }) {
   currentDt.value = settings.dt;
   currentMaxSimTime.value = settings.maxSimTime;
+  showSettingsEditor.value = false;
+}
+
+function closeSettingsEditor() {
   showSettingsEditor.value = false;
 }
 </script>

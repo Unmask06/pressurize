@@ -69,8 +69,6 @@ The simulator uses rigorous thermodynamic calculations based on:
 1. Install Python dependencies:
    ```bash
    uv sync
-   # OR
-   pip install -r requirements.txt
    ```
 
 ### Frontend
@@ -105,7 +103,7 @@ If you prefer to start services individually:
 
    ```bash
    # From root directory
-   uv run uvicorn backend.main:app --reload
+   uv run uvicorn pressurize.main:app --reload
    ```
 
    API will run at `http://localhost:8000`.
@@ -120,11 +118,14 @@ If you prefer to start services individually:
 ## 📚 Documentation
 
 ### End-User Documentation
+
 The full user guide is available in the application. To view it locally during development:
+
 ```bash
 cd frontend
 npm run docs:dev
 ```
+
 Access it at: `http://localhost:5173/products/pressurize/docs/`
 
 ### API Documentation

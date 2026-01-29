@@ -3,7 +3,7 @@
 import json
 from collections.abc import AsyncGenerator
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from pressurize.api.schemas import (
@@ -16,7 +16,7 @@ from pressurize.api.schemas import (
     StreamingComplete,
 )
 from pressurize.core.properties import GasState, get_gas_properties_at_conditions
-from pressurize.core.simulation import run_simulation
+from pressurize.core.simulation import run_simulation, run_simulation_streaming
 from pressurize.utils.converters import fahrenheit_to_kelvin, psig_to_pa
 
 router = APIRouter(tags=["pressurize"])
@@ -88,10 +88,23 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
 
 async def generate_simulation_stream(
     req: SimulationRequest,
+    request: Request,
 ) -> AsyncGenerator[str, None]:
     """Generator that yields simulation results in SSE format."""
     try:
-        df = run_simulation(
+        # Track if client disconnected
+        client_disconnected = False
+
+        def should_stop():
+            """Check if client has disconnected."""
+            nonlocal client_disconnected
+            return client_disconnected
+
+        # Use the streaming generator
+        all_results = []
+        total_rows = 0
+
+        for row_dict in run_simulation_streaming(
             P_up_psig=req.p_up_psig,
             P_down_init_psig=req.p_down_init_psig,
             valve_id_inch=req.valve_id_inch,
@@ -111,36 +124,66 @@ async def generate_simulation_stream(
             property_mode=req.property_mode,
             composition=req.composition,
             mode=req.mode,
-        )
+            should_stop_callback=should_stop,
+        ):
+            # Store all results for KPI calculation
+            all_results.append(row_dict)
+            total_rows += 1
 
-        results = df.to_dict(orient="records")
-        total_rows = len(results)
+            # Stream in chunks of CHUNK_SIZE
+            if len(all_results) % CHUNK_SIZE == 0:
+                # Get last CHUNK_SIZE rows
+                chunk_rows = [
+                    SimulationResultPoint(**r) for r in all_results[-CHUNK_SIZE:]
+                ]
+                chunk = StreamingChunk(
+                    rows=chunk_rows,
+                    total_rows=total_rows,
+                )
+                yield f"data: {chunk.model_dump_json()}\n\n"
 
-        # Stream in chunks of CHUNK_SIZE
-        for i in range(0, total_rows, CHUNK_SIZE):
-            chunk_rows = results[i : i + CHUNK_SIZE]
+        # Send any remaining rows
+        remaining = len(all_results) % CHUNK_SIZE
+        if remaining > 0:
+            chunk_rows = [SimulationResultPoint(**r) for r in all_results[-remaining:]]
             chunk = StreamingChunk(
                 rows=chunk_rows,
-                total_rows=min(i + CHUNK_SIZE, total_rows),
+                total_rows=total_rows,
             )
             yield f"data: {chunk.model_dump_json()}\n\n"
 
-        # Calculate KPIs after all data is processed
-        peak_flow = float(df["flowrate_lb_hr"].max())
-        final_pressure = float(df["downstream_pressure_psig"].iloc[-1])
+        # Calculate KPIs from collected results
+        if all_results:
+            # Extract flowrates and pressures
+            flowrates = [r["flowrate_lb_hr"] for r in all_results]
+            downstream_pressures = [r["downstream_pressure_psig"] for r in all_results]
+            upstream_pressures = [r["upstream_pressure_psig"] for r in all_results]
+            times = [r["time"] for r in all_results]
 
-        # Find equilibrium time
-        equilibrium_mask = (
-            df["downstream_pressure_psig"] >= df["upstream_pressure_psig"]
-        )
-        if equilibrium_mask.any():
-            equil_time = float(df.loc[equilibrium_mask, "time"].iloc[0])
+            peak_flow = max(flowrates)
+            final_pressure = downstream_pressures[-1]
+
+            # Find equilibrium time
+            equil_time = times[-1]
+            for _, (down_p, up_p, t) in enumerate(
+                zip(downstream_pressures, upstream_pressures, times, strict=True)
+            ):
+                if down_p >= up_p:
+                    equil_time = t
+                    break
+
+            # Calculate total mass (trapezoidal integration)
+            dt_val = req.dt
+            total_mass = (sum(flowrates) * dt_val) / 3600
+
+            # Determine if simulation completed naturally or was aborted
+            completed = not should_stop()
         else:
-            equil_time = float(df["time"].iloc[-1])
-
-        # Calculate total mass
-        dt_val = req.dt
-        total_mass = (df["flowrate_lb_hr"].sum() * dt_val) / 3600
+            peak_flow = 0.0
+            final_pressure = req.p_down_init_psig
+            equil_time = 0.0
+            total_mass = 0.0
+            completed = False
 
         # Send completion message with KPIs
         complete = StreamingComplete(
@@ -148,23 +191,31 @@ async def generate_simulation_stream(
             final_pressure=final_pressure,
             equilibrium_time=equil_time,
             total_mass_lb=total_mass,
+            completed=completed,
         )
         yield f"data: {complete.model_dump_json()}\n\n"
 
+    except GeneratorExit:
+        # Client disconnected
+        client_disconnected = True
+        raise
     except Exception as e:
         error_msg = json.dumps({"type": "error", "message": str(e)})
         yield f"data: {error_msg}\n\n"
 
 
 @router.post("/simulate/stream")
-async def stream_simulation_endpoint(req: SimulationRequest) -> StreamingResponse:
+async def stream_simulation_endpoint(
+    req: SimulationRequest,
+    request: Request,
+) -> StreamingResponse:
     """Stream simulation results progressively for large datasets.
 
     Yields results in chunks of 100 rows via Server-Sent Events (SSE).
     Final message contains computed KPIs.
     """
     return StreamingResponse(
-        generate_simulation_stream(req),
+        generate_simulation_stream(req, request),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

@@ -1,6 +1,7 @@
 """Physics calculations for gas flow through orifices (ISO 5167-2)."""
 
 import numpy as np
+
 from pressurize.config.settings import R_UNIVERSAL
 
 
@@ -79,7 +80,9 @@ def calculate_choked_flow(
     # Choked flow formula
     term1 = Cd * A * P_up
     term2 = np.sqrt(
-        (k * molar_mass_kg_mol) / (Z * R_UNIVERSAL * T) * (2 / (k + 1)) ** ((k + 1) / (k - 1))
+        (k * molar_mass_kg_mol)
+        / (Z * R_UNIVERSAL * T)
+        * (2 / (k + 1)) ** ((k + 1) / (k - 1))
     )
     return term1 * term2
 

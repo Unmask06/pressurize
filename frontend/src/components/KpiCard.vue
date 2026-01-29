@@ -39,7 +39,7 @@ const formattedValue = computed(() => {
     return new Intl.NumberFormat("en-US", {
       notation: "compact",
       compactDisplay: "short",
-      maximumFractionDigits: 1,
+      maximumFractionDigits: 2,
     }).format(value);
   }
 
@@ -62,7 +62,7 @@ const formattedValue = computed(() => {
 }
 
 .kpi-icon {
-  @apply text-lg sm:text-xl bg-slate-100 p-1.5 sm:p-2 rounded-lg leading-none flex-shrink-0;
+  @apply text-lg sm:text-xl bg-slate-100 p-1.5 sm:p-2 rounded-lg leading-none shrink-0;
 }
 
 .kpi-content {

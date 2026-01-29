@@ -143,7 +143,7 @@ function parseComposition(compStr: string) {
 
 const filteredAvailable = computed(() => {
   return availableComponents.value.filter((c) =>
-    c.toLowerCase().includes(search.value.toLowerCase())
+    c.toLowerCase().includes(search.value.toLowerCase()),
   );
 });
 
@@ -188,7 +188,7 @@ function normalize() {
   const diff = 1.0 - currentSum;
   if (Math.abs(diff) > 1e-6) {
     const maxItem = mixture.value.reduce((prev, current) =>
-      prev.fraction > current.fraction ? prev : current
+      prev.fraction > current.fraction ? prev : current,
     );
     maxItem.fraction += diff;
   }
@@ -222,7 +222,7 @@ function apply() {
 
 /* Component-specific modal sizing */
 .modal-content {
-  @apply w-[90%] max-w-[800px] max-h-[85vh];
+  @apply w-[90%] max-w-200 max-h-[85vh];
 }
 
 /* Component-specific modal body scrolling */
@@ -247,7 +247,7 @@ function apply() {
 }
 
 .editor-grid {
-  @apply grid grid-cols-2 gap-6 h-[400px];
+  @apply grid grid-cols-2 gap-6 h-100;
 }
 
 .list-container {
@@ -291,7 +291,7 @@ h4 {
 }
 
 .fraction-input {
-  @apply w-[70px] py-1 px-2 mr-2 text-right border border-slate-200 rounded;
+  @apply w-17.5 py-1 px-2 mr-2 text-right border border-slate-200 rounded;
 }
 
 .remove-btn {
