@@ -41,14 +41,14 @@ def test_get_preset_details():
 
 def test_simulation_workflow():
     payload = {
-        "p_up_psig": 500,
-        "p_down_init_psig": 0,
-        "upstream_volume_ft3": 100,
-        "upstream_temp_f": 70,
-        "downstream_volume_ft3": 100,
-        "downstream_temp_f": 70,
-        "valve_id_inch": 2,
-        "opening_time_s": 5,
+        "p_up": 500,
+        "p_down_init": 0,
+        "upstream_volume": 100,
+        "upstream_temp": 70,
+        "downstream_volume": 100,
+        "downstream_temp": 70,
+        "valve_id": 0.1667,  # 2 inches in ft
+        "opening_time": 5,
         "molar_mass": 28.97,
         "z_factor": 1.0,
         "k_ratio": 1.4,
@@ -57,54 +57,56 @@ def test_simulation_workflow():
         "dt": 0.5,  # Larger dt for faster test
     }
 
-    response = client.post("/simulate", json=payload)
+    response = client.post("/simulate", json=payload, headers={"x-unit-system": "imperial"})
     assert response.status_code == 200
     data = response.json()
 
     assert "results" in data
     assert "peak_flow" in data
     assert len(data["results"]) > 0
-    assert data["results"][0]["pressure_psig"] >= 0
+    assert data["results"][0]["pressure"] >= 0
 
 
 def test_streaming_simulation():
     payload = {
-        "p_up_psig": 500,
-        "p_down_init_psig": 0,
-        "upstream_volume_ft3": 100,
-        "upstream_temp_f": 70,
-        "downstream_volume_ft3": 100,
-        "downstream_temp_f": 70,
-        "valve_id_inch": 2,
-        "opening_time_s": 5,
+        "p_up": 500,
+        "p_down_init": 0,
+        "upstream_volume": 100, 
+        "upstream_temp": 70,
+        "downstream_volume": 100, 
+        "downstream_temp": 70,
+        "valve_id": 0.5, # larger valve
+        "opening_time": 5,
         "molar_mass": 28.97,
         "z_factor": 1.0,
         "k_ratio": 1.4,
         "discharge_coeff": 0.65,
         "opening_mode": "linear",
-        "dt": 0.5,
+        "dt": 0.1,
     }
-
     complete = None
     chunk_count = 0
 
-    with client.stream("POST", "/simulate/stream", json=payload) as response:
+    with client.stream("POST", "/simulate/stream", json=payload, headers={"x-unit-system": "imperial"}) as response:
         assert response.status_code == 200
 
         for line in response.iter_lines():
             if not line:
                 continue
 
-            if isinstance(line, bytes):
-                line = line.decode("utf-8")
-
             if line.startswith("data: "):
-                msg = json.loads(line[6:])
-                if msg.get("type") == "chunk":
-                    chunk_count += 1
-                elif msg.get("type") == "complete":
-                    complete = msg
-                    break
+                data_content = line[6:].strip()
+                if not data_content:
+                    continue
+                try:
+                    msg = json.loads(data_content)
+                    if msg.get("type") == "chunk":
+                        chunk_count += 1
+                    elif msg.get("type") == "complete":
+                        complete = msg
+                        break
+                except json.JSONDecodeError:
+                    continue
 
     assert chunk_count >= 1
     assert complete is not None
@@ -115,11 +117,11 @@ def test_streaming_simulation():
 def test_property_calculation():
     payload = {
         "composition": "Methane=0.9, Ethane=0.1",
-        "pressure_psig": 500,
-        "temp_f": 70,
+        "pressure": 500,
+        "temp": 70,
     }
 
-    response = client.post("/properties", json=payload)
+    response = client.post("/properties", json=payload, headers={"x-unit-system": "imperial"})
     assert response.status_code == 200
     props = response.json()
 

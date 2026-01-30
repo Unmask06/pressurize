@@ -3,7 +3,7 @@
     <KpiCard
       label="Peak Flow Rate"
       :value="peakFlow"
-      unit="lb/hr"
+      :unit="getUnit('mass') + '/s'"
       icon="📈"
       color="flow"
       :loading="loading"
@@ -11,7 +11,7 @@
     <KpiCard
       label="Final Pressure"
       :value="finalPressure"
-      unit="psig"
+      :unit="getUnit('pressure')"
       icon="🎯"
       color="pressure"
       :decimals="2"
@@ -20,7 +20,7 @@
     <KpiCard
       label="Equilibrium Time"
       :value="equilibriumTime"
-      unit="seconds"
+      :unit="getUnit('time')"
       icon="⏱️"
       color="time"
       :decimals="1"
@@ -29,7 +29,7 @@
     <KpiCard
       label="Total Mass Flow"
       :value="totalMass"
-      unit="lb"
+      :unit="getUnit('mass')"
       icon="⚖️"
       color="mass"
       :decimals="1"
@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import KpiCard from "./KpiCard.vue";
+import { getUnit } from "../api/client";
 
 const props = defineProps<{
   peakFlow: number;

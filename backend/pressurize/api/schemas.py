@@ -3,6 +3,7 @@
 from typing import Literal
 
 from pydantic import BaseModel, Field
+from pint_glass import PintGlass
 
 
 class SimulationRequest(BaseModel):
@@ -18,29 +19,29 @@ class SimulationRequest(BaseModel):
     )
 
     # Upstream vessel properties
-    p_up_psig: float = Field(..., description="Upstream pressure (psig)", ge=0)
-    upstream_volume_ft3: float = Field(
-        ..., description="Upstream vessel volume (ft3)", gt=0
+    p_up: PintGlass("pressure", "Input") = Field(..., description="Upstream pressure", ge=0)
+    upstream_volume: PintGlass("volume", "Input") = Field(
+        ..., description="Upstream vessel volume", gt=0
     )
-    upstream_temp_f: float = Field(
+    upstream_temp: PintGlass("temperature", "Input") = Field(
         ...,
-        description="Upstream vessel temperature (°F). TODO: Currently constant; may add dynamic model later.",
+        description="Upstream vessel temperature. TODO: Currently constant; may add dynamic model later.",
     )
 
     # Downstream vessel properties
-    p_down_init_psig: float = Field(
-        0.0, description="Initial downstream pressure (psig)", ge=0
+    p_down_init: PintGlass("pressure", "Input") = Field(
+        0.0, description="Initial downstream pressure", ge=0
     )
-    downstream_volume_ft3: float = Field(
-        ..., description="Downstream vessel volume (ft3)", gt=0
+    downstream_volume: PintGlass("volume", "Input") = Field(
+        ..., description="Downstream vessel volume", gt=0
     )
-    downstream_temp_f: float = Field(
+    downstream_temp: PintGlass("temperature", "Input") = Field(
         ...,
-        description="Downstream vessel temperature (°F). TODO: Currently constant; may add dynamic model later.",
+        description="Downstream vessel temperature. TODO: Currently constant; may add dynamic model later.",
     )
 
-    valve_id_inch: float = Field(..., description="Valve ID (inches)", gt=0)
-    opening_time_s: float = Field(..., description="Valve opening time (s)", ge=0)
+    valve_id: PintGlass("length", "Input") = Field(..., description="Valve ID", gt=0)
+    opening_time: PintGlass("time", "Input") = Field(..., description="Valve opening time", ge=0)
 
     # Gas Properties (Manual)
     molar_mass: float = Field(28.97, description="Molar mass (g/mol)")
@@ -77,17 +78,17 @@ class SimulationResultPoint(BaseModel):
     Contains pressure, flow, valve opening, and gas properties at a specific time.
     """
 
-    time: float
-    pressure_psig: float
-    upstream_pressure_psig: float
-    downstream_pressure_psig: float
-    flowrate_lb_hr: float
+    time: PintGlass("time", "Output")
+    pressure: PintGlass("pressure", "Output")
+    upstream_pressure: PintGlass("pressure", "Output")
+    downstream_pressure: PintGlass("pressure", "Output")
+    flowrate: float
     valve_opening_pct: float
     flow_regime: str
 
     # Optional dp/dt rates (depending on mode)
-    dp_dt_upstream_psig_s: float | None = None
-    dp_dt_downstream_psig_s: float | None = None
+    dp_dt_upstream: float | None = None
+    dp_dt_downstream: float | None = None
 
     # Composition properties
     z_factor: float | None = None
@@ -103,9 +104,9 @@ class SimulationResponse(BaseModel):
 
     results: list[SimulationResultPoint]
     peak_flow: float
-    final_pressure: float
-    equilibrium_time: float
-    total_mass_lb: float
+    final_pressure: PintGlass("pressure", "Output")
+    equilibrium_time: PintGlass("time", "Output")
+    total_mass: PintGlass("mass", "Output")
 
 
 class PropertiesRequest(BaseModel):
@@ -115,8 +116,8 @@ class PropertiesRequest(BaseModel):
     """
 
     composition: str
-    pressure_psig: float
-    temp_f: float
+    pressure: PintGlass("pressure", "Input")
+    temp: PintGlass("temperature", "Input")
 
 
 class PropertiesResponse(BaseModel):

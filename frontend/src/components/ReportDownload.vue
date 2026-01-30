@@ -71,7 +71,7 @@
 import { jsPDF } from "jspdf";
 import JSZip from "jszip";
 import { ref } from "vue";
-import { type SimulationRow } from "../api/client";
+import { type SimulationRow, getUnit } from "../api/client";
 
 const props = defineProps<{
   inputs: Record<string, any>;
@@ -104,7 +104,7 @@ function formatValue(value: any, decimals = 2): string {
 
 function formatInputLabel(key: string): string {
   // Handle dynamic label for opening/closing time based on valve action
-  if (key === "opening_time_s") {
+  if (key === "opening_time") {
     return props.inputs.valve_action === "close"
       ? "Closing Time"
       : "Opening Time";
@@ -112,13 +112,13 @@ function formatInputLabel(key: string): string {
 
   const labels: Record<string, string> = {
     mode: "Simulation Mode",
-    p_up_psig: "Upstream Pressure",
-    upstream_volume_ft3: "Upstream Volume",
-    upstream_temp_f: "Upstream Temperature",
-    p_down_init_psig: "Downstream Pressure",
-    downstream_volume_ft3: "Downstream Volume",
-    downstream_temp_f: "Downstream Temperature",
-    valve_id_inch: "Valve ID",
+    p_up: "Upstream Pressure",
+    upstream_volume: "Upstream Volume",
+    upstream_temp: "Upstream Temperature",
+    p_down_init: "Downstream Pressure",
+    downstream_volume: "Downstream Volume",
+    downstream_temp: "Downstream Temperature",
+    valve_id: "Valve ID",
     valve_action: "Valve Action",
     molar_mass: "Molar Mass (MW)",
     z_factor: "Z-Factor",
@@ -136,14 +136,14 @@ function formatInputLabel(key: string): string {
 function formatInputUnit(key: string): string {
   const units: Record<string, string> = {
     mode: "",
-    p_up_psig: "psig",
-    upstream_volume_ft3: "ft³",
-    upstream_temp_f: "°F",
-    p_down_init_psig: "psig",
-    downstream_volume_ft3: "ft³",
-    downstream_temp_f: "°F",
-    valve_id_inch: "in",
-    opening_time_s: "s",
+    p_up: getUnit('pressure'),
+    upstream_volume: getUnit('volume'),
+    upstream_temp: getUnit('temperature'),
+    p_down_init: getUnit('pressure'),
+    downstream_volume: getUnit('volume'),
+    downstream_temp: getUnit('temperature'),
+    valve_id: getUnit('length'),
+    opening_time: getUnit('time'),
     molar_mass: "g/mol",
     z_factor: "",
     k_ratio: "",
@@ -152,7 +152,7 @@ function formatInputUnit(key: string): string {
     k_curve: "",
     property_mode: "",
     composition: "",
-    dt: "s",
+    dt: getUnit('time'),
   };
   return units[key] || "";
 }
@@ -224,9 +224,9 @@ async function getPdfBlob(): Promise<Blob> {
       )
         return false;
       // Exclude upstream volume in pressurize mode and downstream volume in depressurize mode
-      if (k === "upstream_volume_ft3" && props.inputs.mode === "pressurize")
+      if (k === "upstream_volume" && props.inputs.mode === "pressurize")
         return false;
-      if (k === "downstream_volume_ft3" && props.inputs.mode === "depressurize")
+      if (k === "downstream_volume" && props.inputs.mode === "depressurize")
         return false;
       return true;
     });
@@ -285,25 +285,25 @@ async function getPdfBlob(): Promise<Blob> {
       {
         label: "Peak Flow Rate",
         value: props.kpis.peakFlow,
-        unit: "lb/hr",
-        decimals: 0,
+        unit: `${getUnit('mass')}/s`,
+        decimals: 1,
       },
       {
         label: "Final Pressure",
         value: props.kpis.finalPressure,
-        unit: "psig",
+        unit: getUnit('pressure'),
         decimals: 1,
       },
       {
         label: "Equilibrium Time",
         value: props.kpis.equilibriumTime,
-        unit: "seconds",
+        unit: getUnit('time'),
         decimals: 1,
       },
       {
         label: "Total Mass Flow",
         value: props.kpis.totalMass,
-        unit: "lb",
+        unit: getUnit('mass'),
         decimals: 1,
       },
     ];

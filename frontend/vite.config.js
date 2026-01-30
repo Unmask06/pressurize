@@ -54,9 +54,9 @@ function serveStaticDocs() {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command, mode }) => ({
   plugins: [serveStaticDocs(), vue(), tailwindcss()],
-  base: "/products/pressurize/",
+  base: mode === "production" ? "/products/pressurize/" : "/",
   build: {
     outDir: "dist/products/pressurize",
   },
@@ -69,4 +69,4 @@ export default defineConfig({
       allow: [".", "../docs"],
     },
   },
-});
+}));
