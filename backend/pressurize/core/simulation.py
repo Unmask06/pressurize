@@ -22,7 +22,6 @@ from pressurize.core.properties import GasState
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 # Equilibrium tolerance values
 EQUILIBRIUM_TOLERANCE_PA = 1e-3

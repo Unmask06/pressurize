@@ -33,6 +33,7 @@ The simulator uses rigorous thermodynamic calculations based on:
 - **Fluids** - Fluid dynamics calculations (custom fork)
 - **NumPy & Pandas** - Numerical computing and data manipulation
 - **Pydantic** - Data validation and settings management
+- **PintGlass** - Seamless unit conversion and integration with Pydantic
 - **Uvicorn** - ASGI server for production deployment
 
 ### Frontend
@@ -57,6 +58,7 @@ The simulator uses rigorous thermodynamic calculations based on:
 - **Dual Flow Regimes**: Automatically handles both choked (sonic) and subsonic flow conditions
 - **Multiple Valve Opening Modes**: Linear, exponential, fixed, and quick-opening profiles
 - **Composition-Based Properties**: Define gas mixtures with 20+ components (Natural Gas, H₂, CO₂, etc.)
+- **Dynamic Unit Systems**: Switch seamlessly between Imperial (psi, ft, °F) and SI (Pa, m, °C) units
 - **Interactive Dashboard**: Modern Vue 3 UI with dark mode components
 - **Multi-Axis Visualization**: ECharts visualization of Pressure, Flow Rate, and Valve Opening
 - **Real-time Simulation**: Stream simulation results as they are calculated
@@ -102,8 +104,8 @@ If you prefer to start services individually:
 1. **Start the Backend API**:
 
    ```bash
-   # From root directory
-   uv run uvicorn pressurize.main:app --reload
+   # From root directory (Using python -m to avoid execution policy issues)
+   uv run python -m uvicorn pressurize.main:app --reload
    ```
 
    API will run at `http://localhost:8000`.

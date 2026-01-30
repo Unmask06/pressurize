@@ -9,6 +9,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pint_glass import unit_context
 
 from pressurize.api import routes
+from pressurize.config.logging import configure_logging
+
+# Configure logging immediately
+configure_logging()
 
 app = FastAPI(title="Pressurize API", version=version("pressurize"))
 
