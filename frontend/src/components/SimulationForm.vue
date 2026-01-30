@@ -6,9 +6,12 @@
         <!-- Unit System Dropdown -->
         <div class="unit-selector">
           <label>Unit System:</label>
-          <select 
-            :value="unitSystem" 
-            @change="e => changeUnitSystem((e.target as HTMLSelectElement).value as any)"
+          <select
+            :value="unitSystem"
+            @change="
+              (e) =>
+                changeUnitSystem((e.target as HTMLSelectElement).value as any)
+            "
             class="unit-select"
           >
             <option v-for="sys in availableSystems" :key="sys" :value="sys">
@@ -59,14 +62,14 @@
               class="form-group"
               :class="form.mode !== 'pressurize' ? 'third' : 'half'"
             >
-              <label>Pressure ({{ getUnit('pressure') }})</label>
+              <label>Pressure ({{ getUnit("pressure") }})</label>
               <input type="number" v-model.number="form.p_up" />
             </div>
             <div
               class="form-group"
               :class="form.mode !== 'pressurize' ? 'third' : 'half'"
             >
-              <label>Temperature ({{ getUnit('temperature') }})</label>
+              <label>Temperature ({{ getUnit("temperature") }})</label>
               <input
                 type="number"
                 v-model.number="form.upstream_temp"
@@ -74,7 +77,7 @@
               />
             </div>
             <div class="form-group third" v-if="form.mode !== 'pressurize'">
-              <label>Volume ({{ getUnit('volume') }})</label>
+              <label>Volume ({{ getUnit("volume") }})</label>
               <input type="number" v-model.number="form.upstream_volume" />
             </div>
           </div>
@@ -88,14 +91,14 @@
               class="form-group"
               :class="form.mode !== 'depressurize' ? 'third' : 'half'"
             >
-              <label>Pressure ({{ getUnit('pressure') }})</label>
+              <label>Pressure ({{ getUnit("pressure") }})</label>
               <input type="number" v-model.number="form.p_down_init" />
             </div>
             <div
               class="form-group"
               :class="form.mode !== 'depressurize' ? 'third' : 'half'"
             >
-              <label>Temperature ({{ getUnit('temperature') }})</label>
+              <label>Temperature ({{ getUnit("temperature") }})</label>
               <input
                 type="number"
                 v-model.number="form.downstream_temp"
@@ -103,7 +106,7 @@
               />
             </div>
             <div class="form-group third" v-if="form.mode !== 'depressurize'">
-              <label>Volume ({{ getUnit('volume') }})</label>
+              <label>Volume ({{ getUnit("volume") }})</label>
               <input type="number" v-model.number="form.downstream_volume" />
             </div>
           </div>
@@ -116,7 +119,7 @@
           <div class="section-header">🔧 Valve Configuration</div>
           <div class="row">
             <div class="form-group quarter">
-              <label>Valve ID ({{ getUnit('length') }})</label>
+              <label>Valve ID ({{ getUnit("length") }})</label>
               <input type="number" v-model.number="form.valve_id" />
             </div>
             <div class="form-group quarter">
@@ -147,8 +150,8 @@
             <div class="form-group quarter">
               <label>{{
                 form.valve_action === "close"
-                  ? `Closing Time (${getUnit('time')})`
-                  : `Opening Time (${getUnit('time')})`
+                  ? `Closing Time (${getUnit("time")})`
+                  : `Opening Time (${getUnit("time")})`
               }}</label>
               <input type="number" v-model.number="form.opening_time" />
             </div>
@@ -277,14 +280,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch, ref } from "vue";
-import { 
-  apiClient, 
-  setUnitSystem, 
-  getUnitSystem, 
+import { computed, reactive, watch } from "vue";
+import {
+  apiClient,
   getUnit,
-  unitConfig, 
-  type UnitSystem 
+  getUnitSystem,
+  setUnitSystem,
+  unitConfig,
+  type UnitSystem,
 } from "../api/client";
 
 const props = defineProps<{
@@ -466,7 +469,7 @@ h3 {
 }
 
 .settings-controls {
-    @apply flex items-center gap-3;
+  @apply flex items-center gap-3;
 }
 
 .unit-selector {

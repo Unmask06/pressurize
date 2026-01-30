@@ -55,9 +55,9 @@ defineExpose({
 
 const option = computed(() => {
   if (!props.data || props.data.length === 0) return {};
-  
-  const pressureUnit = getUnit('pressure');
-  const flowUnit = `${getUnit('mass')}/s`;
+
+  const pressureUnit = getUnit("pressure");
+  const flowUnit = `${getUnit("mass")}/s`;
 
   const downstream = props.data.map((d) => [d.time, d.downstream_pressure]);
   const upstream = props.data.map((d) => [d.time, d.upstream_pressure]);
@@ -92,7 +92,7 @@ const option = computed(() => {
     xAxis: {
       type: "value",
       boundaryGap: false,
-      name: `Time (${getUnit('time')})`,
+      name: `Time (${getUnit("time")})`,
       nameLocation: "middle",
       nameGap: 30,
       axisLine: { lineStyle: { color: "#ccc" } },

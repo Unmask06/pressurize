@@ -2,8 +2,8 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
 from pint_glass import PintGlass
+from pydantic import BaseModel, Field
 
 
 class SimulationRequest(BaseModel):
@@ -19,7 +19,9 @@ class SimulationRequest(BaseModel):
     )
 
     # Upstream vessel properties
-    p_up: PintGlass("pressure", "Input") = Field(..., description="Upstream pressure", ge=0)
+    p_up: PintGlass("pressure", "Input") = Field(
+        ..., description="Upstream pressure", ge=0
+    )
     upstream_volume: PintGlass("volume", "Input") = Field(
         ..., description="Upstream vessel volume", gt=0
     )
@@ -41,7 +43,9 @@ class SimulationRequest(BaseModel):
     )
 
     valve_id: PintGlass("length", "Input") = Field(..., description="Valve ID", gt=0)
-    opening_time: PintGlass("time", "Input") = Field(..., description="Valve opening time", ge=0)
+    opening_time: PintGlass("time", "Input") = Field(
+        ..., description="Valve opening time", ge=0
+    )
 
     # Gas Properties (Manual)
     molar_mass: float = Field(28.97, description="Molar mass (g/mol)")

@@ -3,11 +3,11 @@
 import json
 from collections.abc import AsyncGenerator
 
+import pandas as pd
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pint_glass import TARGET_DIMENSIONS, UNIT_SYSTEMS
 
-import pandas as pd
 from pressurize.api.schemas import (
     PropertiesRequest,
     PropertiesResponse,
@@ -39,27 +39,29 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
     """Execute a gas pressurization simulation and return results with KPIs."""
     try:
         # Collect streaming results into a list then to DataFrame
-        sim_results = list(run_simulation_streaming(
-            P_up=req.p_up,
-            P_down_init=req.p_down_init,
-            valve_id=req.valve_id,
-            opening_time=req.opening_time,
-            upstream_volume=req.upstream_volume,
-            upstream_temp=req.upstream_temp,
-            downstream_volume=req.downstream_volume,
-            downstream_temp=req.downstream_temp,
-            molar_mass=req.molar_mass,
-            z_factor=req.z_factor,
-            k_ratio=req.k_ratio,
-            discharge_coeff=req.discharge_coeff,
-            valve_action=req.valve_action,
-            opening_mode=req.opening_mode,
-            k_curve=req.k_curve,
-            dt=req.dt,
-            property_mode=req.property_mode,
-            composition=req.composition,
-            mode=req.mode,
-        ))
+        sim_results = list(
+            run_simulation_streaming(
+                P_up=req.p_up,
+                P_down_init=req.p_down_init,
+                valve_id=req.valve_id,
+                opening_time=req.opening_time,
+                upstream_volume=req.upstream_volume,
+                upstream_temp=req.upstream_temp,
+                downstream_volume=req.downstream_volume,
+                downstream_temp=req.downstream_temp,
+                molar_mass=req.molar_mass,
+                z_factor=req.z_factor,
+                k_ratio=req.k_ratio,
+                discharge_coeff=req.discharge_coeff,
+                valve_action=req.valve_action,
+                opening_mode=req.opening_mode,
+                k_curve=req.k_curve,
+                dt=req.dt,
+                property_mode=req.property_mode,
+                composition=req.composition,
+                mode=req.mode,
+            )
+        )
         df = pd.DataFrame(sim_results)
 
         # Calculate KPIs (Values are in SI: kg/s, Pa)

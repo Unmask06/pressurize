@@ -10,12 +10,12 @@
         <table>
           <thead>
             <tr>
-              <th>Time ({{ getUnit('time') }})</th>
-              <th>P Up ({{ getUnit('pressure') }})</th>
-              <th>P Down ({{ getUnit('pressure') }})</th>
+              <th>Time ({{ getUnit("time") }})</th>
+              <th>P Up ({{ getUnit("pressure") }})</th>
+              <th>P Down ({{ getUnit("pressure") }})</th>
               <th>dP/dt Up</th>
               <th>dP/dt Down</th>
-              <th>Flow ({{ getUnit('mass') }}/s)</th>
+              <th>Flow ({{ getUnit("mass") }}/s)</th>
               <th>Valve (%)</th>
               <th>Regime</th>
               <th>Z</th>

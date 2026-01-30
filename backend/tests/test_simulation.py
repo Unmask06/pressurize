@@ -239,9 +239,7 @@ class TestPressureBehavior:
         )
 
         # Downstream should never exceed upstream significantly
-        assert all(
-            df["pressure"] <= df["upstream_pressure"] * 1.10
-        ) 
+        assert all(df["pressure"] <= df["upstream_pressure"] * 1.10)
 
     def test_pressure_approaches_upstream(self):
         """Test that pressure approaches upstream pressure."""
@@ -496,8 +494,7 @@ class TestParameterSensitivity:
         idx_large = _find_time_index(df_large, time_check)
 
         assert (
-            df_small["pressure"].iloc[idx_small]
-            > df_large["pressure"].iloc[idx_large]
+            df_small["pressure"].iloc[idx_small] > df_large["pressure"].iloc[idx_large]
         )
 
 

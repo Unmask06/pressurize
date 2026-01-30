@@ -6,10 +6,8 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
-import pandas as pd
 
 from pressurize.config.settings import (
-    KG_S_TO_LB_HR,
     MAX_SIMULATION_TIME_FIXED,
     TIME_STEP,
 )
@@ -197,11 +195,13 @@ def _initialize_results(
         "pressure": [P_down_init],
         "upstream_pressure": [P_up],
         "downstream_pressure": [P_down_init],
-        "flowrate": [0],  # Stored as kg/s or converted to display unit? Using kg/s internally?
-                          # Wait, SimulationResultPoint.flowrate is float.
-                          # Previously flowrate_lb_hr. Let's store kg/s here and let frontend/API decide?
-                          # But SimulationResultPoint just says 'flowrate'.
-                          # I'll stick to kg/s if I want SI.
+        "flowrate": [
+            0
+        ],  # Stored as kg/s or converted to display unit? Using kg/s internally?
+        # Wait, SimulationResultPoint.flowrate is float.
+        # Previously flowrate_lb_hr. Let's store kg/s here and let frontend/API decide?
+        # But SimulationResultPoint just says 'flowrate'.
+        # I'll stick to kg/s if I want SI.
         "valve_opening_pct": [initial_opening],
         "flow_regime": ["None"],
         "dp_dt_upstream": [0.0],
@@ -393,11 +393,11 @@ def _update_pressures(
         P_up += dp_dt_up * dt
     if dp_dt_down != 0.0:
         P_down += dp_dt_down * dt
-    
+
     # Clamp to positive values
     P_up = max(P_up, 1.0)
     P_down = max(P_down, 1.0)
-    
+
     return P_up, P_down
 
 
@@ -480,7 +480,7 @@ def _append_step_results(
     results["pressure"].append(P_down)
     results["upstream_pressure"].append(P_up)
     results["downstream_pressure"].append(P_down)
-    results["flowrate"].append(massflow_kgs) # Storing kg/s
+    results["flowrate"].append(massflow_kgs)  # Storing kg/s
     results["valve_opening_pct"].append(round(opening_fraction * 100, 1))
     results["flow_regime"].append(regime)
     results["dp_dt_upstream"].append(dp_dt_up)
@@ -544,9 +544,7 @@ def run_simulation_streaming(
         f"Starting streaming simulation: valve_action={valve_action}, opening_mode={opening_mode}, "
         f"opening_time={opening_time}s, mode={mode}"
     )
-    logger.debug(
-        f"Initial conditions: P_up={P_up:.0f} Pa, P_down={P_down_init:.0f} Pa"
-    )
+    logger.debug(f"Initial conditions: P_up={P_up:.0f} Pa, P_down={P_down_init:.0f} Pa")
 
     # Initialize simulation state
     state = _initialize_simulation_state(
@@ -748,4 +746,3 @@ def run_simulation_streaming(
     logger.info(
         f"Streaming simulation completed: {len(results['time'])} steps, final_time={t:.2f}s"
     )
-

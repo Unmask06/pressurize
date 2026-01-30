@@ -136,14 +136,14 @@ function formatInputLabel(key: string): string {
 function formatInputUnit(key: string): string {
   const units: Record<string, string> = {
     mode: "",
-    p_up: getUnit('pressure'),
-    upstream_volume: getUnit('volume'),
-    upstream_temp: getUnit('temperature'),
-    p_down_init: getUnit('pressure'),
-    downstream_volume: getUnit('volume'),
-    downstream_temp: getUnit('temperature'),
-    valve_id: getUnit('length'),
-    opening_time: getUnit('time'),
+    p_up: getUnit("pressure"),
+    upstream_volume: getUnit("volume"),
+    upstream_temp: getUnit("temperature"),
+    p_down_init: getUnit("pressure"),
+    downstream_volume: getUnit("volume"),
+    downstream_temp: getUnit("temperature"),
+    valve_id: getUnit("length"),
+    opening_time: getUnit("time"),
     molar_mass: "g/mol",
     z_factor: "",
     k_ratio: "",
@@ -152,7 +152,7 @@ function formatInputUnit(key: string): string {
     k_curve: "",
     property_mode: "",
     composition: "",
-    dt: getUnit('time'),
+    dt: getUnit("time"),
   };
   return units[key] || "";
 }
@@ -285,25 +285,25 @@ async function getPdfBlob(): Promise<Blob> {
       {
         label: "Peak Flow Rate",
         value: props.kpis.peakFlow,
-        unit: `${getUnit('mass')}/s`,
+        unit: `${getUnit("mass")}/s`,
         decimals: 1,
       },
       {
         label: "Final Pressure",
         value: props.kpis.finalPressure,
-        unit: getUnit('pressure'),
+        unit: getUnit("pressure"),
         decimals: 1,
       },
       {
         label: "Equilibrium Time",
         value: props.kpis.equilibriumTime,
-        unit: getUnit('time'),
+        unit: getUnit("time"),
         decimals: 1,
       },
       {
         label: "Total Mass Flow",
         value: props.kpis.totalMass,
-        unit: getUnit('mass'),
+        unit: getUnit("mass"),
         decimals: 1,
       },
     ];

@@ -23,7 +23,9 @@
         </div>
 
         <div class="form-group">
-          <label for="max_sim_time">Max Simulation Time ({{ getUnit('time') }})</label>
+          <label for="max_sim_time"
+            >Max Simulation Time ({{ getUnit("time") }})</label
+          >
           <input
             id="max_sim_time"
             type="number"

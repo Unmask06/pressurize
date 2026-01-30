@@ -57,7 +57,9 @@ def test_simulation_workflow():
         "dt": 0.5,  # Larger dt for faster test
     }
 
-    response = client.post("/simulate", json=payload, headers={"x-unit-system": "imperial"})
+    response = client.post(
+        "/simulate", json=payload, headers={"x-unit-system": "imperial"}
+    )
     assert response.status_code == 200
     data = response.json()
 
@@ -71,11 +73,11 @@ def test_streaming_simulation():
     payload = {
         "p_up": 500,
         "p_down_init": 0,
-        "upstream_volume": 100, 
+        "upstream_volume": 100,
         "upstream_temp": 70,
-        "downstream_volume": 100, 
+        "downstream_volume": 100,
         "downstream_temp": 70,
-        "valve_id": 0.5, # larger valve
+        "valve_id": 0.5,  # larger valve
         "opening_time": 5,
         "molar_mass": 28.97,
         "z_factor": 1.0,
@@ -87,7 +89,9 @@ def test_streaming_simulation():
     complete = None
     chunk_count = 0
 
-    with client.stream("POST", "/simulate/stream", json=payload, headers={"x-unit-system": "imperial"}) as response:
+    with client.stream(
+        "POST", "/simulate/stream", json=payload, headers={"x-unit-system": "imperial"}
+    ) as response:
         assert response.status_code == 200
 
         for line in response.iter_lines():
@@ -121,7 +125,9 @@ def test_property_calculation():
         "temp": 70,
     }
 
-    response = client.post("/properties", json=payload, headers={"x-unit-system": "imperial"})
+    response = client.post(
+        "/properties", json=payload, headers={"x-unit-system": "imperial"}
+    )
     assert response.status_code == 200
     props = response.json()
 

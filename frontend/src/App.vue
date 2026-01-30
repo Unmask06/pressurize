@@ -95,8 +95,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, onMounted } from "vue";
-import { streamSimulation, fetchUnitConfig, type SimulationRow } from "./api/client";
+import { computed, onMounted, reactive, ref } from "vue";
+import {
+  fetchUnitConfig,
+  streamSimulation,
+  type SimulationRow,
+} from "./api/client";
 import CompositionEditor from "./components/CompositionEditor.vue";
 import KpiCards from "./components/KpiCards.vue";
 import ReportDownload from "./components/ReportDownload.vue";
