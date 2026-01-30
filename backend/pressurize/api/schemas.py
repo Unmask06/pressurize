@@ -150,7 +150,7 @@ class StreamingComplete(BaseModel):
 
     type: Literal["complete"] = "complete"
     peak_flow: float
-    final_pressure: float
-    equilibrium_time: float
-    total_mass_lb: float
+    final_pressure: PintGlass("pressure", "Output")
+    equilibrium_time: PintGlass("time", "Output")
+    total_mass: PintGlass("mass", "Output")
     completed: bool = True  # False if aborted early

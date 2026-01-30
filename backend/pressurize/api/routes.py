@@ -5,7 +5,9 @@ from collections.abc import AsyncGenerator
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
+from pint_glass import TARGET_DIMENSIONS, UNIT_SYSTEMS
 
+import pandas as pd
 from pressurize.api.schemas import (
     PropertiesRequest,
     PropertiesResponse,
@@ -16,10 +18,7 @@ from pressurize.api.schemas import (
     StreamingComplete,
 )
 from pressurize.core.properties import GasState, get_gas_properties_at_conditions
-from pressurize.core.simulation import run_simulation, run_simulation_streaming
-
-from pressurize.utils.converters import fahrenheit_to_kelvin, psig_to_pa
-from pint_glass import TARGET_DIMENSIONS, UNIT_SYSTEMS
+from pressurize.core.simulation import run_simulation_streaming
 
 router = APIRouter(tags=["pressurize"])
 
@@ -39,7 +38,8 @@ async def get_units_config() -> dict:
 async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
     """Execute a gas pressurization simulation and return results with KPIs."""
     try:
-        df = run_simulation(
+        # Collect streaming results into a list then to DataFrame
+        sim_results = list(run_simulation_streaming(
             P_up=req.p_up,
             P_down_init=req.p_down_init,
             valve_id=req.valve_id,
@@ -59,16 +59,15 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
             property_mode=req.property_mode,
             composition=req.composition,
             mode=req.mode,
-        )
+        ))
+        df = pd.DataFrame(sim_results)
 
         # Calculate KPIs (Values are in SI: kg/s, Pa)
         peak_flow = float(df["flowrate"].max())
         final_pressure = float(df["downstream_pressure"].iloc[-1])
 
         # Find equilibrium time
-        equilibrium_mask = (
-            df["downstream_pressure"] >= df["upstream_pressure"]
-        )
+        equilibrium_mask = df["downstream_pressure"] >= df["upstream_pressure"]
         if equilibrium_mask.any():
             equil_time = float(df.loc[equilibrium_mask, "time"].iloc[0])
         else:

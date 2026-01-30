@@ -95,8 +95,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
-import { streamSimulation, type SimulationRow } from "./api/client";
+import { computed, reactive, ref, onMounted } from "vue";
+import { streamSimulation, fetchUnitConfig, type SimulationRow } from "./api/client";
 import CompositionEditor from "./components/CompositionEditor.vue";
 import KpiCards from "./components/KpiCards.vue";
 import ReportDownload from "./components/ReportDownload.vue";
@@ -118,6 +118,14 @@ const currentMaxSimTime = ref(10000);
 
 // AbortController for stopping simulation
 let abortController: AbortController | null = null;
+
+onMounted(async () => {
+  try {
+    await fetchUnitConfig();
+  } catch (e) {
+    console.error("Failed to fetch unit config in App.vue", e);
+  }
+});
 
 // Refs for report generation
 const chartRef = ref<InstanceType<typeof ResultsChart> | null>(null);

@@ -92,8 +92,9 @@ def _initialize_simulation_state(
         f"Initializing simulation state: property_mode={property_mode}, mode={mode}"
     )
 
-    # Pressures are already in SI (Pa) thanks to PintGlass
-    P_down = P_down_init
+    # Convert pressures to SI (PintGlass already handles this, but we clamp to prevent /0)
+    P_up = max(P_up, 1.0)
+    P_down = max(P_down_init, 1.0)
     logger.debug(f"Pressures: P_up={P_up:.0f} Pa, P_down={P_down:.0f} Pa")
 
     # Volumes and temperatures are already in SI (m³, K)
@@ -393,6 +394,11 @@ def _update_pressures(
         P_up += dp_dt_up * dt
     if dp_dt_down != 0.0:
         P_down += dp_dt_down * dt
+    
+    # Clamp to positive values
+    P_up = max(P_up, 1.0)
+    P_down = max(P_down, 1.0)
+    
     return P_up, P_down
 
 
@@ -506,210 +512,6 @@ def _calculate_max_simulation_time(
         return opening_time * 1.2  # Closing: 1.2x closing time
     else:
         return opening_time * 10  # Opening: 10x opening time for equilibrium
-
-
-def run_simulation(
-    P_up: float,
-    P_down_init: float,
-    valve_id: float,
-    opening_time: float,
-    upstream_volume: float,
-    upstream_temp: float,
-    downstream_volume: float,
-    downstream_temp: float,
-    molar_mass: float,
-    z_factor: float,
-    k_ratio: float,
-    discharge_coeff: float = 0.65,
-    valve_action: Literal["open", "close"] = "open",
-    opening_mode: Literal["linear", "exponential", "quick_acting", "fixed"] = "linear",
-    k_curve: float = 4.0,
-    dt: float = TIME_STEP,
-    property_mode: Literal["manual", "composition"] = "manual",
-    composition: str | None = None,
-    mode: Literal["pressurize", "depressurize", "equalize"] = "equalize",
-) -> pd.DataFrame:
-    """Run the valve pressurization simulation.
-
-    Args:
-        P_up: Upstream pressure (Pa).
-        P_down_init: Initial downstream pressure (Pa).
-        valve_id: Valve inner diameter (m).
-        opening_time: Time for valve to fully open in seconds.
-        upstream_volume: Upstream vessel volume (m³).
-        upstream_temp: Upstream vessel temperature (K).
-        downstream_volume: Downstream vessel volume (m³).
-        downstream_temp: Downstream vessel temperature (K).
-        molar_mass: Gas molar mass in g/mol (manual mode).
-        z_factor: Compressibility factor (manual mode).
-        k_ratio: Heat capacity ratio Cp/Cv (manual mode).
-        discharge_coeff: Valve discharge coefficient. Default 0.65.
-        valve_action: "open" or "close" valve action. Default "open".
-        opening_mode: 'linear', 'exponential', 'quick_acting', or 'fixed'.
-        k_curve: Curve steepness for exponential/quick_acting. Default 4.0.
-        dt: Simulation timestep in seconds.
-        property_mode: 'manual' or 'composition'. Default 'manual'.
-        composition: Gas composition string for composition mode.
-        mode: Controls which sides compute dp/dt. Default "equalize".
-
-    Returns:
-        DataFrame with columns: time, pressure, upstream_pressure,
-        downstream_pressure, flowrate, valve_opening_pct, flow_regime,
-        dp_dt_upstream, dp_dt_downstream.
-    """
-    logger.info(
-        f"Starting simulation: valve_action={valve_action}, opening_mode={opening_mode}, "
-        f"opening_time={opening_time}s, mode={mode}"
-    )
-    logger.debug(
-        f"Initial conditions: P_up={P_up:.0f} Pa, P_down={P_down_init:.0f} Pa"
-    )
-
-    # Initialize simulation state
-    state = _initialize_simulation_state(
-        P_up=P_up,
-        P_down_init=P_down_init,
-        valve_id=valve_id,
-        molar_mass=molar_mass,
-        z_factor=z_factor,
-        k_ratio=k_ratio,
-        discharge_coeff=discharge_coeff,
-        property_mode=property_mode,
-        composition=composition,
-        mode=mode,
-        upstream_volume=upstream_volume,
-        upstream_temp=upstream_temp,
-        downstream_volume=downstream_volume,
-        downstream_temp=downstream_temp,
-    )
-
-    # Initialize results storage
-    results = _initialize_results(
-        P_up=P_up,
-        P_down_init=P_down_init,
-        valve_action=valve_action,
-        opening_mode=opening_mode,
-        Z=state.Z,
-        k=state.k,
-        M=state.M,
-    )
-
-    # Calculate maximum simulation time
-    max_time = _calculate_max_simulation_time(
-        opening_mode=opening_mode,
-        opening_time=opening_time,
-        valve_action=valve_action,
-    )
-    logger.debug(f"Calculated max simulation time: {max_time}s")
-
-    # Main simulation loop
-    t: float = 0
-    P_up = state.P_up
-    P_down = state.P_down
-    M = state.M
-    Z = state.Z
-    k = state.k
-    P_up_current = P_up
-    P_down_current = P_down_init
-
-    while t < max_time:
-        t += dt
-
-        # Calculate valve opening fraction
-        opening_fraction = _calculate_valve_opening_fraction(
-            t=t,
-            opening_time=opening_time,
-            valve_action=valve_action,
-            opening_mode=opening_mode,
-            k_curve=k_curve,
-        )
-
-        # Log progress every 10 seconds or at key milestones
-        if int(t) % 10 == 0 and int(t - dt) % 10 != 0:
-            logger.debug(
-                f"t={t:.1f}s: valve_opening={opening_fraction:.3f}, "
-                f"P_up={P_up:.0f} Pa, P_down={P_down:.0f} Pa"
-            )
-
-        A = state.A_max * opening_fraction
-
-        # Update gas properties dynamically in composition mode
-        M, Z, k = _update_gas_properties(
-            state=state,
-            P_up=P_up,
-            P_down=P_down,
-            mode=mode,
-        )
-
-        # Calculate flow regime and mass flow rate
-        regime, massflow_kgs = _calculate_flow_regime_and_mass_flow(
-            P_up=P_up,
-            P_down=P_down,
-            A=A,
-            k=k,
-            M=M,
-            Z=Z,
-            T=state.T_up,
-            Cd=state.Cd,
-        )
-
-        # Calculate pressure rates of change
-        pressure_diff = P_up - P_down
-        dp_dt_up, dp_dt_down = _calculate_pressure_rates(
-            mode=mode,
-            pressure_diff=pressure_diff,
-            massflow_kgs=massflow_kgs,
-            Z=Z,
-            T=state.T_up,
-            V_up=state.V_up,
-            V_down=state.V_down,
-            M=M,
-        )
-
-        # Update pressures
-        P_up, P_down = _update_pressures(
-            P_up=P_up,
-            P_down=P_down,
-            dp_dt_up=dp_dt_up,
-            dp_dt_down=dp_dt_down,
-            dt=dt,
-        )
-
-        P_up_current = P_up
-        P_down_current = P_down
-
-        # Append results
-        _append_step_results(
-            results=results,
-            t=t,
-            P_up=P_up_current,
-            P_down=P_down_current,
-            opening_fraction=opening_fraction,
-            massflow_kgs=massflow_kgs,
-            regime=regime,
-            dp_dt_up=dp_dt_up,
-            dp_dt_down=dp_dt_down,
-            Z=Z,
-            k=k,
-            M=M,
-        )
-
-        # Check stopping condition
-        if _check_stopping_condition(
-            valve_action=valve_action,
-            opening_fraction=opening_fraction,
-            regime=regime,
-        ):
-            logger.info(
-                f"Simulation stopped at t={t:.2f}s: valve_opening={opening_fraction:.3f}, "
-                f"P_up={P_up_current:.0f} Pa, P_down={P_down_current:.0f} Pa"
-            )
-            break
-
-    logger.info(
-        f"Simulation completed: {len(results['time'])} steps, final_time={t:.2f}s"
-    )
-    return pd.DataFrame(results)
 
 
 def run_simulation_streaming(

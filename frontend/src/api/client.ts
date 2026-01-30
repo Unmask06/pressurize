@@ -38,10 +38,15 @@ export function getUnitSystem(): UnitSystem {
 }
 
 export async function fetchUnitConfig(): Promise<UnitConfig> {
-  const response = await apiClient.get<UnitConfig>("/units/config");
-  unitConfig.systems = response.data.systems;
-  unitConfig.dimensions = response.data.dimensions;
-  return response.data;
+  try {
+    const response = await apiClient.get<UnitConfig>("/units/config");
+    unitConfig.systems = response.data.systems;
+    unitConfig.dimensions = response.data.dimensions;
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching unit config:", error);
+    throw error;
+  }
 }
 
 /**
@@ -50,6 +55,7 @@ export async function fetchUnitConfig(): Promise<UnitConfig> {
 export function getUnit(dimension: string): string {
   const system = currentUnitSystem.value;
   if (!unitConfig.dimensions[dimension]) {
+    // console.warn(`Dimension not found: ${dimension}`);
     return "?";
   }
   return unitConfig.dimensions[dimension][system] || "?";
@@ -117,7 +123,7 @@ export async function streamSimulation(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-unit-system": currentUnitSystem,
+      "x-unit-system": currentUnitSystem.value,
     },
     body: JSON.stringify(params),
     signal,
