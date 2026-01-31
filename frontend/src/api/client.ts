@@ -54,11 +54,21 @@ export async function fetchUnitConfig(): Promise<UnitConfig> {
  */
 export function getUnit(dimension: string): string {
   const system = currentUnitSystem.value;
-  if (!unitConfig.dimensions[dimension]) {
-    // console.warn(`Dimension not found: ${dimension}`);
+  // Handle case sensitivity and potential whitespace
+  const dimKey = dimension.toLowerCase().trim();
+
+  if (!unitConfig.dimensions[dimKey]) {
+    console.warn(`Dimension not found: "${dimension}" (key: "${dimKey}")`);
     return "?";
   }
-  return unitConfig.dimensions[dimension][system] || "?";
+
+  const unit = unitConfig.dimensions[dimKey][system];
+  if (!unit) {
+    console.warn(`Unit not found for dimension: "${dimKey}", system: "${system}"`);
+    return "?";
+  }
+
+  return unit;
 }
 
 // Initialize with default header
