@@ -28,7 +28,6 @@ dependencies = [
     "pydantic>=2.6.0",
     "fluids",
     "pytest>=9.0.2",
-    "pint-glass"
 ]
 
 [project.optional-dependencies]
@@ -39,7 +38,6 @@ dev = [
 ]
 [tool.uv.sources]
 fluids = { git = "https://github.com/Unmask06/fluids.git", branch = "master" }
-pint-glass = { git = "https://github.com/Unmask06/pint-glass.git", branch = "main" }
 
 [project.scripts]
 pressurize = "pressurize.main:run_server"
