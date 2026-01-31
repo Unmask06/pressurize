@@ -53,6 +53,10 @@ export async function fetchUnitConfig(): Promise<UnitConfig> {
  * Get unit string for a dimension in the current system.
  */
 export function getUnit(dimension: string): string {
+  if (dimension == null) {
+    console.warn(`getUnit called with a null or undefined dimension.`);
+    return "?";
+  }
   const system = currentUnitSystem.value;
   // Handle case sensitivity and potential whitespace
   const dimKey = dimension.toLowerCase().trim();
@@ -64,7 +68,9 @@ export function getUnit(dimension: string): string {
 
   const unit = unitConfig.dimensions[dimKey][system];
   if (!unit) {
-    console.warn(`Unit not found for dimension: "${dimKey}", system: "${system}"`);
+    console.warn(
+      `Unit not found for dimension: "${dimKey}", system: "${system}"`,
+    );
     return "?";
   }
 
