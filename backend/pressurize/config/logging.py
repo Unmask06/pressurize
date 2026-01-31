@@ -5,7 +5,7 @@ import os
 import sys
 
 # Get log level from environment variable, default to INFO
-LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG").upper()
 
 
 def configure_logging():
