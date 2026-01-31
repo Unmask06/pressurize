@@ -58,8 +58,9 @@ export function getUnit(dimension: string): string {
     return "?";
   }
   const system = currentUnitSystem.value;
-  // Handle case sensitivity and potential whitespace
-  const dimKey = dimension.toLowerCase().trim();
+  // Normalize: lowercase, trim, and convert underscores to spaces
+  // This handles variations like "Volumetric Flow Rate" and "volumetric_flowrate"
+  const dimKey = dimension.toLowerCase().trim().replace(/_/g, " ");
 
   if (!unitConfig.dimensions[dimKey]) {
     console.warn(`Dimension not found: "${dimension}" (key: "${dimKey}")`);

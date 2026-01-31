@@ -28,9 +28,13 @@ CHUNK_SIZE = 5  # Number of rows per streaming chunk
 @router.get("/units/config")
 async def get_units_config() -> dict:
     """Get the unit configuration including supported systems and dimension mappings."""
+    # Normalize dimension keys to lowercase for consistent frontend access
+    dimensions_normalized = {
+        dim.lower(): systems for dim, systems in TARGET_DIMENSIONS.items()
+    }
     return {
         "systems": sorted(list(UNIT_SYSTEMS)),
-        "dimensions": TARGET_DIMENSIONS,
+        "dimensions": dimensions_normalized,
     }
 
 
