@@ -55,7 +55,7 @@ export async function fetchUnitConfig(): Promise<UnitConfig> {
 export function getUnit(dimension: string): string {
   const system = currentUnitSystem.value;
   if (!unitConfig.dimensions[dimension]) {
-    // console.warn(`Dimension not found: ${dimension}`);
+    console.warn(`Dimension not found: ${dimension}`);
     return "?";
   }
   return unitConfig.dimensions[dimension][system] || "?";

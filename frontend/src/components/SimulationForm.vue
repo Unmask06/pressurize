@@ -62,14 +62,14 @@
               class="form-group"
               :class="form.mode !== 'pressurize' ? 'third' : 'half'"
             >
-              <label>Pressure ({{ getUnit("pressure") }})</label>
+              <label>Pressure ({{ getUnit("Pressure") }})</label>
               <input type="number" v-model.number="form.p_up" />
             </div>
             <div
               class="form-group"
               :class="form.mode !== 'pressurize' ? 'third' : 'half'"
             >
-              <label>Temperature ({{ getUnit("temperature") }})</label>
+              <label>Temperature ({{ getUnit("Temperature") }})</label>
               <input
                 type="number"
                 v-model.number="form.upstream_temp"
