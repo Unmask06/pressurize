@@ -3,8 +3,10 @@
 import json
 from collections.abc import AsyncGenerator
 
+import pandas as pd
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
+from pint_glass import TARGET_DIMENSIONS, UNIT_SYSTEMS
 
 from pressurize.api.schemas import (
     PropertiesRequest,
@@ -16,58 +18,66 @@ from pressurize.api.schemas import (
     StreamingComplete,
 )
 from pressurize.core.properties import GasState, get_gas_properties_at_conditions
-from pressurize.core.simulation import run_simulation, run_simulation_streaming
-from pressurize.utils.converters import fahrenheit_to_kelvin, psig_to_pa
+from pressurize.core.simulation import run_simulation_streaming
 
 router = APIRouter(tags=["pressurize"])
 
 CHUNK_SIZE = 5  # Number of rows per streaming chunk
 
 
+@router.get("/units/config")
+async def get_units_config() -> dict:
+    """Get the unit configuration including supported systems and dimension mappings."""
+    return {
+        "systems": sorted(list(UNIT_SYSTEMS)),
+        "dimensions": TARGET_DIMENSIONS,
+    }
+
+
 @router.post("/simulate", response_model=SimulationResponse)
 async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
     """Execute a gas pressurization simulation and return results with KPIs."""
     try:
-        df = run_simulation(
-            P_up_psig=req.p_up_psig,
-            P_down_init_psig=req.p_down_init_psig,
-            valve_id_inch=req.valve_id_inch,
-            opening_time_s=req.opening_time_s,
-            upstream_volume_ft3=req.upstream_volume_ft3,
-            upstream_temp_f=req.upstream_temp_f,
-            downstream_volume_ft3=req.downstream_volume_ft3,
-            downstream_temp_f=req.downstream_temp_f,
-            molar_mass=req.molar_mass,
-            z_factor=req.z_factor,
-            k_ratio=req.k_ratio,
-            discharge_coeff=req.discharge_coeff,
-            valve_action=req.valve_action,
-            opening_mode=req.opening_mode,
-            k_curve=req.k_curve,
-            dt=req.dt,
-            property_mode=req.property_mode,
-            composition=req.composition,
-            mode=req.mode,
+        # Collect streaming results into a list then to DataFrame
+        sim_results = list(
+            run_simulation_streaming(
+                P_up=req.p_up,
+                P_down_init=req.p_down_init,
+                valve_id=req.valve_id,
+                opening_time=req.opening_time,
+                upstream_volume=req.upstream_volume,
+                upstream_temp=req.upstream_temp,
+                downstream_volume=req.downstream_volume,
+                downstream_temp=req.downstream_temp,
+                molar_mass=req.molar_mass,
+                z_factor=req.z_factor,
+                k_ratio=req.k_ratio,
+                discharge_coeff=req.discharge_coeff,
+                valve_action=req.valve_action,
+                opening_mode=req.opening_mode,
+                k_curve=req.k_curve,
+                dt=req.dt,
+                property_mode=req.property_mode,
+                composition=req.composition,
+                mode=req.mode,
+            )
         )
+        df = pd.DataFrame(sim_results)
 
-        # Calculate KPIs
-        peak_flow = float(df["flowrate_lb_hr"].max())
-        final_pressure = float(df["downstream_pressure_psig"].iloc[-1])
+        # Calculate KPIs (Values are in SI: kg/s, Pa)
+        peak_flow = float(df["flowrate"].max())
+        final_pressure = float(df["downstream_pressure"].iloc[-1])
 
         # Find equilibrium time
-        # Use simple logic: first time pressure >= upstream OR last time
-        # The simulation logic already handles this somewhat, but let's be safe
-        equilibrium_mask = (
-            df["downstream_pressure_psig"] >= df["upstream_pressure_psig"]
-        )
+        equilibrium_mask = df["downstream_pressure"] >= df["upstream_pressure"]
         if equilibrium_mask.any():
             equil_time = float(df.loc[equilibrium_mask, "time"].iloc[0])
         else:
             equil_time = float(df["time"].iloc[-1])
 
-        # Calc total mass
-        dt = req.dt  # Approximate integration using fixed time step provided in request
-        total_mass = (df["flowrate_lb_hr"].sum() * dt) / 3600
+        # Calc total mass (kg)
+        dt = req.dt
+        total_mass = float(df["flowrate"].sum() * dt)
 
         results = [
             SimulationResultPoint.model_validate(row)
@@ -79,7 +89,7 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
             peak_flow=peak_flow,
             final_pressure=final_pressure,
             equilibrium_time=equil_time,
-            total_mass_lb=total_mass,
+            total_mass=total_mass,
         )
 
     except Exception as e:
@@ -105,14 +115,14 @@ async def generate_simulation_stream(
         total_rows = 0
 
         for row_dict in run_simulation_streaming(
-            P_up_psig=req.p_up_psig,
-            P_down_init_psig=req.p_down_init_psig,
-            valve_id_inch=req.valve_id_inch,
-            opening_time_s=req.opening_time_s,
-            upstream_volume_ft3=req.upstream_volume_ft3,
-            upstream_temp_f=req.upstream_temp_f,
-            downstream_volume_ft3=req.downstream_volume_ft3,
-            downstream_temp_f=req.downstream_temp_f,
+            P_up=req.p_up,
+            P_down_init=req.p_down_init,
+            valve_id=req.valve_id,
+            opening_time=req.opening_time,
+            upstream_volume=req.upstream_volume,
+            upstream_temp=req.upstream_temp,
+            downstream_volume=req.downstream_volume,
+            downstream_temp=req.downstream_temp,
             molar_mass=req.molar_mass,
             z_factor=req.z_factor,
             k_ratio=req.k_ratio,
@@ -154,10 +164,10 @@ async def generate_simulation_stream(
 
         # Calculate KPIs from collected results
         if all_results:
-            # Extract flowrates and pressures
-            flowrates = [r["flowrate_lb_hr"] for r in all_results]
-            downstream_pressures = [r["downstream_pressure_psig"] for r in all_results]
-            upstream_pressures = [r["upstream_pressure_psig"] for r in all_results]
+            # Extract flowrates and pressures (SI units)
+            flowrates = [r["flowrate"] for r in all_results]
+            downstream_pressures = [r["downstream_pressure"] for r in all_results]
+            upstream_pressures = [r["upstream_pressure"] for r in all_results]
             times = [r["time"] for r in all_results]
 
             peak_flow = max(flowrates)
@@ -172,15 +182,15 @@ async def generate_simulation_stream(
                     equil_time = t
                     break
 
-            # Calculate total mass (trapezoidal integration)
+            # Calculate total mass (trapezoidal integration approx)
             dt_val = req.dt
-            total_mass = (sum(flowrates) * dt_val) / 3600
+            total_mass = sum(flowrates) * dt_val
 
             # Determine if simulation completed naturally or was aborted
             completed = not should_stop()
         else:
             peak_flow = 0.0
-            final_pressure = req.p_down_init_psig
+            final_pressure = req.p_down_init
             equil_time = 0.0
             total_mass = 0.0
             completed = False
@@ -190,7 +200,7 @@ async def generate_simulation_stream(
             peak_flow=peak_flow,
             final_pressure=final_pressure,
             equilibrium_time=equil_time,
-            total_mass_lb=total_mass,
+            total_mass=total_mass,
             completed=completed,
         )
         yield f"data: {complete.model_dump_json()}\n\n"
@@ -254,9 +264,9 @@ async def get_preset_details(preset_id: str) -> dict[str, float]:
 async def calculate_properties(req: PropertiesRequest) -> PropertiesResponse:
     """Calculate gas properties (Z, k, M) from composition and conditions."""
     try:
-        # Convert units for the internal function (expects Pa and Kelvin)
-        pressure_pa = psig_to_pa(req.pressure_psig)
-        temp_k = fahrenheit_to_kelvin(req.temp_f)
+        # Inputs are already SI (Pa, K) due to PintGlass Input fields
+        pressure_pa = req.pressure
+        temp_k = req.temp
         z_factor, k, mol_wt = get_gas_properties_at_conditions(
             req.composition, pressure_pa, temp_k
         )

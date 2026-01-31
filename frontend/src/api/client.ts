@@ -1,4 +1,5 @@
 import axios from "axios";
+import { reactive, ref } from "vue";
 
 // Base URL: localhost for dev, api.xergiz.com for production
 const API_BASE_URL = import.meta.env.DEV
@@ -12,16 +13,83 @@ export const apiClient = axios.create({
   },
 });
 
+// Unit System Management
+export type UnitSystem = string;
+const currentUnitSystem = ref<UnitSystem>("imperial");
+
+export interface UnitConfig {
+  systems: string[];
+  dimensions: Record<string, Record<string, string>>;
+}
+
+export const unitConfig = reactive<UnitConfig>({
+  systems: ["imperial"],
+  dimensions: {},
+});
+
+export function setUnitSystem(system: UnitSystem) {
+  currentUnitSystem.value = system;
+  // Update default header for axios requests
+  apiClient.defaults.headers.common["x-unit-system"] = system;
+}
+
+export function getUnitSystem(): UnitSystem {
+  return currentUnitSystem.value;
+}
+
+export async function fetchUnitConfig(): Promise<UnitConfig> {
+  try {
+    const response = await apiClient.get<UnitConfig>("/units/config");
+    unitConfig.systems = response.data.systems;
+    unitConfig.dimensions = response.data.dimensions;
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching unit config:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get unit string for a dimension in the current system.
+ */
+export function getUnit(dimension: string): string {
+  if (dimension == null) {
+    console.warn(`getUnit called with a null or undefined dimension.`);
+    return "?";
+  }
+  const system = currentUnitSystem.value;
+  // Handle case sensitivity and potential whitespace
+  const dimKey = dimension.toLowerCase().trim();
+
+  if (!unitConfig.dimensions[dimKey]) {
+    console.warn(`Dimension not found: "${dimension}" (key: "${dimKey}")`);
+    return "?";
+  }
+
+  const unit = unitConfig.dimensions[dimKey][system];
+  if (!unit) {
+    console.warn(
+      `Unit not found for dimension: "${dimKey}", system: "${system}"`,
+    );
+    return "?";
+  }
+
+  return unit;
+}
+
+// Initialize with default header
+apiClient.defaults.headers.common["x-unit-system"] = currentUnitSystem.value;
+
 export interface SimulationRow {
   time: number;
-  pressure_psig: number;
-  upstream_pressure_psig: number;
-  downstream_pressure_psig: number;
-  flowrate_lb_hr: number;
+  pressure: number;
+  upstream_pressure: number;
+  downstream_pressure: number;
+  flowrate: number;
   valve_opening_pct: number;
   flow_regime: string;
-  dp_dt_upstream_psig_s?: number;
-  dp_dt_downstream_psig_s?: number;
+  dp_dt_upstream?: number;
+  dp_dt_downstream?: number;
   z_factor?: number;
   k_ratio?: number;
   molar_mass?: number;
@@ -38,7 +106,7 @@ export interface StreamingComplete {
   peak_flow: number;
   final_pressure: number;
   equilibrium_time: number;
-  total_mass_lb: number;
+  total_mass: number;
   completed: boolean;
 }
 
@@ -71,6 +139,7 @@ export async function streamSimulation(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "x-unit-system": currentUnitSystem.value,
     },
     body: JSON.stringify(params),
     signal,
@@ -111,7 +180,7 @@ export async function streamSimulation(
                 peak_flow: msg.peak_flow,
                 final_pressure: msg.final_pressure,
                 equilibrium_time: msg.equilibrium_time,
-                total_mass_lb: msg.total_mass_lb,
+                total_mass: msg.total_mass,
                 completed: msg.completed,
               });
             } else if (msg.type === "error") {

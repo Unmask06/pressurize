@@ -17,6 +17,7 @@ import { graphic, use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { computed, ref } from "vue";
 import VChart from "vue-echarts";
+import { getUnit } from "../api/client";
 
 use([
   CanvasRenderer,
@@ -55,9 +56,12 @@ defineExpose({
 const option = computed(() => {
   if (!props.data || props.data.length === 0) return {};
 
-  const downstream = props.data.map((d) => [d.time, d.downstream_pressure_psig]);
-  const upstream = props.data.map((d) => [d.time, d.upstream_pressure_psig]);
-  const flows = props.data.map((d) => [d.time, d.flowrate_lb_hr]);
+  const pressureUnit = getUnit("pressure");
+  const flowUnit = `${getUnit("mass")}/s`;
+
+  const downstream = props.data.map((d) => [d.time, d.downstream_pressure]);
+  const upstream = props.data.map((d) => [d.time, d.upstream_pressure]);
+  const flows = props.data.map((d) => [d.time, d.flowrate]);
   const openings = props.data.map((d) => [d.time, d.valve_opening_pct]);
 
   return {
@@ -88,7 +92,7 @@ const option = computed(() => {
     xAxis: {
       type: "value",
       boundaryGap: false,
-      name: "Time (s)",
+      name: `Time (${getUnit("time")})`,
       nameLocation: "middle",
       nameGap: 30,
       axisLine: { lineStyle: { color: "#ccc" } },
@@ -97,7 +101,7 @@ const option = computed(() => {
     yAxis: [
       {
         type: "value",
-        name: "Pressure (psig)",
+        name: `Pressure (${pressureUnit})`,
         position: "left",
         axisLine: { show: false },
         axisTick: { show: false },
@@ -109,7 +113,7 @@ const option = computed(() => {
       },
       {
         type: "value",
-        name: "Flow (lb/hr)",
+        name: `Flow (${flowUnit})`,
         position: "right",
         offset: 0,
         axisLine: { show: false },

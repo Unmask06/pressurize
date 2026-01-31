@@ -2,7 +2,25 @@
   <div class="simulation-form">
     <div class="header-with-settings">
       <h3>Simulation Parameters</h3>
-      <button class="btn-icon" @click="$emit('edit-settings')">⚙️</button>
+      <div class="settings-controls">
+        <!-- Unit System Dropdown -->
+        <div class="unit-selector">
+          <label>Unit System:</label>
+          <select
+            :value="unitSystem"
+            @change="
+              (e) =>
+                changeUnitSystem((e.target as HTMLSelectElement).value as any)
+            "
+            class="unit-select"
+          >
+            <option v-for="sys in availableSystems" :key="sys" :value="sys">
+              {{ formatSystemName(sys) }}
+            </option>
+          </select>
+        </div>
+        <button class="btn-icon" @click="$emit('edit-settings')">⚙️</button>
+      </div>
     </div>
 
     <!-- Mode Selection -->
@@ -44,23 +62,23 @@
               class="form-group"
               :class="form.mode !== 'pressurize' ? 'third' : 'half'"
             >
-              <label>Pressure (psig)</label>
-              <input type="number" v-model.number="form.p_up_psig" />
+              <label>Pressure ({{ getUnit("Pressure") }})</label>
+              <input type="number" v-model.number="form.p_up" />
             </div>
             <div
               class="form-group"
               :class="form.mode !== 'pressurize' ? 'third' : 'half'"
             >
-              <label>Temperature (°F)</label>
+              <label>Temperature ({{ getUnit("Temperature") }})</label>
               <input
                 type="number"
-                v-model.number="form.upstream_temp_f"
+                v-model.number="form.upstream_temp"
                 step="5"
               />
             </div>
             <div class="form-group third" v-if="form.mode !== 'pressurize'">
-              <label>Volume (ft³)</label>
-              <input type="number" v-model.number="form.upstream_volume_ft3" />
+              <label>Volume ({{ getUnit("volume") }})</label>
+              <input type="number" v-model.number="form.upstream_volume" />
             </div>
           </div>
         </div>
@@ -73,26 +91,23 @@
               class="form-group"
               :class="form.mode !== 'depressurize' ? 'third' : 'half'"
             >
-              <label>Pressure (psig)</label>
-              <input type="number" v-model.number="form.p_down_init_psig" />
+              <label>Pressure ({{ getUnit("pressure") }})</label>
+              <input type="number" v-model.number="form.p_down_init" />
             </div>
             <div
               class="form-group"
               :class="form.mode !== 'depressurize' ? 'third' : 'half'"
             >
-              <label>Temperature (°F)</label>
+              <label>Temperature ({{ getUnit("temperature") }})</label>
               <input
                 type="number"
-                v-model.number="form.downstream_temp_f"
+                v-model.number="form.downstream_temp"
                 step="5"
               />
             </div>
             <div class="form-group third" v-if="form.mode !== 'depressurize'">
-              <label>Volume (ft³)</label>
-              <input
-                type="number"
-                v-model.number="form.downstream_volume_ft3"
-              />
+              <label>Volume ({{ getUnit("volume") }})</label>
+              <input type="number" v-model.number="form.downstream_volume" />
             </div>
           </div>
         </div>
@@ -104,8 +119,8 @@
           <div class="section-header">🔧 Valve Configuration</div>
           <div class="row">
             <div class="form-group quarter">
-              <label>Valve ID (in)</label>
-              <input type="number" v-model.number="form.valve_id_inch" />
+              <label>Valve ID ({{ getUnit("length") }})</label>
+              <input type="number" v-model.number="form.valve_id" />
             </div>
             <div class="form-group quarter">
               <label>Discharge Coeff (Cd)</label>
@@ -135,10 +150,10 @@
             <div class="form-group quarter">
               <label>{{
                 form.valve_action === "close"
-                  ? "Closing Time (s)"
-                  : "Opening Time (s)"
+                  ? `Closing Time (${getUnit("time")})`
+                  : `Opening Time (${getUnit("time")})`
               }}</label>
-              <input type="number" v-model.number="form.opening_time_s" />
+              <input type="number" v-model.number="form.opening_time" />
             </div>
           </div>
 
@@ -266,7 +281,14 @@
 
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
-import { apiClient } from "../api/client";
+import {
+  apiClient,
+  getUnit,
+  getUnitSystem,
+  setUnitSystem,
+  unitConfig,
+  type UnitSystem,
+} from "../api/client";
 
 const props = defineProps<{
   loading: boolean;
@@ -288,17 +310,25 @@ function viewResults() {
   emit("view-results");
 }
 
+const unitSystem = computed(() => getUnitSystem());
+const availableSystems = computed(() => unitConfig.systems);
+
+function formatSystemName(sys: string): string {
+  // Simple capitalization
+  return sys.charAt(0).toUpperCase() + sys.slice(1);
+}
+
 const form = reactive({
   mode: "equalize" as "pressurize" | "depressurize" | "equalize",
-  p_up_psig: 500,
-  p_down_init_psig: 0,
-  upstream_volume_ft3: 100,
-  downstream_volume_ft3: 100,
-  valve_id_inch: 2.0,
-  opening_time_s: 5,
+  p_up: 500,
+  p_down_init: 0,
+  upstream_volume: 100,
+  downstream_volume: 100,
+  valve_id: 0.1667, // Default approx 2 inches in ft
+  opening_time: 5,
   valve_action: "open" as "open" | "close",
-  upstream_temp_f: 70,
-  downstream_temp_f: 70,
+  upstream_temp: 70,
+  downstream_temp: 70,
   molar_mass: 28.97,
   z_factor: 1.0,
   k_ratio: 1.4,
@@ -309,6 +339,10 @@ const form = reactive({
   composition: "Methane=1.0",
   dt: 0.05,
 });
+
+function changeUnitSystem(system: string) {
+  setUnitSystem(system as UnitSystem);
+}
 
 // Reset opening_mode to linear if switching to close while on fixed
 watch(
@@ -342,10 +376,10 @@ watch(
     () => form.property_mode,
     () => form.composition,
     () => form.mode,
-    () => form.upstream_temp_f,
-    () => form.downstream_temp_f,
-    () => form.p_up_psig,
-    () => form.p_down_init_psig,
+    () => form.upstream_temp,
+    () => form.downstream_temp,
+    () => form.p_up,
+    () => form.p_down_init,
   ],
   async ([propMode, comp, simMode, tempUp, tempDown, pressUp, pressDown]) => {
     if (propMode === "composition" && comp) {
@@ -355,8 +389,8 @@ watch(
         const press = simMode === "depressurize" ? pressDown : pressUp;
         const res = await apiClient.post("/properties", {
           composition: comp,
-          pressure_psig: press || 0,
-          temp_f: temp || 70,
+          pressure: press || 0,
+          temp: temp || 70,
         });
         form.molar_mass = Number(res.data.M.toFixed(2));
         form.z_factor = Number(res.data.Z.toFixed(4));
@@ -432,6 +466,22 @@ const buttonClass = computed(() => {
 
 h3 {
   @apply m-0 text-2xl font-bold text-slate-800 tracking-tight;
+}
+
+.settings-controls {
+  @apply flex items-center gap-3;
+}
+
+.unit-selector {
+  @apply flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1;
+}
+
+.unit-selector label {
+  @apply text-[10px] uppercase font-bold text-slate-400 mb-0;
+}
+
+.unit-select {
+  @apply border-none bg-transparent py-1 px-1 text-sm font-semibold text-slate-700 cursor-pointer outline-none focus:ring-0 w-auto;
 }
 
 .form-group {
@@ -530,7 +580,7 @@ input.read-only {
 }
 
 .header-with-settings {
-  @apply flex justify-between items-start;
+  @apply flex justify-between items-center;
 }
 
 .btn-icon {

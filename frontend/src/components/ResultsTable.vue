@@ -10,12 +10,12 @@
         <table>
           <thead>
             <tr>
-              <th>Time (s)</th>
-              <th>P Up (psig)</th>
-              <th>P Down (psig)</th>
-              <th>dP/dt Up (psi/s)</th>
-              <th>dP/dt Down (psi/s)</th>
-              <th>Flow (lb/hr)</th>
+              <th>Time ({{ getUnit("time") }})</th>
+              <th>P Up ({{ getUnit("pressure") }})</th>
+              <th>P Down ({{ getUnit("pressure") }})</th>
+              <th>dP/dt Up</th>
+              <th>dP/dt Down</th>
+              <th>Flow ({{ getUnit("mass") }}/s)</th>
               <th>Valve (%)</th>
               <th>Regime</th>
               <th>Z</th>
@@ -26,11 +26,11 @@
           <tbody>
             <tr v-for="(row, idx) in data" :key="idx">
               <td>{{ row.time?.toFixed(2) ?? "-" }}</td>
-              <td>{{ row.upstream_pressure_psig?.toFixed(1) ?? "-" }}</td>
-              <td>{{ row.downstream_pressure_psig?.toFixed(1) ?? "-" }}</td>
-              <td>{{ row.dp_dt_upstream_psig_s?.toFixed(6) ?? "-" }}</td>
-              <td>{{ row.dp_dt_downstream_psig_s?.toFixed(6) ?? "-" }}</td>
-              <td>{{ row.flowrate_lb_hr?.toFixed(1) ?? "-" }}</td>
+              <td>{{ row.upstream_pressure?.toFixed(1) ?? "-" }}</td>
+              <td>{{ row.downstream_pressure?.toFixed(1) ?? "-" }}</td>
+              <td>{{ row.dp_dt_upstream?.toFixed(6) ?? "-" }}</td>
+              <td>{{ row.dp_dt_downstream?.toFixed(6) ?? "-" }}</td>
+              <td>{{ row.flowrate?.toFixed(1) ?? "-" }}</td>
               <td>{{ row.valve_opening_pct?.toFixed(1) ?? "-" }}</td>
               <td>{{ row.flow_regime ?? "-" }}</td>
               <td>{{ row.z_factor?.toFixed(4) ?? "-" }}</td>
@@ -49,6 +49,8 @@
 </template>
 
 <script setup lang="ts">
+import { getUnit } from "../api/client";
+
 const props = defineProps<{
   data: any[];
 }>();
