@@ -3,7 +3,7 @@
     <KpiCard
       label="Peak Flow Rate"
       :value="peakFlow"
-      :unit="getUnit('mass') + '/s'"
+      :unit="getUnit('mass_flow_rate')"
       icon="📈"
       color="flow"
       :loading="loading"
@@ -11,7 +11,7 @@
     <KpiCard
       label="Final Pressure"
       :value="finalPressure"
-      :unit="getUnit('pressure')"
+      :unit="getUnit('Pressure')"
       icon="🎯"
       color="pressure"
       :decimals="2"

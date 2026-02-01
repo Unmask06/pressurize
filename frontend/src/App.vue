@@ -1,33 +1,38 @@
 <template>
   <div class="app-container">
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <div class="header-top">
-          <h1>Pressurization Simulator</h1>
-          <a
-            href="/products/pressurize/docs/"
-            class="btn-docs"
-            title="View Documentation"
-            target="_blank"
-            rel="noopener noreferrer"
-            >📖</a
-          >
-        </div>
-        <p>Gas Valves</p>
-      </div>
-      <SimulationForm
-        :loading="loading"
-        :initial-composition="currentComposition"
-        :results-empty="results.length === 0"
-        :current-dt="currentDt"
-        :simulation-completed="simulationCompleted"
-        @run="runSimulation"
-        @stop="stopSimulation"
-        @edit-composition="showCompositionEditor = true"
-        @view-results="showResultsTable = true"
-        @edit-settings="showSettingsEditor = true"
-      />
+    <div v-if="!unitConfigReady" class="loading-overlay">
+      <div class="loading-spinner">⏳ Loading configuration...</div>
     </div>
+    <template v-else>
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <div class="header-top">
+            <h1>Pressurization Simulator</h1>
+            <a
+              href="/products/pressurize/docs/"
+              class="btn-docs"
+              title="View Documentation"
+              target="_blank"
+              rel="noopener noreferrer"
+              >📖</a
+            >
+          </div>
+          <p>Gas Valves</p>
+        </div>
+        <SimulationForm
+          :loading="loading"
+          :initial-composition="currentComposition"
+          :results-empty="results.length === 0"
+          :current-dt="currentDt"
+          :simulation-completed="simulationCompleted"
+          @run="runSimulation"
+          @stop="stopSimulation"
+          @edit-composition="showCompositionEditor = true"
+          @view-results="showResultsTable = true"
+          @edit-settings="showSettingsEditor = true"
+          @unit-system-changed="resetAllOutputs"
+        />
+      </div>
 
     <div class="main-content">
       <div class="results-header">
@@ -93,15 +98,16 @@
         @apply="updateSettings"
       />
     </Transition>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import {
-  fetchUnitConfig,
-  streamSimulation,
-  type SimulationRow,
+    fetchUnitConfig,
+    streamSimulation,
+    type SimulationRow,
 } from "./api/client";
 import CompositionEditor from "./components/CompositionEditor.vue";
 import KpiCards from "./components/KpiCards.vue";
@@ -112,6 +118,7 @@ import SettingsEditor from "./components/SettingsEditor.vue";
 import SimulationForm from "./components/SimulationForm.vue";
 
 const loading = ref(false);
+const unitConfigReady = ref(false);
 const showCompositionEditor = ref(false);
 const showResultsTable = ref(false);
 const showReportModal = ref(false);
@@ -128,8 +135,11 @@ let abortController: AbortController | null = null;
 onMounted(async () => {
   try {
     await fetchUnitConfig();
+    unitConfigReady.value = true;
   } catch (e) {
     console.error("Failed to fetch unit config in App.vue", e);
+    // Still set ready to true to allow app to render, even if units won't display correctly
+    unitConfigReady.value = true;
   }
 });
 
@@ -194,7 +204,7 @@ async function runSimulation(params: any) {
           kpis.peakFlow = kpiData.peak_flow;
           kpis.finalPressure = kpiData.final_pressure;
           kpis.equilibriumTime = kpiData.equilibrium_time;
-          kpis.totalMass = kpiData.total_mass_lb;
+          kpis.totalMass = kpiData.total_mass;
           simulationCompleted.value =
             kpiData.completed !== undefined ? kpiData.completed : true;
           kpisReady.value = true;
@@ -240,6 +250,25 @@ function updateSettings(settings: { dt: number; maxSimTime: number }) {
 
 function closeSettingsEditor() {
   showSettingsEditor.value = false;
+}
+
+function resetAllOutputs() {
+  // Clear all results when unit system changes
+  results.value = [];
+  loadedRows.value = 0;
+  
+  // Reset KPIs to zero
+  kpis.peakFlow = 0;
+  kpis.finalPressure = 0;
+  kpis.equilibriumTime = 0;
+  kpis.totalMass = 0;
+  
+  // Reset KPI ready state
+  kpisReady.value = true;
+  simulationCompleted.value = true;
+  
+  // Clear last form params
+  lastFormParams.value = {};
 }
 </script>
 
@@ -300,5 +329,13 @@ function closeSettingsEditor() {
 
 .chart-wrapper {
   @apply flex-1 min-h-0 w-full;
+}
+
+.loading-overlay {
+  @apply flex items-center justify-center w-full h-full bg-slate-50;
+}
+
+.loading-spinner {
+  @apply text-2xl font-bold text-blue-600 animate-pulse;
 }
 </style>

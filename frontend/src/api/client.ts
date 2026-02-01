@@ -1,10 +1,6 @@
 import axios from "axios";
 import { reactive, ref } from "vue";
-import type {
-  StreamingChunk,
-  StreamingComplete,
-  StreamingError,
-} from "./schema";
+import type { components } from "./schema";
 
 // Base URL: localhost for dev, api.xergiz.com for production
 const API_BASE_URL = import.meta.env.DEV
@@ -44,9 +40,24 @@ export function getUnitSystem(): UnitSystem {
 
 export async function fetchUnitConfig(): Promise<UnitConfig> {
   try {
+    console.log("Fetching unit config from:", `${API_BASE_URL}/units/config`);
     const response = await apiClient.get<UnitConfig>("/units/config");
+    console.log("Unit config response:", response.data);
+    console.log("Systems:", response.data.systems);
+    console.log("Dimensions keys:", Object.keys(response.data.dimensions));
+    console.log(
+      "Sample dimension (pressure):",
+      response.data.dimensions["pressure"],
+    );
+
     unitConfig.systems = response.data.systems;
     unitConfig.dimensions = response.data.dimensions;
+
+    console.log("unitConfig after assignment:", {
+      systems: unitConfig.systems,
+      dimensionKeys: Object.keys(unitConfig.dimensions),
+    });
+
     return response.data;
   } catch (error) {
     console.error("Error fetching unit config:", error);
@@ -69,6 +80,9 @@ export function getUnit(dimension: string): string {
 
   if (!unitConfig.dimensions[dimKey]) {
     console.warn(`Dimension not found: "${dimension}" (key: "${dimKey}")`);
+    console.warn(
+      `Available dimensions: "${Object.keys(unitConfig.dimensions).join(", ")}"`,
+    );
     return "?";
   }
 
@@ -86,24 +100,33 @@ export function getUnit(dimension: string): string {
 // Initialize with default header
 apiClient.defaults.headers.common["x-unit-system"] = currentUnitSystem.value;
 
-// Re-export generated types for convenience
-export type { StreamingChunk, StreamingComplete, StreamingError } from "./schema";
-
-// Type alias for simulation row (matches SimulationResultPoint from schema)
-export interface SimulationRow {
-  time: number;
-  pressure: number;
-  upstream_pressure: number;
-  downstream_pressure: number;
-  flowrate: number;
-  valve_opening_pct: number;
-  flow_regime: string;
-  dp_dt_upstream?: number;
-  dp_dt_downstream?: number;
-  z_factor?: number;
-  k_ratio?: number;
-  molar_mass?: number;
+// Streaming message types for Server-Sent Events
+export interface StreamingChunk {
+  type: "chunk";
+  rows: SimulationRow[];
+  total_rows: number;
 }
+
+export interface StreamingComplete {
+  type: "complete";
+  peak_flow: number;
+  final_pressure: number;
+  equilibrium_time: number;
+  total_mass: number;
+  completed: boolean;
+}
+
+export interface StreamingError {
+  type: "error";
+  message: string;
+}
+
+// Type aliases for API schema types
+export type SimulationRow = components["schemas"]["SimulationResultPoint"];
+export type SimulationRequest = components["schemas"]["SimulationRequest"];
+export type SimulationResponse = components["schemas"]["SimulationResponse"];
+export type PropertiesRequest = components["schemas"]["PropertiesRequest"];
+export type PropertiesResponse = components["schemas"]["PropertiesResponse"];
 
 export type StreamingMessage =
   | StreamingChunk
