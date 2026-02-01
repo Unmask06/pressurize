@@ -103,8 +103,32 @@ async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
 async def generate_simulation_stream(
     req: SimulationRequest,
     request: Request,
+    raw_body: dict,  # Pass raw body from endpoint
 ) -> AsyncGenerator[str, None]:
     """Generator that yields simulation results in SSE format."""
+    import logging
+
+    from pint_glass import unit_context
+
+    logger = logging.getLogger("pressurize.simulation")
+
+    # Get current unit system from context
+    current_system = unit_context.get()
+
+    # Log simulation start with unit system
+    logger.info("=" * 80)
+    logger.info("🚀 SIMULATION STARTED")
+    logger.info(f"📊 Unit System: {current_system}")
+    logger.info("=" * 80)
+
+    # Log raw input (BEFORE PintGlass conversion - what frontend actually sent)
+    logger.info("📥 RAW INPUT (as received from frontend, in user's units):")
+    logger.info(json.dumps(raw_body, indent=2))
+
+    # Log converted SI values (AFTER PintGlass Input conversion)
+    logger.info("🔄 BASE INPUT (converted to SI units):")
+    logger.info(json.dumps(req.model_dump(), indent=2))
+
     try:
         # Track if client disconnected
         client_disconnected = False
@@ -199,6 +223,18 @@ async def generate_simulation_stream(
             total_mass = 0.0
             completed = False
 
+        # Log base output (SI units before conversion)
+        base_output = {
+            "peak_flow_kg_s": peak_flow,
+            "final_pressure_pa": final_pressure,
+            "equilibrium_time_s": equil_time,
+            "total_mass_kg": total_mass,
+            "total_rows": total_rows,
+            "completed": completed,
+        }
+        logger.info("🔧 BASE OUTPUT (SI units - before PintGlass conversion):")
+        logger.info(json.dumps(base_output, indent=2))
+
         # Send completion message with KPIs
         complete = StreamingComplete(
             peak_flow=peak_flow,
@@ -207,6 +243,14 @@ async def generate_simulation_stream(
             total_mass=total_mass,
             completed=completed,
         )
+
+        # Log preferred output (after PintGlass Output conversion)
+        logger.info(f"✅ PREFERRED OUTPUT (converted to {current_system} unit system):")
+        logger.info(json.dumps(complete.model_dump(), indent=2))
+        logger.info("=" * 80)
+        logger.info("🏁 SIMULATION COMPLETED")
+        logger.info("=" * 80)
+
         yield f"data: {complete.model_dump_json()}\n\n"
 
     except GeneratorExit:
@@ -220,7 +264,6 @@ async def generate_simulation_stream(
 
 @router.post("/simulate/stream")
 async def stream_simulation_endpoint(
-    req: SimulationRequest,
     request: Request,
 ) -> StreamingResponse:
     """Stream simulation results progressively for large datasets.
@@ -228,8 +271,14 @@ async def stream_simulation_endpoint(
     Yields results in chunks of 100 rows via Server-Sent Events (SSE).
     Final message contains computed KPIs.
     """
+    # Capture raw body BEFORE Pydantic validation for logging
+    raw_body = await request.json()
+
+    # Now validate with Pydantic
+    req = SimulationRequest.model_validate(raw_body)
+
     return StreamingResponse(
-        generate_simulation_stream(req, request),
+        generate_simulation_stream(req, request, raw_body),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

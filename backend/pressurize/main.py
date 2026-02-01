@@ -36,9 +36,17 @@ app.add_middleware(
 @app.middleware("http")
 async def set_unit_context(request: Request, call_next):
     """Middleware to set the unit system context for the request."""
+    import logging
+
+    logger = logging.getLogger("pressurize.middleware")
+
     # Default to imperial to maintain backward compatibility if header is missing
     # (though we renamed fields, so strict backward compatibility is already broken)
     system = request.headers.get("x-unit-system", "imperial")
+
+    # Log incoming request with unit system
+    logger.info(f"📥 {request.method} {request.url.path} | Unit System: {system}")
+
     token = unit_context.set(system)
     try:
         response = await call_next(request)
