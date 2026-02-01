@@ -8,6 +8,8 @@
             href="/products/pressurize/docs/"
             class="btn-docs"
             title="View Documentation"
+            target="_blank"
+            rel="noopener noreferrer"
             >📖</a
           >
         </div>

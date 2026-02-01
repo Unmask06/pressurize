@@ -1,5 +1,10 @@
 import axios from "axios";
 import { reactive, ref } from "vue";
+import type {
+  StreamingChunk,
+  StreamingComplete,
+  StreamingError,
+} from "./schema";
 
 // Base URL: localhost for dev, api.xergiz.com for production
 const API_BASE_URL = import.meta.env.DEV
@@ -81,6 +86,10 @@ export function getUnit(dimension: string): string {
 // Initialize with default header
 apiClient.defaults.headers.common["x-unit-system"] = currentUnitSystem.value;
 
+// Re-export generated types for convenience
+export type { StreamingChunk, StreamingComplete, StreamingError } from "./schema";
+
+// Type alias for simulation row (matches SimulationResultPoint from schema)
 export interface SimulationRow {
   time: number;
   pressure: number;
@@ -94,26 +103,6 @@ export interface SimulationRow {
   z_factor?: number;
   k_ratio?: number;
   molar_mass?: number;
-}
-
-export interface StreamingChunk {
-  type: "chunk";
-  rows: SimulationRow[];
-  total_rows: number;
-}
-
-export interface StreamingComplete {
-  type: "complete";
-  peak_flow: number;
-  final_pressure: number;
-  equilibrium_time: number;
-  total_mass: number;
-  completed: boolean;
-}
-
-export interface StreamingError {
-  type: "error";
-  message: string;
 }
 
 export type StreamingMessage =
