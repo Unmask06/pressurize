@@ -3,7 +3,6 @@
 import json
 from collections.abc import AsyncGenerator
 
-import pandas as pd
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pint_glass import TARGET_DIMENSIONS, UNIT_SYSTEMS
@@ -12,7 +11,6 @@ from pressurize.api.schemas import (
     PropertiesRequest,
     PropertiesResponse,
     SimulationRequest,
-    SimulationResponse,
     SimulationResultPoint,
     StreamingChunk,
     StreamingComplete,
@@ -38,73 +36,30 @@ async def get_units_config() -> dict:
     }
 
 
-@router.post("/simulate", response_model=SimulationResponse)
-async def run_simulation_endpoint(req: SimulationRequest) -> SimulationResponse:
-    """Execute a gas pressurization simulation and return results with KPIs."""
-    try:
-        # Collect streaming results into a list then to DataFrame
-        sim_results = list(
-            run_simulation_streaming(
-                P_up=req.p_up,
-                P_down_init=req.p_down_init,
-                valve_id=req.valve_id,
-                opening_time=req.opening_time,
-                upstream_volume=req.upstream_volume,
-                upstream_temp=req.upstream_temp,
-                downstream_volume=req.downstream_volume,
-                downstream_temp=req.downstream_temp,
-                molar_mass=req.molar_mass,
-                z_factor=req.z_factor,
-                k_ratio=req.k_ratio,
-                discharge_coeff=req.discharge_coeff,
-                valve_action=req.valve_action,
-                opening_mode=req.opening_mode,
-                k_curve=req.k_curve,
-                dt=req.dt,
-                property_mode=req.property_mode,
-                composition=req.composition,
-                mode=req.mode,
-            )
-        )
-        df = pd.DataFrame(sim_results)
-
-        # Calculate KPIs (Values are in SI: kg/s, Pa)
-        peak_flow = float(df["flowrate"].max())
-        final_pressure = float(df["downstream_pressure"].iloc[-1])
-
-        # Find equilibrium time
-        equilibrium_mask = df["downstream_pressure"] >= df["upstream_pressure"]
-        if equilibrium_mask.any():
-            equil_time = float(df.loc[equilibrium_mask, "time"].iloc[0])
-        else:
-            equil_time = float(df["time"].iloc[-1])
-
-        # Calc total mass (kg)
-        dt = req.dt
-        total_mass = float(df["flowrate"].sum() * dt)
-
-        results = [
-            SimulationResultPoint.model_validate(row)
-            for row in df.to_dict(orient="records")
-        ]
-
-        return SimulationResponse(
-            results=results,
-            peak_flow=peak_flow,
-            final_pressure=final_pressure,
-            equilibrium_time=equil_time,
-            total_mass=total_mass,
-        )
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-
 async def generate_simulation_stream(
     req: SimulationRequest,
     request: Request,
 ) -> AsyncGenerator[str, None]:
     """Generator that yields simulation results in SSE format."""
+    import logging
+
+    from pint_glass import unit_context
+
+    logger = logging.getLogger("pressurize.simulation")
+
+    # Get current unit system from context
+    current_system = unit_context.get()
+
+    # Log simulation start with unit system
+    logger.info("=" * 80)
+    logger.info("🚀 SIMULATION STARTED")
+    logger.info(f"📊 Unit System: {current_system}")
+    logger.info("=" * 80)
+
+    # Log converted SI values (AFTER PintGlass Input conversion)
+    logger.info("🔄 BASE INPUT (converted to SI units):")
+    logger.info(json.dumps(req.model_dump(), indent=2))
+
     try:
         # Track if client disconnected
         client_disconnected = False
@@ -121,7 +76,7 @@ async def generate_simulation_stream(
         for row_dict in run_simulation_streaming(
             P_up=req.p_up,
             P_down_init=req.p_down_init,
-            valve_id=req.valve_id,
+            valve_id=req.valve_id / 1000,  # Convert mm to m for physics engine
             opening_time=req.opening_time,
             upstream_volume=req.upstream_volume,
             upstream_temp=req.upstream_temp,
@@ -155,6 +110,11 @@ async def generate_simulation_stream(
                     total_rows=total_rows,
                 )
                 yield f"data: {chunk.model_dump_json()}\n\n"
+
+                # Check if client disconnected after yielding
+                if await request.is_disconnected():
+                    client_disconnected = True
+                    break
 
         # Send any remaining rows
         remaining = len(all_results) % CHUNK_SIZE
@@ -199,6 +159,18 @@ async def generate_simulation_stream(
             total_mass = 0.0
             completed = False
 
+        # Log base output (SI units before conversion)
+        base_output = {
+            "peak_flow_kg_s": peak_flow,
+            "final_pressure_pa": final_pressure,
+            "equilibrium_time_s": equil_time,
+            "total_mass_kg": total_mass,
+            "total_rows": total_rows,
+            "completed": completed,
+        }
+        logger.info("🔧 BASE OUTPUT (SI units - before PintGlass conversion):")
+        logger.info(json.dumps(base_output, indent=2))
+
         # Send completion message with KPIs
         complete = StreamingComplete(
             peak_flow=peak_flow,
@@ -207,6 +179,14 @@ async def generate_simulation_stream(
             total_mass=total_mass,
             completed=completed,
         )
+
+        # Log preferred output (after PintGlass Output conversion)
+        logger.info(f"✅ PREFERRED OUTPUT (converted to {current_system} unit system):")
+        logger.info(json.dumps(complete.model_dump(), indent=2))
+        logger.info("=" * 80)
+        logger.info("🏁 SIMULATION COMPLETED")
+        logger.info("=" * 80)
+
         yield f"data: {complete.model_dump_json()}\n\n"
 
     except GeneratorExit:
@@ -225,7 +205,7 @@ async def stream_simulation_endpoint(
 ) -> StreamingResponse:
     """Stream simulation results progressively for large datasets.
 
-    Yields results in chunks of 100 rows via Server-Sent Events (SSE).
+    Yields results in chunks of 5 rows via Server-Sent Events (SSE).
     Final message contains computed KPIs.
     """
     return StreamingResponse(

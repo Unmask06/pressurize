@@ -39,6 +39,7 @@ async def set_unit_context(request: Request, call_next):
     # Default to imperial to maintain backward compatibility if header is missing
     # (though we renamed fields, so strict backward compatibility is already broken)
     system = request.headers.get("x-unit-system", "imperial")
+
     token = unit_context.set(system)
     try:
         response = await call_next(request)

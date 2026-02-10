@@ -142,7 +142,7 @@ function formatInputUnit(key: string): string {
     p_down_init: getUnit("pressure"),
     downstream_volume: getUnit("volume"),
     downstream_temp: getUnit("temperature"),
-    valve_id: getUnit("length"),
+    valve_id: getUnit("small_length"),
     opening_time: getUnit("time"),
     molar_mass: "g/mol",
     z_factor: "",
@@ -285,7 +285,7 @@ async function getPdfBlob(): Promise<Blob> {
       {
         label: "Peak Flow Rate",
         value: props.kpis.peakFlow,
-        unit: `${getUnit("mass")}/s`,
+        unit: getUnit("mass_flow_rate"),
         decimals: 1,
       },
       {

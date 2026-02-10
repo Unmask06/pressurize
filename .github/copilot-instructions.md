@@ -1,6 +1,3 @@
-# Copilot Instructions for Pressurize
-
-Generic instructions for AI coding agents working on the Pressurize project.
 
 ## Project Overview
 
@@ -50,6 +47,9 @@ Pressurize is a gas blowdown and valve pressurization simulator. It calculates g
 - **Full Stack**: Run `./launch.ps1` from the root to start both servers and open the browser.
 - **Backend Only**: `uv run uvicorn pressurize.main:app --reload` (from `backend/`).
 - **Frontend Only**: `npm run dev` (from `frontend/`).
+
+### CLI Mode
+- In CLI mode, check the type of terminal cmd or PS and their versions to ensure compatibility.
 
 ### Testing
 

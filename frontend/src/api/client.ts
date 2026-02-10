@@ -40,23 +40,10 @@ export function getUnitSystem(): UnitSystem {
 
 export async function fetchUnitConfig(): Promise<UnitConfig> {
   try {
-    console.log("Fetching unit config from:", `${API_BASE_URL}/units/config`);
     const response = await apiClient.get<UnitConfig>("/units/config");
-    console.log("Unit config response:", response.data);
-    console.log("Systems:", response.data.systems);
-    console.log("Dimensions keys:", Object.keys(response.data.dimensions));
-    console.log(
-      "Sample dimension (pressure):",
-      response.data.dimensions["pressure"],
-    );
 
     unitConfig.systems = response.data.systems;
     unitConfig.dimensions = response.data.dimensions;
-
-    console.log("unitConfig after assignment:", {
-      systems: unitConfig.systems,
-      dimensionKeys: Object.keys(unitConfig.dimensions),
-    });
 
     return response.data;
   } catch (error) {
@@ -124,7 +111,6 @@ export interface StreamingError {
 // Type aliases for API schema types
 export type SimulationRow = components["schemas"]["SimulationResultPoint"];
 export type SimulationRequest = components["schemas"]["SimulationRequest"];
-export type SimulationResponse = components["schemas"]["SimulationResponse"];
 export type PropertiesRequest = components["schemas"]["PropertiesRequest"];
 export type PropertiesResponse = components["schemas"]["PropertiesResponse"];
 

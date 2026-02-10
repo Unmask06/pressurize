@@ -15,7 +15,7 @@
               <th>P Down ({{ getUnit("pressure") }})</th>
               <th>dP/dt Up</th>
               <th>dP/dt Down</th>
-              <th>Flow ({{ getUnit("mass") }}/s)</th>
+              <th>Flow ({{ getUnit("mass_flow_rate") }})</th>
               <th>Valve (%)</th>
               <th>Regime</th>
               <th>Z</th>
@@ -63,7 +63,7 @@ const emit = defineEmits(["close"]);
 
 /* Component-specific modal sizing */
 .modal-content {
-  @apply w-[95%] max-w-[1200px] max-h-[85vh];
+  @apply w-[95%] max-w-300 max-h-[85vh];
 }
 
 .table-container {

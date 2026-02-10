@@ -7,7 +7,6 @@ export default defineConfig({
   base: "/products/pressurize/docs/",
   outDir: "../dist/products/pressurize/docs",
   head: [["link", { rel: "canonical", href: "/products/pressurize/" }]],
-  outDir: "../dist/products/pressurize/docs",
   markdown: {
     config: (md) => {
       md.use(mathjax3);

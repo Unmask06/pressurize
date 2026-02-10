@@ -24,26 +24,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/simulate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Run Simulation Endpoint
-         * @description Execute a gas pressurization simulation and return results with KPIs.
-         */
-        post: operations["run_simulation_endpoint_simulate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/simulate/stream": {
         parameters: {
             query?: never;
@@ -323,56 +303,6 @@ export interface components {
              */
             composition?: string | null;
         };
-        /**
-         * SimulationResponse
-         * @description Complete response from a pressurization simulation.
-         *
-         *     Includes time-series results and calculated KPIs like peak flow and equilibrium time.
-         */
-        SimulationResponse: {
-            /** Results */
-            results: components["schemas"]["SimulationResultPoint"][];
-            /** Peak Flow */
-            peak_flow: number;
-            /** Final Pressure */
-            final_pressure: number;
-            /** Equilibrium Time */
-            equilibrium_time: number;
-            /** Total Mass */
-            total_mass: number;
-        };
-        /**
-         * SimulationResultPoint
-         * @description Single timestep result from a pressurization simulation.
-         *
-         *     Contains pressure, flow, valve opening, and gas properties at a specific time.
-         */
-        SimulationResultPoint: {
-            /** Time */
-            time: number;
-            /** Pressure */
-            pressure: number;
-            /** Upstream Pressure */
-            upstream_pressure: number;
-            /** Downstream Pressure */
-            downstream_pressure: number;
-            /** Flowrate */
-            flowrate: number;
-            /** Valve Opening Pct */
-            valve_opening_pct: number;
-            /** Flow Regime */
-            flow_regime: string;
-            /** Dp Dt Upstream */
-            dp_dt_upstream?: number | null;
-            /** Dp Dt Downstream */
-            dp_dt_downstream?: number | null;
-            /** Z Factor */
-            z_factor?: number | null;
-            /** K Ratio */
-            k_ratio?: number | null;
-            /** Molar Mass */
-            molar_mass?: number | null;
-        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -409,39 +339,6 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
-                };
-            };
-        };
-    };
-    run_simulation_endpoint_simulate_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SimulationRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SimulationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

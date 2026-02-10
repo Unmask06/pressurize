@@ -57,7 +57,7 @@ const option = computed(() => {
   if (!props.data || props.data.length === 0) return {};
 
   const pressureUnit = getUnit("pressure");
-  const flowUnit = `${getUnit("mass")}/s`;
+  const flowUnit = getUnit("mass_flow_rate");
 
   const downstream = props.data.map((d) => [d.time, d.downstream_pressure]);
   const upstream = props.data.map((d) => [d.time, d.upstream_pressure]);
