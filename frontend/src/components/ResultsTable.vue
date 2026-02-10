@@ -63,7 +63,7 @@ const emit = defineEmits(["close"]);
 
 /* Component-specific modal sizing */
 .modal-content {
-  @apply w-[95%] max-w-[1200px] max-h-[85vh];
+  @apply w-[95%] max-w-300 max-h-[85vh];
 }
 
 .table-container {

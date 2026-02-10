@@ -6,10 +6,14 @@
         <!-- Unit System Dropdown -->
         <div class="unit-selector">
           <label>Unit System:</label>
-          <select :value="unitSystem" @change="
-            (e) =>
-              changeUnitSystem((e.target as HTMLSelectElement).value as any)
-          " class="unit-select">
+          <select
+            :value="unitSystem"
+            @change="
+              (e) =>
+                changeUnitSystem((e.target as HTMLSelectElement).value as any)
+            "
+            class="unit-select"
+          >
             <option v-for="sys in availableSystems" :key="sys" :value="sys">
               {{ formatSystemName(sys) }}
             </option>
@@ -23,16 +27,25 @@
     <div class="section-container">
       <div class="section-header">📈 Simulation Mode</div>
       <div class="toggle-group">
-        <button :class="{ active: form.mode === 'pressurize' }" @click="form.mode = 'pressurize'"
-          title="Pressurize: upstream pressure constant, downstream evolves">
+        <button
+          :class="{ active: form.mode === 'pressurize' }"
+          @click="form.mode = 'pressurize'"
+          title="Pressurize: upstream pressure constant, downstream evolves"
+        >
           🔼 Pressurize
         </button>
-        <button :class="{ active: form.mode === 'depressurize' }" @click="form.mode = 'depressurize'"
-          title="Depressurize: downstream pressure constant, upstream evolves">
+        <button
+          :class="{ active: form.mode === 'depressurize' }"
+          @click="form.mode = 'depressurize'"
+          title="Depressurize: downstream pressure constant, upstream evolves"
+        >
           🔽 Depressurize
         </button>
-        <button :class="{ active: form.mode === 'equalize' }" @click="form.mode = 'equalize'"
-          title="Equalize: both upstream and downstream pressures evolve">
+        <button
+          :class="{ active: form.mode === 'equalize' }"
+          @click="form.mode = 'equalize'"
+          title="Equalize: both upstream and downstream pressures evolve"
+        >
           ⇌ Equalize
         </button>
       </div>
@@ -45,13 +58,23 @@
         <div class="section-container">
           <div class="section-header">📤 Upstream Vessel</div>
           <div class="row">
-            <div class="form-group" :class="form.mode !== 'pressurize' ? 'third' : 'half'">
+            <div
+              class="form-group"
+              :class="form.mode !== 'pressurize' ? 'third' : 'half'"
+            >
               <label>Pressure ({{ getUnit("Pressure") }})</label>
               <input type="number" v-model.number="form.p_up" />
             </div>
-            <div class="form-group" :class="form.mode !== 'pressurize' ? 'third' : 'half'">
+            <div
+              class="form-group"
+              :class="form.mode !== 'pressurize' ? 'third' : 'half'"
+            >
               <label>Temperature ({{ getUnit("Temperature") }})</label>
-              <input type="number" v-model.number="form.upstream_temp" step="5" />
+              <input
+                type="number"
+                v-model.number="form.upstream_temp"
+                step="5"
+              />
             </div>
             <div class="form-group third" v-if="form.mode !== 'pressurize'">
               <label>Volume ({{ getUnit("volume") }})</label>
@@ -64,13 +87,23 @@
         <div class="section-container">
           <div class="section-header">📥 Downstream Vessel</div>
           <div class="row">
-            <div class="form-group" :class="form.mode !== 'depressurize' ? 'third' : 'half'">
+            <div
+              class="form-group"
+              :class="form.mode !== 'depressurize' ? 'third' : 'half'"
+            >
               <label>Pressure ({{ getUnit("pressure") }})</label>
               <input type="number" v-model.number="form.p_down_init" />
             </div>
-            <div class="form-group" :class="form.mode !== 'depressurize' ? 'third' : 'half'">
+            <div
+              class="form-group"
+              :class="form.mode !== 'depressurize' ? 'third' : 'half'"
+            >
               <label>Temperature ({{ getUnit("temperature") }})</label>
-              <input type="number" v-model.number="form.downstream_temp" step="5" />
+              <input
+                type="number"
+                v-model.number="form.downstream_temp"
+                step="5"
+              />
             </div>
             <div class="form-group third" v-if="form.mode !== 'depressurize'">
               <label>Volume ({{ getUnit("volume") }})</label>
@@ -86,20 +119,30 @@
           <div class="section-header">🔧 Valve Configuration</div>
           <div class="row">
             <div class="form-group quarter">
-              <label>Valve ID ({{ getUnit("length") }})</label>
+              <label>Valve ID ({{ getUnit("small_length") }})</label>
               <input type="number" v-model.number="form.valve_id" />
             </div>
             <div class="form-group quarter">
               <label>Discharge Coeff (Cd)</label>
-              <input type="number" v-model.number="form.discharge_coeff" step="0.05" />
+              <input
+                type="number"
+                v-model.number="form.discharge_coeff"
+                step="0.05"
+              />
             </div>
             <div class="form-group quarter">
               <label>Valve Action</label>
               <div class="toggle-group">
-                <button :class="{ active: form.valve_action === 'open' }" @click="form.valve_action = 'open'">
+                <button
+                  :class="{ active: form.valve_action === 'open' }"
+                  @click="form.valve_action = 'open'"
+                >
                   🔓 Open
                 </button>
-                <button :class="{ active: form.valve_action === 'close' }" @click="form.valve_action = 'close'">
+                <button
+                  :class="{ active: form.valve_action === 'close' }"
+                  @click="form.valve_action = 'close'"
+                >
                   🔒 Close
                 </button>
               </div>
@@ -128,7 +171,10 @@
                 </option>
               </select>
             </div>
-            <div class="form-group quarter" v-if="['exponential', 'quick_acting'].includes(form.opening_mode)">
+            <div
+              class="form-group quarter"
+              v-if="['exponential', 'quick_acting'].includes(form.opening_mode)"
+            >
               <label>Curve Factor (k)</label>
               <input type="number" v-model.number="form.k_curve" step="0.1" />
             </div>
@@ -144,21 +190,32 @@
             <div class="form-group half">
               <label>Property Mode</label>
               <div class="toggle-group">
-                <button :class="{ active: form.property_mode === 'manual' }" @click="form.property_mode = 'manual'">
+                <button
+                  :class="{ active: form.property_mode === 'manual' }"
+                  @click="form.property_mode = 'manual'"
+                >
                   Manual
                 </button>
-                <button :class="{ active: form.property_mode === 'composition' }"
-                  @click="form.property_mode = 'composition'">
+                <button
+                  :class="{ active: form.property_mode === 'composition' }"
+                  @click="form.property_mode = 'composition'"
+                >
                   Composition
                 </button>
               </div>
             </div>
 
-            <div class="form-group half" v-show="form.property_mode === 'composition'">
+            <div
+              class="form-group half"
+              v-show="form.property_mode === 'composition'"
+            >
               <label>Composition</label>
               <div class="composition-summary-inline">
                 <span class="summary-text">🧪 {{ compositionSummary }}</span>
-                <button class="btn-secondary" @click="$emit('edit-composition')">
+                <button
+                  class="btn-secondary"
+                  @click="$emit('edit-composition')"
+                >
                   ✏️ Edit
                 </button>
               </div>
@@ -168,21 +225,33 @@
           <div class="row">
             <div class="form-group third">
               <label title="Molar Mass">MW (g/mol)</label>
-              <input type="number" v-model.number="form.molar_mass" step="0.1"
+              <input
+                type="number"
+                v-model.number="form.molar_mass"
+                step="0.1"
                 :disabled="form.property_mode === 'composition'"
-                :class="{ 'read-only': form.property_mode === 'composition' }" />
+                :class="{ 'read-only': form.property_mode === 'composition' }"
+              />
             </div>
             <div class="form-group third">
               <label title="Z-Factor">Z-Factor</label>
-              <input type="number" v-model.number="form.z_factor" step="0.01"
+              <input
+                type="number"
+                v-model.number="form.z_factor"
+                step="0.01"
                 :disabled="form.property_mode === 'composition'"
-                :class="{ 'read-only': form.property_mode === 'composition' }" />
+                :class="{ 'read-only': form.property_mode === 'composition' }"
+              />
             </div>
             <div class="form-group third">
               <label title="Heat Capacity Ratio">k (Cp/Cv)</label>
-              <input type="number" v-model.number="form.k_ratio" step="0.01"
+              <input
+                type="number"
+                v-model.number="form.k_ratio"
+                step="0.01"
                 :disabled="form.property_mode === 'composition'"
-                :class="{ 'read-only': form.property_mode === 'composition' }" />
+                :class="{ 'read-only': form.property_mode === 'composition' }"
+              />
             </div>
           </div>
         </div>
@@ -190,11 +259,20 @@
     </div>
 
     <div class="actions">
-      <button type="button" class="btn-table" @click="viewResults" :disabled="resultsEmpty">
+      <button
+        type="button"
+        class="btn-table"
+        @click="viewResults"
+        :disabled="resultsEmpty"
+      >
         {{ resultsEmpty ? "No Data Available" : "📊 View Results Table" }}
       </button>
 
-      <button type="button" :class="buttonClass" @click="loading ? stopSimulation() : runSimulation()">
+      <button
+        type="button"
+        :class="buttonClass"
+        @click="loading ? stopSimulation() : runSimulation()"
+      >
         {{ buttonText }}
       </button>
     </div>
@@ -249,7 +327,7 @@ const form = reactive<SimulationRequest>({
   p_down_init: 0,
   upstream_volume: 100,
   downstream_volume: 100,
-  valve_id: 0.1667, // Default approx 2 inches in ft
+  valve_id: 2.0, // Default 2 inches
   opening_time: 5,
   valve_action: "open",
   upstream_temp: 70,

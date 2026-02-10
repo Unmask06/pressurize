@@ -142,7 +142,7 @@ function formatInputUnit(key: string): string {
     p_down_init: getUnit("pressure"),
     downstream_volume: getUnit("volume"),
     downstream_temp: getUnit("temperature"),
-    valve_id: getUnit("length"),
+    valve_id: getUnit("small_length"),
     opening_time: getUnit("time"),
     molar_mass: "g/mol",
     z_factor: "",

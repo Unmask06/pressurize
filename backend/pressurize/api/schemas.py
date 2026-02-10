@@ -42,7 +42,9 @@ class SimulationRequest(BaseModel):
         description="Downstream vessel temperature. TODO: Currently constant; may add dynamic model later.",
     )
 
-    valve_id: PintGlass("length", "Input") = Field(..., description="Valve ID", gt=0)
+    valve_id: PintGlass("Small Length", "Input") = Field(
+        ..., description="Valve ID", gt=0
+    )
     opening_time: PintGlass("time", "Input") = Field(
         ..., description="Valve opening time", ge=0
     )

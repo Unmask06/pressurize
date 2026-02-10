@@ -73,8 +73,8 @@ class TestSimulationRequestConversion:
         assert pytest.approx(req.p_down_init, rel=0.01) == 101325.0
 
     def test_length_conversion_to_meters(self):
-        """Test that length inputs (feet) are converted to meters."""
-        # 1 ft = 0.3048 m
+        """Test that small length inputs (inches) are converted to millimeters."""
+        # 1 in = 25.4 mm (SI unit for Small Length is mm)
 
         req = SimulationRequest(
             mode="equalize",
@@ -84,14 +84,14 @@ class TestSimulationRequestConversion:
             p_down_init=0.0,
             downstream_volume=10.0,
             downstream_temp=70.0,
-            valve_id=1.0,  # 1 ft
+            valve_id=1.0,  # 1 inch
             opening_time=10.0,
             molar_mass=28.0,
             z_factor=1.0,
             k_ratio=1.4,
         )
 
-        assert pytest.approx(req.valve_id, abs=0.0001) == 0.3048
+        assert pytest.approx(req.valve_id, abs=0.01) == 25.4
 
     def test_volume_conversion_to_cubic_meters(self):
         """Test that volume inputs (ft³) are converted to m³."""

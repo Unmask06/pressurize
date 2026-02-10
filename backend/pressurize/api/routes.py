@@ -75,7 +75,7 @@ async def generate_simulation_stream(
         for row_dict in run_simulation_streaming(
             P_up=req.p_up,
             P_down_init=req.p_down_init,
-            valve_id=req.valve_id,
+            valve_id=req.valve_id / 1000,  # Convert mm to m for physics engine
             opening_time=req.opening_time,
             upstream_volume=req.upstream_volume,
             upstream_temp=req.upstream_temp,
