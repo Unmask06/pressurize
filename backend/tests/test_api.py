@@ -57,16 +57,36 @@ def test_simulation_workflow():
         "dt": 0.5,  # Larger dt for faster test
     }
 
-    response = client.post(
-        "/simulate", json=payload, headers={"x-unit-system": "imperial"}
-    )
-    assert response.status_code == 200
-    data = response.json()
+    complete = None
+    chunk_count = 0
 
-    assert "results" in data
-    assert "peak_flow" in data
-    assert len(data["results"]) > 0
-    assert data["results"][0]["pressure"] >= 0
+    with client.stream(
+        "POST", "/simulate/stream", json=payload, headers={"x-unit-system": "imperial"}
+    ) as response:
+        assert response.status_code == 200
+
+        for line in response.iter_lines():
+            if not line:
+                continue
+
+            if line.startswith("data: "):
+                data_content = line[6:].strip()
+                if not data_content:
+                    continue
+                try:
+                    msg = json.loads(data_content)
+                    if msg.get("type") == "chunk":
+                        chunk_count += 1
+                    elif msg.get("type") == "complete":
+                        complete = msg
+                        break
+                except json.JSONDecodeError:
+                    continue
+
+    assert chunk_count >= 1
+    assert complete is not None
+    assert complete["peak_flow"] >= 0
+    assert "final_pressure" in complete
 
 
 def test_streaming_simulation():

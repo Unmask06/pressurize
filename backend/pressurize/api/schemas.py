@@ -86,7 +86,7 @@ class SimulationResultPoint(BaseModel):
     pressure: PintGlass("pressure", "Output")
     upstream_pressure: PintGlass("pressure", "Output")
     downstream_pressure: PintGlass("pressure", "Output")
-    flowrate: float
+    flowrate: PintGlass("Mass Flow Rate", "Output")
     valve_opening_pct: float
     flow_regime: str
 
@@ -107,7 +107,7 @@ class SimulationResponse(BaseModel):
     """
 
     results: list[SimulationResultPoint]
-    peak_flow: float
+    peak_flow: PintGlass("Mass Flow Rate", "Output")
     final_pressure: PintGlass("pressure", "Output")
     equilibrium_time: PintGlass("time", "Output")
     total_mass: PintGlass("mass", "Output")
@@ -153,7 +153,7 @@ class StreamingComplete(BaseModel):
     """
 
     type: Literal["complete"] = "complete"
-    peak_flow: float
+    peak_flow: PintGlass("Mass Flow Rate", "Output")
     final_pressure: PintGlass("pressure", "Output")
     equilibrium_time: PintGlass("time", "Output")
     total_mass: PintGlass("mass", "Output")

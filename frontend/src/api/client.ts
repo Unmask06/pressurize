@@ -124,7 +124,6 @@ export interface StreamingError {
 // Type aliases for API schema types
 export type SimulationRow = components["schemas"]["SimulationResultPoint"];
 export type SimulationRequest = components["schemas"]["SimulationRequest"];
-export type SimulationResponse = components["schemas"]["SimulationResponse"];
 export type PropertiesRequest = components["schemas"]["PropertiesRequest"];
 export type PropertiesResponse = components["schemas"]["PropertiesResponse"];
 

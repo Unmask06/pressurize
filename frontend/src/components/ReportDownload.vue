@@ -285,7 +285,7 @@ async function getPdfBlob(): Promise<Blob> {
       {
         label: "Peak Flow Rate",
         value: props.kpis.peakFlow,
-        unit: `${getUnit("mass")}/s`,
+        unit: getUnit("mass_flow_rate"),
         decimals: 1,
       },
       {

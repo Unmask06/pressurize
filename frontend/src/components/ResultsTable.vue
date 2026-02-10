@@ -15,7 +15,7 @@
               <th>P Down ({{ getUnit("pressure") }})</th>
               <th>dP/dt Up</th>
               <th>dP/dt Down</th>
-              <th>Flow ({{ getUnit("mass") }}/s)</th>
+              <th>Flow ({{ getUnit("mass_flow_rate") }})</th>
               <th>Valve (%)</th>
               <th>Regime</th>
               <th>Z</th>
