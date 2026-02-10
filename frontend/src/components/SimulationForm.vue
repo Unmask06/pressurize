@@ -10,7 +10,7 @@
             :value="unitSystem"
             @change="
               (e) =>
-                changeUnitSystem((e.target as HTMLSelectElement).value as any)
+                changeUnitSystem((e.target as HTMLSelectElement).value as UnitSystem)
             "
             class="unit-select"
           >
@@ -343,8 +343,8 @@ const form = reactive<SimulationRequest>({
   dt: 0.05,
 });
 
-function changeUnitSystem(system: string) {
-  setUnitSystem(system as UnitSystem);
+function changeUnitSystem(system: UnitSystem) {
+  setUnitSystem(system);
   // Emit event to parent to clear all results since they're in the old unit system
   emit("unit-system-changed");
 }

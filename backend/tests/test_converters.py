@@ -49,7 +49,6 @@ class TestSimulationRequestConversion:
     def test_pressure_conversion_psi_to_pa(self):
         """Test that pressure inputs (psi) are converted to Absolute Pa."""
         # 14.696 psi = 101325 Pa
-        # 0 psi = 0 Pa
 
         req = SimulationRequest(
             mode="equalize",

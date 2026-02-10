@@ -3,7 +3,7 @@
 import json
 from collections.abc import AsyncGenerator
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pint_glass import TARGET_DIMENSIONS, UNIT_SYSTEMS
 
@@ -38,6 +38,7 @@ async def get_units_config() -> dict:
 
 async def generate_simulation_stream(
     req: SimulationRequest,
+    request: Request,
 ) -> AsyncGenerator[str, None]:
     """Generator that yields simulation results in SSE format."""
     import logging
@@ -109,6 +110,11 @@ async def generate_simulation_stream(
                     total_rows=total_rows,
                 )
                 yield f"data: {chunk.model_dump_json()}\n\n"
+
+                # Check if client disconnected after yielding
+                if await request.is_disconnected():
+                    client_disconnected = True
+                    break
 
         # Send any remaining rows
         remaining = len(all_results) % CHUNK_SIZE
@@ -195,14 +201,15 @@ async def generate_simulation_stream(
 @router.post("/simulate/stream")
 async def stream_simulation_endpoint(
     req: SimulationRequest,
+    request: Request,
 ) -> StreamingResponse:
     """Stream simulation results progressively for large datasets.
 
-    Yields results in chunks of 100 rows via Server-Sent Events (SSE).
+    Yields results in chunks of 5 rows via Server-Sent Events (SSE).
     Final message contains computed KPIs.
     """
     return StreamingResponse(
-        generate_simulation_stream(req),
+        generate_simulation_stream(req, request),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
