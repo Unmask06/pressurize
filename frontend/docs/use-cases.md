@@ -4,30 +4,43 @@
 
 ### 1. Gas Distribution Systems
 
-Engineers designing networks for natural gas or hydrogen need to know how fast they can pressurize a section of pipe or a storage tank without triggering safety alarms or exceeding material temperature limits.
+Engineers designing networks for natural gas or hydrogen need to know how fast they can pressurize a section of pipe or a storage tank without exceeding material temperature limits or triggering safety systems.
 
-### 2. Rocket Propulsion Ground Support
+**Pressurize helps by**: simulating the fill profile with real-gas accuracy, showing exactly when choked flow transitions to subsonic, and calculating the total mass transferred.
 
-In aerospace, high-pressure helium or nitrogen is used to purge fuel lines or pressurize propellant tanks. Knowing the exact fill time and temperature rise is critical for mission timing and safety.
+### 2. Pressure Equalization Between Vessels
+
+In process plants, gas is often transferred between vessels at different pressures. The Equalize mode models both sides simultaneously, predicting the equilibrium pressure and the time to reach it.
 
 ### 3. Industrial Process Safety
 
-Safety valves and relief systems must be sized correctly. If a control valve fails open, how fast does pressure build up? Pressurize helps simulate these worst-case scenarios to verify that relief valves can handle the load.
+Safety valves and relief systems must be sized correctly. If a control valve fails open, how fast does pressure build up? Pressurize simulates these worst-case scenarios — switch to Fixed (Instant) opening mode and compare peak flow rates against relief device capacity.
+
+### 4. Blowdown Analysis
+
+Depressurizing a vessel for maintenance or emergency shutdown requires knowing the blowdown time and minimum temperature (Joule-Thomson cooling). The Depressurize mode models this scenario.
+
+### 5. Valve Sizing & Selection
+
+By varying valve ID and Cd values across multiple runs, engineers can identify the minimum valve size that meets fill-time requirements without exceeding allowable flow velocities.
 
 ## Comparison: Pressurize vs Alternatives
 
-### Excel / Simple Spreadsheets (Limitations)
+### Excel / Simple Spreadsheets
 
-- **Spreadsheets** usually assume Ideal Gas behavior, which is inaccurate at high pressures (errors can exceed 20%).
-- They struggle to switch automatically between Sonic and Subsonic flow formulas.
-- Performing time-dependent (dynamic) simulations in Excel requires complex macros or manual iteration.
+| Limitation                      | Pressurize                                    |
+| ------------------------------- | --------------------------------------------- |
+| Assumes ideal gas ($Z=1$)       | Peng-Robinson EOS, dynamic Z                  |
+| Manual sonic/subsonic switching | Automatic regime detection at every time step |
+| No multi-component gas support  | 20+ species, preset compositions              |
+| Static calculations only        | Time-stepped dynamic simulation               |
+| Single unit system              | 5 unit systems, switchable on the fly         |
 
-**Pressurize** handles real gas physics and dynamic time-stepping out of the box.
+### Commercial Simulators (HYSYS, Aspen)
 
-### Expensive Commercial Simulators (e.g., HYSYS, Aspen)
-
-- **Commercial tools** are incredibly powerful but expensive and complex to learn.
-- They are often "overkill" for a focused problem like a single vessel filling.
-- They require paid licenses and installation.
-
-**Pressurize** is free, open-source, runs in your browser, and focuses specifically on making this one task easy and accurate.
+| Consideration                        | Pressurize                                 |
+| ------------------------------------ | ------------------------------------------ |
+| Expensive licenses                   | Free and browser-based                     |
+| Steep learning curve                 | Purpose-built UI for valve/vessel problems |
+| Overkill for single-vessel scenarios | Focused and fast                           |
+| Requires installation                | Runs in any browser                        |

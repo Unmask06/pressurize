@@ -19,7 +19,12 @@ export default defineConfig({
       { text: "How to Use", link: "/how-to-use" },
       { text: "Technical Background", link: "/technical-background" },
       { text: "Use Cases", link: "/use-cases" },
-      { text: "Launch App", link: "../", target: "_blank", rel: "noopener noreferrer" },
+      {
+        text: "Launch App",
+        link: "../",
+        target: "_blank",
+        rel: "noopener noreferrer",
+      },
     ],
     sidebar: [
       {
@@ -32,8 +37,6 @@ export default defineConfig({
         ],
       },
     ],
-    socialLinks: [
-      { icon: "github", link: "https://github.com/Unmask06/pressurize" },
-    ],
+    socialLinks: [],
   },
 });

@@ -17,6 +17,7 @@ from pressurize.api.schemas import (
 )
 from pressurize.core.properties import GasState, get_gas_properties_at_conditions
 from pressurize.core.simulation import run_simulation_streaming
+from pressurize.utils import ATM_PA, absolute_pressure
 
 router = APIRouter(tags=["pressurize"])
 
@@ -74,8 +75,8 @@ async def generate_simulation_stream(
         total_rows = 0
 
         for row_dict in run_simulation_streaming(
-            P_up=req.p_up,
-            P_down_init=req.p_down_init,
+            P_up=absolute_pressure(req.p_up),
+            P_down_init=absolute_pressure(req.p_down_init),
             valve_id=req.valve_id / 1000,  # Convert mm to m for physics engine
             opening_time=req.opening_time,
             upstream_volume=req.upstream_volume,
@@ -101,12 +102,18 @@ async def generate_simulation_stream(
 
             # Stream in chunks of CHUNK_SIZE
             if len(all_results) % CHUNK_SIZE == 0:
-                # Get last CHUNK_SIZE rows
-                chunk_rows = [
-                    SimulationResultPoint(**r) for r in all_results[-CHUNK_SIZE:]
-                ]
+                # Convert results back to gauge for frontend
+                rows_to_send = []
+                for r in all_results[-CHUNK_SIZE:]:
+                    # Create a copy so we don't mutate the original result used for KPIs
+                    r_gauge = r.copy()
+                    r_gauge["pressure"] -= ATM_PA
+                    r_gauge["upstream_pressure"] -= ATM_PA
+                    r_gauge["downstream_pressure"] -= ATM_PA
+                    rows_to_send.append(SimulationResultPoint(**r_gauge))
+
                 chunk = StreamingChunk(
-                    rows=chunk_rows,
+                    rows=rows_to_send,
                     total_rows=total_rows,
                 )
                 yield f"data: {chunk.model_dump_json()}\n\n"
@@ -119,9 +126,16 @@ async def generate_simulation_stream(
         # Send any remaining rows
         remaining = len(all_results) % CHUNK_SIZE
         if remaining > 0:
-            chunk_rows = [SimulationResultPoint(**r) for r in all_results[-remaining:]]
+            rows_to_send = []
+            for r in all_results[-remaining:]:
+                r_gauge = r.copy()
+                r_gauge["pressure"] -= ATM_PA
+                r_gauge["upstream_pressure"] -= ATM_PA
+                r_gauge["downstream_pressure"] -= ATM_PA
+                rows_to_send.append(SimulationResultPoint(**r_gauge))
+
             chunk = StreamingChunk(
-                rows=chunk_rows,
+                rows=rows_to_send,
                 total_rows=total_rows,
             )
             yield f"data: {chunk.model_dump_json()}\n\n"
@@ -171,10 +185,10 @@ async def generate_simulation_stream(
         logger.info("🔧 BASE OUTPUT (SI units - before PintGlass conversion):")
         logger.info(json.dumps(base_output, indent=2))
 
-        # Send completion message with KPIs
+        # Send completion message with KPIs (converted back to gauge)
         complete = StreamingComplete(
             peak_flow=peak_flow,
-            final_pressure=final_pressure,
+            final_pressure=final_pressure - ATM_PA,
             equilibrium_time=equil_time,
             total_mass=total_mass,
             completed=completed,
@@ -249,10 +263,11 @@ async def calculate_properties(req: PropertiesRequest) -> PropertiesResponse:
     """Calculate gas properties (Z, k, M) from composition and conditions."""
     try:
         # Inputs are already SI (Pa, K) due to PintGlass Input fields
-        pressure_pa = req.pressure
+        # Convert gauge to absolute for thermodynamic calculation
+        pressure_abs_pa = absolute_pressure(req.pressure)
         temp_k = req.temp
         z_factor, k, mol_wt = get_gas_properties_at_conditions(
-            req.composition, pressure_pa, temp_k
+            req.composition, pressure_abs_pa, temp_k
         )
 
         return PropertiesResponse(Z=z_factor, k=k, M=mol_wt)

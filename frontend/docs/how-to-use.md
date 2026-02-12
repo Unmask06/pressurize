@@ -1,56 +1,88 @@
 # How to Use — Quickstart
 
-This guide will walk you through setting up and running a simulation in Pressurize.
+This guide walks you through setting up and running a simulation in Pressurize.
 
-## Basic Workflow (Quickstart Steps)
+## Basic Workflow
 
-In Pressurize, you begin by choosing a simulation mode—Pressurize, Depressurize, or Equalize—so the app knows which side evolves in time. 
+### 1. Choose a Simulation Mode
 
-You then describe the upstream and downstream vessels in familiar units: pressures in psig, temperatures in °F, and volumes in ft³. With the vessels framed, you turn to the valve: a simple set of controls lets you set the internal diameter in inches, the discharge coefficient, whether the valve is opening or closing, and how it moves (linear, exponential, quick acting, or instant). 
+Select one of the three modes at the top of the form:
 
-Finally, you decide how to handle gas properties: paste a composition to have MW, Z, and k filled in automatically, or enter those values manually. With everything in place, you run the simulation and explore the results as the system evolves.
+- **🔼 Pressurize** — upstream is a constant supply; downstream vessel fills up.
+- **🔽 Depressurize** — downstream is constant; upstream vessel bleeds down.
+- **⇌ Equalize** — both vessels exchange gas until pressures balance.
 
-## Example 1: Filling a Tank (UI-aligned)
+### 2. Define the Upstream Vessel
 
-This example follows the form fields in the app.
+- **Pressure** — upstream gauge pressure (e.g., `500 psi (g)`).
+- **Temperature** — upstream temperature (e.g., `70 °F`).
+- **Volume** — shown only in Depressurize and Equalize modes (e.g., `100 ft³`).
 
-### Step 1 — Source Conditions
+### 3. Define the Downstream Vessel
 
-- **Upstream Pressure (psig)**: enter the supply gauge pressure (e.g., `500`).
-- **Upstream Temperature (°F)**: default `70 °F`.
-- **Property Mode / Composition**: set `Property Mode` to `Composition` and paste a composition string (e.g., `Nitrogen=1.0`). The app calls the properties API and fills `MW (g/mol)`, `Z-Factor`, and `k (Cp/Cv)` automatically.
+- **Pressure** — initial downstream gauge pressure (e.g., `0 psi (g)` for atmospheric).
+- **Temperature** — downstream temperature (e.g., `70 °F`).
+- **Volume** — shown only in Pressurize and Equalize modes (e.g., `100 ft³`).
 
-### Step 2 — Valve Configuration
+### 4. Configure the Valve
 
-- **Valve ID (in)**: internal diameter in inches (e.g., `2.0`).
-- **Discharge Coeff (Cd)**: e.g., `0.9`.
-- **Valve Action**: `Open` (default) or `Close`.
-- **Opening Time (s)**: e.g., `5` seconds.
-- **Opening Mode**: choose `Linear`, `Exponential`, `Quick Acting`, or `Fixed (Instant)`.
-- **Curve Factor (k)**: used with `Exponential` or `Quick Acting` modes.
+- **Valve ID** — internal diameter (e.g., `2 in` or `50 mm` depending on unit system).
+- **Discharge Coeff (Cd)** — typically `0.65` to `0.9`.
+- **Valve Action** — `Open` (0→100%) or `Close` (100→0%).
+- **Opening Time** — how long the valve takes to fully open or close (e.g., `5 s`).
+- **Opening Mode** — choose from:
+  - `Linear` — constant rate of opening
+  - `Exponential` — slow start, fast finish
+  - `Quick Acting` — fast start, slow finish
+  - `Fixed (Instant)` — full open/close immediately
+- **Curve Factor (k)** — controls steepness for Exponential and Quick Acting modes.
 
-### Step 3 — Vessel Definition
+### 5. Set Gas Properties
 
-- **Downstream Volume (ft³)**: e.g., `100`.
-- **Initial Pressure (psig)**: downstream initial gauge pressure (e.g., `0` for atmospheric gauge).
-- **Downstream Temperature (°F)**: default `70 °F`.
+Choose between two property modes:
 
-### Step 4 — Run Simulation
+- **Manual** — enter Molar Mass (g/mol), Z-Factor, and k (Cp/Cv) directly.
+- **Composition** — paste a composition string (e.g., `Methane=0.9387, Nitrogen=0.0433, CO2=0.0054`). The app fetches Z, k, and MW automatically from the Peng-Robinson EOS at the current upstream conditions.
 
-- Click the **Run Simulation** button. While the backend is working the button shows `Running...`.
-- If results exist, click **📊 View Results Table** to inspect time-stepped rows, or open the charts to view `Pressure vs Time` and `Flow Rate`.
-  This example follows the form fields in the app.
+Preset compositions are available: Natural Gas, Pure Methane, Rich Gas, Sour Gas, and Lean Gas.
 
-Imagine you’re filling a downstream vessel from an upstream supply. On the upstream side, you type 500 into Pressure (psig) and leave Temperature at 70 °F. In Gas Properties, you switch Property Mode to Composition and paste `Nitrogen=1.0`; almost instantly the app fills in MW, Z-Factor, and k based on the current conditions.
+### 6. Run the Simulation
 
-Moving to the valve, you enter 2.0 for Valve ID (in), set Cd to 0.9, keep Valve Action as Open, and choose a Linear opening with 5 seconds. If you want a snappier start, you can pick Exponential and nudge the curve factor k.
+Click **Run Simulation**. Results stream live:
 
-On the downstream side, you set a vessel volume of 100 ft³, an initial pressure of 0 psig, and a temperature of 70 °F. When you click Run Simulation, the button changes to “Running…” and the backend steps through the physics. As soon as results arrive, you open the 📊 View Results Table or watch the Pressure vs Time and Flow Rate charts evolve. Early on you’ll often see choked flow and a flat maximum; as the vessel fills, the flow naturally tails off.
+- **Charts** update in real time showing Pressure vs Time and Flow Rate vs Time.
+- **KPI Cards** appear when complete: Peak Flow, Final Pressure, Equilibrium Time, and Total Mass.
+- **Results Table** shows every time step with pressure, flow rate, valve opening, and flow regime.
 
-## Example 2 — Quick-Acting / Instant Opening Safety Check
+### 7. Change Unit System
 
-For a rapid failure-open scenario, you flip the valve profile to Fixed (Instant) or Quick Acting. With the same source and vessel settings as before, an instant-opening valve drives a much faster pressure rise and higher peak flows. Comparing these curves against a slower Linear ramp helps you size relief devices and understand worst‑case transients.
+Open the **Settings** panel (gear icon) and select a unit system. All inputs, outputs, charts, and KPIs re-render in the new units immediately. Available systems:
 
-## Exporting Results (PDF)
+- Imperial (psi, °F, ft³, lb)
+- Engineering Field (psi, °F, ft³, lb/h)
+- Engineering SI (bar, °C, m³, kg/h)
+- SI (Pa, K, m³, kg/s)
+- CGS (Ba, °C, cm³, g/s)
 
-When it’s time to share the outcome, you export a PDF that captures inputs and key charts so colleagues can review the scenario without opening the app.
+## Example: Filling a Tank
+
+1. Mode: **Pressurize**
+2. Upstream: `500 psi (g)`, `70 °F`
+3. Downstream: `0 psi (g)`, `70 °F`, `100 ft³`
+4. Valve: `2 in` ID, Cd = `0.9`, Action = Open, Linear, `5 s`
+5. Property Mode: Composition → `Nitrogen=1.0`
+6. Click **Run Simulation**
+
+Early in the simulation you'll see flat maximum flow (choked/sonic regime). As the vessel fills, flow decreases naturally (subsonic). The KPIs show peak flow, how long to equalize, and total mass transferred.
+
+## Example: Rapid Failure-Open Safety Check
+
+Same setup as above, but change:
+
+- Opening Mode → `Fixed (Instant)`
+
+Compare the pressure rise rate and peak flow against the slower Linear case. This worst-case scenario helps size relief devices and verify system safety margins.
+
+## Exporting Results
+
+Click the **Download Report** button to export a PDF capturing all inputs, KPI values, and charts.

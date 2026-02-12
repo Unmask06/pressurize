@@ -1,6 +1,6 @@
 [project]
 name = "pressurize"
-version = "0.5"
+version = "0.6"
 description = "Gas blowdown simulation API for pressure vessel depressurization analysis"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -29,6 +29,7 @@ dependencies = [
     "fluids",
     "pytest>=9.0.2",
     "colorlog>=6.8.0",
+    "pint-glass>=0.3.0",
 ]
 
 [project.optional-dependencies]

@@ -81,6 +81,11 @@ export function getUnit(dimension: string): string {
     return "?";
   }
 
+  // Pressure is always gauge in the UI
+  if (dimKey === "pressure") {
+    return `${unit} (g)`;
+  }
+
   return unit;
 }
 
