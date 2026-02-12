@@ -11,7 +11,7 @@
         <input
           type="text"
           v-model="searchQuery"
-          placeholder="Search by tag, mode..."
+          placeholder="Search by tag, mode, pressure, volume..."
           class="search-input"
         />
       </div>
@@ -48,12 +48,12 @@
             </div>
             <div class="item-details">
               <div class="detail">
-                <span class="label">Upstream:</span>
-                <span class="value">{{ item.params.p_up }}</span>
+                <span class="label">P (Up/Down):</span>
+                <span class="value">{{ item.params.p_up }} / {{ item.params.p_down_init }}</span>
               </div>
               <div class="detail">
-                <span class="label">Downstream:</span>
-                <span class="value">{{ item.params.p_down_init }}</span>
+                <span class="label">V (Up/Down):</span>
+                <span class="value">{{ item.params.upstream_volume }} / {{ item.params.downstream_volume }}</span>
               </div>
               <div v-if="item.unitSystem" class="detail">
                 <span class="label">Units:</span>
@@ -121,7 +121,22 @@ const filteredHistory = computed(() => {
     const mode = (item.params.mode || "").toLowerCase();
     const label = (item.label || "").toLowerCase();
     const units = (item.unitSystem || "").toLowerCase();
-    return mode.includes(q) || label.includes(q) || units.includes(q);
+
+    // Search in pressures and volumes as well
+    const pUp = String(item.params.p_up || "").toLowerCase();
+    const pDown = String(item.params.p_down_init || "").toLowerCase();
+    const vUp = String(item.params.upstream_volume || "").toLowerCase();
+    const vDown = String(item.params.downstream_volume || "").toLowerCase();
+
+    return (
+      mode.includes(q) ||
+      label.includes(q) ||
+      units.includes(q) ||
+      pUp.includes(q) ||
+      pDown.includes(q) ||
+      vUp.includes(q) ||
+      vDown.includes(q)
+    );
   });
 });
 

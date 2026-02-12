@@ -8,6 +8,8 @@ This directory contains the Vue 3 frontend application for Pressurize and the us
 npm install
 ```
 
+If Windows PowerShell blocks `npm.ps1`, use `npm.cmd` in the commands below.
+
 ### Compile and Hot-Reload for Development
 
 ```sh

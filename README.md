@@ -111,11 +111,13 @@ If you prefer to start services individually:
    API will run at `http://localhost:8000`.
 
 2. **Start the Frontend Development Server**:
-   ```bash
-   # From frontend/ directory
-   npm run dev
-   ```
-   UI will be available at `http://localhost:5173`.
+    ```bash
+    # From frontend/ directory
+    npm run dev
+    # If PowerShell blocks npm.ps1:
+    npm.cmd run dev
+    ```
+    UI will be available at `http://localhost:5173`.
 
 ## 📚 Documentation
 
