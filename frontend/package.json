@@ -10,11 +10,13 @@
     "preview": "vite preview",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "update-api": "openapi-typescript http://localhost:8000/openapi.json -o src/api/schema.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
+    "dexie": "^3.2.7",
     "echarts": "^6.0.0",
     "jspdf": "^4.0.0",
     "jszip": "^3.10.1",
@@ -26,6 +28,7 @@
     "@vitejs/plugin-vue": "^6.0.1",
     "concurrently": "^8.2.2",
     "markdown-it-mathjax3": "^4.3.2",
+    "openapi-typescript": "^7.0.8",
     "vite": "^7.2.4",
     "vitepress": "^1.6.4"
   }

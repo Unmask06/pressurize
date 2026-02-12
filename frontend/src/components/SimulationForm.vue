@@ -1,9 +1,6 @@
 <template>
   <div class="simulation-form">
-    <div class="header-with-settings">
-      <h3>Simulation Parameters</h3>
-      <button class="btn-icon" @click="$emit('edit-settings')">⚙️</button>
-    </div>
+    <h3>Simulation Parameters</h3>
 
     <!-- Mode Selection -->
     <div class="section-container">
@@ -44,23 +41,23 @@
               class="form-group"
               :class="form.mode !== 'pressurize' ? 'third' : 'half'"
             >
-              <label>Pressure (psig)</label>
-              <input type="number" v-model.number="form.p_up_psig" />
+              <label>Pressure ({{ getUnit("Pressure") }})</label>
+              <input type="number" v-model.number="form.p_up" />
             </div>
             <div
               class="form-group"
               :class="form.mode !== 'pressurize' ? 'third' : 'half'"
             >
-              <label>Temperature (°F)</label>
+              <label>Temperature ({{ getUnit("Temperature") }})</label>
               <input
                 type="number"
-                v-model.number="form.upstream_temp_f"
+                v-model.number="form.upstream_temp"
                 step="5"
               />
             </div>
             <div class="form-group third" v-if="form.mode !== 'pressurize'">
-              <label>Volume (ft³)</label>
-              <input type="number" v-model.number="form.upstream_volume_ft3" />
+              <label>Volume ({{ getUnit("volume") }})</label>
+              <input type="number" v-model.number="form.upstream_volume" />
             </div>
           </div>
         </div>
@@ -73,26 +70,23 @@
               class="form-group"
               :class="form.mode !== 'depressurize' ? 'third' : 'half'"
             >
-              <label>Pressure (psig)</label>
-              <input type="number" v-model.number="form.p_down_init_psig" />
+              <label>Pressure ({{ getUnit("pressure") }})</label>
+              <input type="number" v-model.number="form.p_down_init" />
             </div>
             <div
               class="form-group"
               :class="form.mode !== 'depressurize' ? 'third' : 'half'"
             >
-              <label>Temperature (°F)</label>
+              <label>Temperature ({{ getUnit("temperature") }})</label>
               <input
                 type="number"
-                v-model.number="form.downstream_temp_f"
+                v-model.number="form.downstream_temp"
                 step="5"
               />
             </div>
             <div class="form-group third" v-if="form.mode !== 'depressurize'">
-              <label>Volume (ft³)</label>
-              <input
-                type="number"
-                v-model.number="form.downstream_volume_ft3"
-              />
+              <label>Volume ({{ getUnit("volume") }})</label>
+              <input type="number" v-model.number="form.downstream_volume" />
             </div>
           </div>
         </div>
@@ -104,8 +98,8 @@
           <div class="section-header">🔧 Valve Configuration</div>
           <div class="row">
             <div class="form-group quarter">
-              <label>Valve ID (in)</label>
-              <input type="number" v-model.number="form.valve_id_inch" />
+              <label>Valve ID ({{ getUnit("small_length") }})</label>
+              <input type="number" v-model.number="form.valve_id" />
             </div>
             <div class="form-group quarter">
               <label>Discharge Coeff (Cd)</label>
@@ -135,10 +129,10 @@
             <div class="form-group quarter">
               <label>{{
                 form.valve_action === "close"
-                  ? "Closing Time (s)"
-                  : "Opening Time (s)"
+                  ? `Closing Time (${getUnit("time")})`
+                  : `Opening Time (${getUnit("time")})`
               }}</label>
-              <input type="number" v-model.number="form.opening_time_s" />
+              <input type="number" v-model.number="form.opening_time" />
             </div>
           </div>
 
@@ -243,30 +237,48 @@
       </div>
     </div>
 
+    <!-- Tag -->
+    <div class="tag-row">
+      <label>🏷️ Tag</label>
+      <input
+        type="text"
+        v-model.trim="tag"
+        placeholder="Optional label for this run"
+        class="tag-input"
+        maxlength="50"
+      />
+    </div>
+
     <div class="actions">
       <button
         type="button"
         class="btn-table"
         @click="viewResults"
         :disabled="resultsEmpty"
+        title="View Results Table"
       >
-        {{ resultsEmpty ? "No Data Available" : "📊 View Results Table" }}
+        📊
       </button>
 
       <button
         type="button"
         :class="buttonClass"
         @click="loading ? stopSimulation() : runSimulation()"
+        :title="buttonText"
       >
-        {{ buttonText }}
+        {{ buttonText.split(' ')[0] }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from "vue";
-import { apiClient } from "../api/client";
+import { computed, reactive, ref, watch } from "vue";
+import {
+  apiClient,
+  getUnit,
+  type SimulationRequest,
+} from "../api/client";
 
 const props = defineProps<{
   loading: boolean;
@@ -281,24 +293,26 @@ const emit = defineEmits([
   "stop",
   "edit-composition",
   "view-results",
-  "edit-settings",
 ]);
 
 function viewResults() {
   emit("view-results");
 }
 
-const form = reactive({
-  mode: "equalize" as "pressurize" | "depressurize" | "equalize",
-  p_up_psig: 500,
-  p_down_init_psig: 0,
-  upstream_volume_ft3: 100,
-  downstream_volume_ft3: 100,
-  valve_id_inch: 2.0,
-  opening_time_s: 5,
-  valve_action: "open" as "open" | "close",
-  upstream_temp_f: 70,
-  downstream_temp_f: 70,
+const tag = ref("");
+
+// Use the auto-generated SimulationRequest type from the API schema
+const form = reactive<SimulationRequest>({
+  mode: "equalize",
+  p_up: 500,
+  p_down_init: 0,
+  upstream_volume: 100,
+  downstream_volume: 100,
+  valve_id: 2.0, // Default 2 inches
+  opening_time: 5,
+  valve_action: "open",
+  upstream_temp: 70,
+  downstream_temp: 70,
   molar_mass: 28.97,
   z_factor: 1.0,
   k_ratio: 1.4,
@@ -342,10 +356,10 @@ watch(
     () => form.property_mode,
     () => form.composition,
     () => form.mode,
-    () => form.upstream_temp_f,
-    () => form.downstream_temp_f,
-    () => form.p_up_psig,
-    () => form.p_down_init_psig,
+    () => form.upstream_temp,
+    () => form.downstream_temp,
+    () => form.p_up,
+    () => form.p_down_init,
   ],
   async ([propMode, comp, simMode, tempUp, tempDown, pressUp, pressDown]) => {
     if (propMode === "composition" && comp) {
@@ -355,8 +369,8 @@ watch(
         const press = simMode === "depressurize" ? pressDown : pressUp;
         const res = await apiClient.post("/properties", {
           composition: comp,
-          pressure_psig: press || 0,
-          temp_f: temp || 70,
+          pressure: press || 0,
+          temp: temp || 70,
         });
         form.molar_mass = Number(res.data.M.toFixed(2));
         form.z_factor = Number(res.data.Z.toFixed(4));
@@ -375,7 +389,7 @@ const compositionSummary = computed(() => {
 });
 
 function runSimulation() {
-  emit("run", { ...form });
+  emit("run", { ...form, _tag: tag.value || undefined });
 }
 
 function stopSimulation() {
@@ -395,6 +409,16 @@ const buttonText = computed(() => {
 
 const buttonClass = computed(() => {
   return props.loading ? "btn-stop" : "btn-primary";
+});
+
+// Method to load parameters from history
+function loadParameters(params: Record<string, any>) {
+  Object.assign(form, params);
+}
+
+// Expose method for parent component to use
+defineExpose({
+  loadParameters,
 });
 </script>
 
@@ -427,7 +451,11 @@ const buttonClass = computed(() => {
 }
 
 .actions {
-  @apply flex flex-col gap-3 mt-4;
+  @apply flex gap-3 mt-4 justify-center;
+}
+
+.actions button {
+  @apply flex-1 max-w-xs;
 }
 
 h3 {
@@ -456,7 +484,7 @@ label {
 
 input,
 select {
-  @apply py-3 px-4 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-base transition-all duration-200;
+  @apply w-full py-3 px-4 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-base transition-all duration-200;
 }
 
 input:hover,
@@ -509,16 +537,36 @@ input.read-only {
   @apply flex items-center gap-2 bg-blue-50/50 py-2 px-3 rounded-lg border border-blue-100;
 }
 
+.tag-row {
+  @apply flex items-center gap-3;
+}
+
+.tag-row label {
+  @apply text-xs text-slate-500 font-bold uppercase tracking-wider whitespace-nowrap mb-0;
+}
+
+.tag-input {
+  @apply flex-1 py-2 px-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-sm transition-all duration-200;
+}
+
+.tag-input:hover {
+  @apply border-slate-300 bg-white;
+}
+
+.tag-input:focus {
+  @apply outline-none border-blue-500 ring-4 ring-blue-500/10 bg-white;
+}
+
 .btn-table {
-  @apply py-3 px-4 bg-white border-2 border-slate-200 text-slate-600 rounded-xl font-bold cursor-pointer transition-all hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply py-3 px-4 bg-white border-2 border-slate-200 text-slate-600 rounded-xl font-bold cursor-pointer transition-all hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-2xl;
 }
 
 .btn-primary {
-  @apply py-4 px-6 bg-blue-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all hover:bg-blue-700 disabled:bg-slate-300 disabled:shadow-none;
+  @apply py-3 px-4 bg-blue-600 text-white rounded-xl font-bold text-2xl shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all hover:bg-blue-700 disabled:bg-slate-300 disabled:shadow-none;
 }
 
 .btn-stop {
-  @apply py-4 px-6 bg-red-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-red-600/20 active:scale-[0.98] transition-all hover:bg-red-700;
+  @apply py-3 px-4 bg-red-600 text-white rounded-xl font-bold text-2xl shadow-lg shadow-red-600/20 active:scale-[0.98] transition-all hover:bg-red-700;
 }
 
 .btn-secondary {
@@ -527,14 +575,6 @@ input.read-only {
 
 .btn-secondary:hover {
   @apply bg-blue-50 border-blue-200;
-}
-
-.header-with-settings {
-  @apply flex justify-between items-start;
-}
-
-.btn-icon {
-  @apply bg-slate-100 border-none cursor-pointer text-xl p-2 rounded-xl w-10 h-10 flex justify-center items-center transition-all hover:bg-slate-200 hover:rotate-90 active:scale-90;
 }
 
 .section-container {

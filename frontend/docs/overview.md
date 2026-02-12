@@ -1,31 +1,65 @@
 # Overview — What Pressurize Does
 
-**Pressurize** is a powerful yet easy-to-use tool for engineers to simulate how gas flows into a pressure vessel. It helps you understand what happens when you open a valve to fill a tank, answering questions like:
+**Pressurize** is a browser-based simulation tool for engineers who need to model gas flow through valves into or out of pressure vessels. It answers questions like:
 
-- How long will it take to reach a certain pressure?
-- What is the maximum flow rate?
-- Is the valve sized correctly?
+- How long will it take to reach a target gauge pressure?
+- What is the peak flow rate through the valve?
+- Is the valve sized correctly for this scenario?
+- What happens in a worst-case rapid-opening event?
+
+## Simulation Modes
+
+Pressurize supports three distinct simulation modes:
+
+| Mode             | What changes              | What stays constant               |
+| ---------------- | ------------------------- | --------------------------------- |
+| **Pressurize**   | Downstream pressure rises | Upstream pressure held constant   |
+| **Depressurize** | Upstream pressure drops   | Downstream pressure held constant |
+| **Equalize**     | Both pressures evolve     | Both vessels interact dynamically |
 
 ## Key Capabilities
 
-### 1. Analyze Pressure Vessel Filling
+### Real-Gas Thermodynamics
 
-Simulate the entire process of filling a gas storage vessel. You can see how the pressure inside the vessel rises over time and how the temperature changes.
+The simulator uses the **Peng-Robinson equation of state** to calculate compressibility (Z), heat capacity ratio (k), and molar mass (MW) from a user-defined gas composition. 20+ species are supported, including methane, ethane, propane, CO₂, H₂S, nitrogen, hydrogen, and more.
 
-### 2. Select the Right Valve
+You can also enter Z, k, and MW manually if you prefer.
 
-Test different valve types and sizes to see how they perform. You can define how the valve opens (e.g., quickly or slowly) and see how that affects the filling process.
+### Gauge Pressure Throughout
 
-### 3. Ensure Safety
+All pressure inputs and outputs are in **gauge pressure**. The labels show units like `psi (g)` or `bar (g)`. Internally, the simulator converts to absolute pressure for thermodynamic calculations and converts back to gauge for display.
 
-By accurately predicting pressure rise rates and peak flow conditions, you can ensure your system design is safe and within operating limits.
+### Flexible Unit Systems
 
-### 4. Work with Different Gases
+Switch between unit systems at any time via the settings panel:
 
-The simulator isn't limited to just air. You can define complex gas mixtures (like Natural Gas, Hydrogen, CO2) and the tool will handle the complicated physics for you.
+| Dimension   | Imperial | Engg Field | Engg SI | SI     | CGS    |
+| ----------- | -------- | ---------- | ------- | ------ | ------ |
+| Pressure    | psi (g)  | psi (g)    | bar (g) | Pa (g) | Ba (g) |
+| Temperature | °F       | °F         | °C      | K      | °C     |
+| Volume      | ft³      | ft³        | m³      | m³     | cm³    |
+| Valve ID    | in       | in         | mm      | mm     | mm     |
+| Mass Flow   | lb/s     | lb/h       | kg/h    | kg/s   | g/s    |
+
+### Live Streaming Results
+
+Simulation results stream in real time via Server-Sent Events (SSE). Charts and the results table update progressively as the backend computes each time step.
+
+### Four KPIs at a Glance
+
+After each simulation, four key performance indicators are displayed:
+
+1. **Peak Flow Rate** — maximum mass flow through the valve
+2. **Final Pressure** — equilibrium or end-state gauge pressure
+3. **Equilibrium Time** — time to reach pressure balance
+4. **Total Mass Flow** — cumulative mass transferred
+
+### PDF Report Export
+
+Export a complete report capturing inputs, KPIs, and charts for sharing with colleagues.
 
 ## Intended Users
 
-- **Process Engineers** designing gas systems.
-- **Mechanical Engineers** selecting valves and vessels.
-- **Safety Analysts** verifying system safety.
+- **Process Engineers** designing gas systems
+- **Mechanical Engineers** selecting valves and vessels
+- **Safety Analysts** verifying system safety under transient conditions

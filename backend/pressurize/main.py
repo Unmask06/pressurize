@@ -4,10 +4,15 @@ import os
 from importlib.metadata import version
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pint_glass import unit_context
 
 from pressurize.api import routes
+from pressurize.config.logging import configure_logging
+
+# Configure logging immediately
+configure_logging()
 
 app = FastAPI(title="Pressurize API", version=version("pressurize"))
 
@@ -26,6 +31,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def set_unit_context(request: Request, call_next):
+    """Middleware to set the unit system context for the request."""
+    # Default to imperial to maintain backward compatibility if header is missing
+    # (though we renamed fields, so strict backward compatibility is already broken)
+    system = request.headers.get("x-unit-system", "imperial")
+
+    token = unit_context.set(system)
+    try:
+        response = await call_next(request)
+    finally:
+        unit_context.reset(token)
+    return response
+
 
 # When running standalone (local dev), add /pressurize prefix to match frontend expectations.
 # In production, the app is mounted at /pressurize by the main xergiz backend, so no prefix needed.

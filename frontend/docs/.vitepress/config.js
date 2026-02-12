@@ -6,6 +6,7 @@ export default defineConfig({
   description: "Dynamic Valve Pressurization Simulator",
   base: "/products/pressurize/docs/",
   outDir: "../dist/products/pressurize/docs",
+  head: [["link", { rel: "canonical", href: "/products/pressurize/" }]],
   markdown: {
     config: (md) => {
       md.use(mathjax3);
@@ -18,6 +19,12 @@ export default defineConfig({
       { text: "How to Use", link: "/how-to-use" },
       { text: "Technical Background", link: "/technical-background" },
       { text: "Use Cases", link: "/use-cases" },
+      {
+        text: "Launch App",
+        link: "../",
+        target: "_blank",
+        rel: "noopener noreferrer",
+      },
     ],
     sidebar: [
       {
@@ -30,8 +37,6 @@ export default defineConfig({
         ],
       },
     ],
-    socialLinks: [
-      { icon: "github", link: "https://github.com/Unmask06/pressurize" },
-    ],
+    socialLinks: [],
   },
 });

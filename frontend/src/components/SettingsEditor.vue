@@ -23,7 +23,9 @@
         </div>
 
         <div class="form-group">
-          <label for="max_sim_time">Max Simulation Time (s)</label>
+          <label for="max_sim_time"
+            >Max Simulation Time ({{ getUnit("time") }})</label
+          >
           <input
             id="max_sim_time"
             type="number"
@@ -47,6 +49,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { getUnit } from "../api/client";
 
 const props = defineProps<{
   currentDt: number;

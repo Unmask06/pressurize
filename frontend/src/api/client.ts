@@ -1,4 +1,6 @@
 import axios from "axios";
+import { reactive, ref } from "vue";
+import type { components } from "./schema";
 
 // Base URL: localhost for dev, api.xergiz.com for production
 const API_BASE_URL = import.meta.env.DEV
@@ -12,21 +14,85 @@ export const apiClient = axios.create({
   },
 });
 
-export interface SimulationRow {
-  time: number;
-  pressure_psig: number;
-  upstream_pressure_psig: number;
-  downstream_pressure_psig: number;
-  flowrate_lb_hr: number;
-  valve_opening_pct: number;
-  flow_regime: string;
-  dp_dt_upstream_psig_s?: number;
-  dp_dt_downstream_psig_s?: number;
-  z_factor?: number;
-  k_ratio?: number;
-  molar_mass?: number;
+// Unit System Management
+export type UnitSystem = string;
+const currentUnitSystem = ref<UnitSystem>("imperial");
+
+export interface UnitConfig {
+  systems: string[];
+  dimensions: Record<string, Record<string, string>>;
 }
 
+export const unitConfig = reactive<UnitConfig>({
+  systems: ["imperial"],
+  dimensions: {},
+});
+
+export function setUnitSystem(system: UnitSystem) {
+  currentUnitSystem.value = system;
+  // Update default header for axios requests
+  apiClient.defaults.headers.common["x-unit-system"] = system;
+}
+
+export function getUnitSystem(): UnitSystem {
+  return currentUnitSystem.value;
+}
+
+export async function fetchUnitConfig(): Promise<UnitConfig> {
+  try {
+    const response = await apiClient.get<UnitConfig>("/units/config");
+
+    unitConfig.systems = response.data.systems;
+    unitConfig.dimensions = response.data.dimensions;
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching unit config:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get unit string for a dimension in the current system.
+ */
+export function getUnit(dimension: string): string {
+  if (dimension == null) {
+    console.warn(`getUnit called with a null or undefined dimension.`);
+    return "?";
+  }
+  const system = currentUnitSystem.value;
+  // Normalize: lowercase, trim, and convert underscores to spaces
+  // This handles variations like "Volumetric Flow Rate" and "volumetric_flowrate"
+  const dimKey = dimension.toLowerCase().trim().replace(/_/g, " ");
+
+  if (!unitConfig.dimensions[dimKey]) {
+    console.warn(`Dimension not found: "${dimension}" (key: "${dimKey}")`);
+    console.warn(
+      `Available dimensions: "${Object.keys(unitConfig.dimensions).join(", ")}"`,
+    );
+    return "?";
+  }
+
+  const unit = unitConfig.dimensions[dimKey][system];
+  if (!unit) {
+    console.warn(
+      `Unit not found for dimension: "${dimKey}", system: "${system}"`,
+    );
+    return "?";
+  }
+
+  // Pressure is always gauge in the UI
+  if (dimKey === "pressure") {
+    return `${unit} (g)`;
+  }
+
+  return unit;
+}
+
+// Initialize with default header
+apiClient.defaults.headers.common["x-unit-system"] = currentUnitSystem.value;
+
+// Streaming message types for Server-Sent Events
 export interface StreamingChunk {
   type: "chunk";
   rows: SimulationRow[];
@@ -38,7 +104,7 @@ export interface StreamingComplete {
   peak_flow: number;
   final_pressure: number;
   equilibrium_time: number;
-  total_mass_lb: number;
+  total_mass: number;
   completed: boolean;
 }
 
@@ -46,6 +112,12 @@ export interface StreamingError {
   type: "error";
   message: string;
 }
+
+// Type aliases for API schema types
+export type SimulationRow = components["schemas"]["SimulationResultPoint"];
+export type SimulationRequest = components["schemas"]["SimulationRequest"];
+export type PropertiesRequest = components["schemas"]["PropertiesRequest"];
+export type PropertiesResponse = components["schemas"]["PropertiesResponse"];
 
 export type StreamingMessage =
   | StreamingChunk
@@ -71,6 +143,7 @@ export async function streamSimulation(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "x-unit-system": currentUnitSystem.value,
     },
     body: JSON.stringify(params),
     signal,
@@ -111,7 +184,7 @@ export async function streamSimulation(
                 peak_flow: msg.peak_flow,
                 final_pressure: msg.final_pressure,
                 equilibrium_time: msg.equilibrium_time,
-                total_mass_lb: msg.total_mass_lb,
+                total_mass: msg.total_mass,
                 completed: msg.completed,
               });
             } else if (msg.type === "error") {
