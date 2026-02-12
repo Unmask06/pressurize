@@ -39,16 +39,28 @@ const unitSystem = computed(() => getUnitSystem());
 const availableSystems = computed(() => unitConfig.systems);
 
 function formatSystemName(sys: string): string {
-  return sys.charAt(0).toUpperCase() + sys.slice(1);
+  return sys
+    .replace(/_/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 }
 
 function getSystemIcon(sys: string): string {
   switch (sys.toLowerCase()) {
     case "imperial":
       return "🇺🇸";
+    case "us":
+      return "🏛️";
     case "si":
-    case "metric":
       return "🌍";
+    case "engg_si":
+      return "🔧";
+    case "engg_field":
+      return "🏗️";
+    case "cgs":
+      return "📊";
     default:
       return "📐";
   }

@@ -26,7 +26,7 @@ Start-Sleep -Seconds 5
 
 # Start Frontend
 Write-Host "Starting Frontend (Vite)..." -ForegroundColor Cyan
-$frontendArgs = "-NoExit", "-Command", "cd '$ScriptDir\frontend'; npm run dev"
+$frontendArgs = "-NoExit", "-Command", "cd '$ScriptDir\frontend'; npm.cmd run dev"
 Start-Process powershell -ArgumentList $frontendArgs
 
 # Wait for frontend

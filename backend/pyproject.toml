@@ -1,6 +1,6 @@
 [project]
 name = "pressurize"
-version = "0.6"
+version = "0.6.1"
 description = "Gas blowdown simulation API for pressure vessel depressurization analysis"
 readme = "README.md"
 requires-python = ">=3.12"
