@@ -4,6 +4,13 @@
       <div class="loading-spinner">⏳ Loading configuration...</div>
     </div>
     <template v-else>
+      <SideNavBar
+        :current-dt="currentDt"
+        :current-max-sim-time="currentMaxSimTime"
+        @update-settings="updateSettings"
+        @load-simulation="loadSimulationFromHistory"
+        @unit-system-changed="resetAllOutputs"
+      />
       <div class="sidebar">
         <div class="sidebar-header">
           <div class="header-top">
@@ -20,6 +27,7 @@
           <p>Gas Valves</p>
         </div>
         <SimulationForm
+          ref="simulationFormRef"
           :loading="loading"
           :initial-composition="currentComposition"
           :results-empty="results.length === 0"
@@ -29,8 +37,6 @@
           @stop="stopSimulation"
           @edit-composition="showCompositionEditor = true"
           @view-results="showResultsTable = true"
-          @edit-settings="showSettingsEditor = true"
-          @unit-system-changed="resetAllOutputs"
         />
       </div>
 
@@ -44,11 +50,12 @@
           :loading="!kpisReady"
         />
         <button
+          v-if="results.length > 0 && simulationCompleted"
           class="btn-download"
           @click="showReportModal = true"
-          :disabled="results.length === 0"
+          title="Download Report"
         >
-          📥 Download Report
+          📥
         </button>
       </div>
 
@@ -106,16 +113,19 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import {
     fetchUnitConfig,
+    getUnitSystem,
     streamSimulation,
     type SimulationRow,
 } from "./api/client";
 import CompositionEditor from "./components/CompositionEditor.vue";
 import KpiCards from "./components/KpiCards.vue";
+import SideNavBar from "./components/navigation/SideNavBar.vue";
 import ReportDownload from "./components/ReportDownload.vue";
 import ResultsChart from "./components/ResultsChart.vue";
 import ResultsTable from "./components/ResultsTable.vue";
 import SettingsEditor from "./components/SettingsEditor.vue";
 import SimulationForm from "./components/SimulationForm.vue";
+import { saveSimulation } from "./db/simulationHistory";
 
 const loading = ref(false);
 const unitConfigReady = ref(false);
@@ -145,6 +155,7 @@ onMounted(async () => {
 
 // Refs for report generation
 const chartRef = ref<InstanceType<typeof ResultsChart> | null>(null);
+const simulationFormRef = ref<InstanceType<typeof SimulationForm> | null>(null);
 const lastFormParams = ref<Record<string, any>>({});
 
 // Compute chart data URL when modal opens
@@ -208,6 +219,12 @@ async function runSimulation(params: any) {
           simulationCompleted.value =
             kpiData.completed !== undefined ? kpiData.completed : true;
           kpisReady.value = true;
+
+          // Save simulation to history
+          const simTag = params._tag;
+          saveSimulation(params, simTag, getUnitSystem()).catch((e) => {
+            console.error("Failed to save simulation to history:", e);
+          });
         },
         onError: (message) => {
           console.error("Simulation failed:", message);
@@ -270,6 +287,17 @@ function resetAllOutputs() {
   // Clear last form params
   lastFormParams.value = {};
 }
+
+function loadSimulationFromHistory(params: Record<string, any>) {
+  if (simulationFormRef.value) {
+    simulationFormRef.value.loadParameters(params);
+    // Update lastFormParams so report generation has access to loaded parameters
+    // This ensures consistency if user generates a report before running a new simulation
+    lastFormParams.value = { ...params };
+  } else {
+    console.warn("Cannot load simulation: SimulationForm ref is not available");
+  }
+}
 </script>
 
 <style scoped>
@@ -316,15 +344,11 @@ function resetAllOutputs() {
 }
 
 .btn-download {
-  @apply shrink-0 py-2 sm:py-3 px-4 sm:px-5 border-none bg-linear-to-br from-emerald-500 to-emerald-600 text-white rounded-lg sm:rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-emerald-500/30;
+  @apply shrink-0 py-2 px-3 border-none bg-linear-to-br from-emerald-500 to-emerald-600 text-white rounded-lg text-xl font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-emerald-500/30 flex items-center justify-center;
 }
 
-.btn-download:hover:not(:disabled) {
+.btn-download:hover {
   @apply from-emerald-600 to-emerald-700 -translate-y-0.5 shadow-xl shadow-emerald-500/40;
-}
-
-.btn-download:disabled {
-  @apply opacity-50 cursor-not-allowed transform-none shadow-none;
 }
 
 .chart-wrapper {

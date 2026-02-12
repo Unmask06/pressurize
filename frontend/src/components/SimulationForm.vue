@@ -1,27 +1,6 @@
 <template>
   <div class="simulation-form">
-    <div class="header-with-settings">
-      <h3>Simulation Parameters</h3>
-      <div class="settings-controls">
-        <!-- Unit System Dropdown -->
-        <div class="unit-selector">
-          <label>Unit System:</label>
-          <select
-            :value="unitSystem"
-            @change="
-              (e) =>
-                changeUnitSystem((e.target as HTMLSelectElement).value as UnitSystem)
-            "
-            class="unit-select"
-          >
-            <option v-for="sys in availableSystems" :key="sys" :value="sys">
-              {{ formatSystemName(sys) }}
-            </option>
-          </select>
-        </div>
-        <button class="btn-icon" @click="$emit('edit-settings')">⚙️</button>
-      </div>
-    </div>
+    <h3>Simulation Parameters</h3>
 
     <!-- Mode Selection -->
     <div class="section-container">
@@ -258,37 +237,47 @@
       </div>
     </div>
 
+    <!-- Tag -->
+    <div class="tag-row">
+      <label>🏷️ Tag</label>
+      <input
+        type="text"
+        v-model.trim="tag"
+        placeholder="Optional label for this run"
+        class="tag-input"
+        maxlength="50"
+      />
+    </div>
+
     <div class="actions">
       <button
         type="button"
         class="btn-table"
         @click="viewResults"
         :disabled="resultsEmpty"
+        title="View Results Table"
       >
-        {{ resultsEmpty ? "No Data Available" : "📊 View Results Table" }}
+        📊
       </button>
 
       <button
         type="button"
         :class="buttonClass"
         @click="loading ? stopSimulation() : runSimulation()"
+        :title="buttonText"
       >
-        {{ buttonText }}
+        {{ buttonText.split(' ')[0] }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import {
   apiClient,
   getUnit,
-  getUnitSystem,
-  setUnitSystem,
-  unitConfig,
   type SimulationRequest,
-  type UnitSystem,
 } from "../api/client";
 
 const props = defineProps<{
@@ -304,21 +293,13 @@ const emit = defineEmits([
   "stop",
   "edit-composition",
   "view-results",
-  "edit-settings",
-  "unit-system-changed",
 ]);
 
 function viewResults() {
   emit("view-results");
 }
 
-const unitSystem = computed(() => getUnitSystem());
-const availableSystems = computed(() => unitConfig.systems);
-
-function formatSystemName(sys: string): string {
-  // Simple capitalization
-  return sys.charAt(0).toUpperCase() + sys.slice(1);
-}
+const tag = ref("");
 
 // Use the auto-generated SimulationRequest type from the API schema
 const form = reactive<SimulationRequest>({
@@ -342,12 +323,6 @@ const form = reactive<SimulationRequest>({
   composition: "Methane=1.0",
   dt: 0.05,
 });
-
-function changeUnitSystem(system: UnitSystem) {
-  setUnitSystem(system);
-  // Emit event to parent to clear all results since they're in the old unit system
-  emit("unit-system-changed");
-}
 
 // Reset opening_mode to linear if switching to close while on fixed
 watch(
@@ -414,7 +389,7 @@ const compositionSummary = computed(() => {
 });
 
 function runSimulation() {
-  emit("run", { ...form });
+  emit("run", { ...form, _tag: tag.value || undefined });
 }
 
 function stopSimulation() {
@@ -434,6 +409,16 @@ const buttonText = computed(() => {
 
 const buttonClass = computed(() => {
   return props.loading ? "btn-stop" : "btn-primary";
+});
+
+// Method to load parameters from history
+function loadParameters(params: Record<string, any>) {
+  Object.assign(form, params);
+}
+
+// Expose method for parent component to use
+defineExpose({
+  loadParameters,
 });
 </script>
 
@@ -466,27 +451,15 @@ const buttonClass = computed(() => {
 }
 
 .actions {
-  @apply flex flex-col gap-3 mt-4;
+  @apply flex gap-3 mt-4 justify-center;
+}
+
+.actions button {
+  @apply flex-1 max-w-xs;
 }
 
 h3 {
   @apply m-0 text-2xl font-bold text-slate-800 tracking-tight;
-}
-
-.settings-controls {
-  @apply flex items-center gap-3;
-}
-
-.unit-selector {
-  @apply flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1;
-}
-
-.unit-selector label {
-  @apply text-[10px] uppercase font-bold text-slate-400 mb-0;
-}
-
-.unit-select {
-  @apply border-none bg-transparent py-1 px-1 text-sm font-semibold text-slate-700 cursor-pointer outline-none focus:ring-0 w-auto;
 }
 
 .form-group {
@@ -511,7 +484,7 @@ label {
 
 input,
 select {
-  @apply py-3 px-4 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-base transition-all duration-200;
+  @apply w-full py-3 px-4 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-base transition-all duration-200;
 }
 
 input:hover,
@@ -564,16 +537,36 @@ input.read-only {
   @apply flex items-center gap-2 bg-blue-50/50 py-2 px-3 rounded-lg border border-blue-100;
 }
 
+.tag-row {
+  @apply flex items-center gap-3;
+}
+
+.tag-row label {
+  @apply text-xs text-slate-500 font-bold uppercase tracking-wider whitespace-nowrap mb-0;
+}
+
+.tag-input {
+  @apply flex-1 py-2 px-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-sm transition-all duration-200;
+}
+
+.tag-input:hover {
+  @apply border-slate-300 bg-white;
+}
+
+.tag-input:focus {
+  @apply outline-none border-blue-500 ring-4 ring-blue-500/10 bg-white;
+}
+
 .btn-table {
-  @apply py-3 px-4 bg-white border-2 border-slate-200 text-slate-600 rounded-xl font-bold cursor-pointer transition-all hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply py-3 px-4 bg-white border-2 border-slate-200 text-slate-600 rounded-xl font-bold cursor-pointer transition-all hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-2xl;
 }
 
 .btn-primary {
-  @apply py-4 px-6 bg-blue-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all hover:bg-blue-700 disabled:bg-slate-300 disabled:shadow-none;
+  @apply py-3 px-4 bg-blue-600 text-white rounded-xl font-bold text-2xl shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all hover:bg-blue-700 disabled:bg-slate-300 disabled:shadow-none;
 }
 
 .btn-stop {
-  @apply py-4 px-6 bg-red-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-red-600/20 active:scale-[0.98] transition-all hover:bg-red-700;
+  @apply py-3 px-4 bg-red-600 text-white rounded-xl font-bold text-2xl shadow-lg shadow-red-600/20 active:scale-[0.98] transition-all hover:bg-red-700;
 }
 
 .btn-secondary {
@@ -582,14 +575,6 @@ input.read-only {
 
 .btn-secondary:hover {
   @apply bg-blue-50 border-blue-200;
-}
-
-.header-with-settings {
-  @apply flex justify-between items-center;
-}
-
-.btn-icon {
-  @apply bg-slate-100 border-none cursor-pointer text-xl p-2 rounded-xl w-10 h-10 flex justify-center items-center transition-all hover:bg-slate-200 hover:rotate-90 active:scale-90;
 }
 
 .section-container {
