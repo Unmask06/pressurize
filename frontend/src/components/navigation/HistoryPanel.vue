@@ -6,15 +6,31 @@
     </div>
 
     <div class="panel-content">
+      <!-- Search -->
+      <div v-if="history.length > 0" class="search-bar">
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Search by tag, mode..."
+          class="search-input"
+        />
+      </div>
+
       <div v-if="history.length === 0" class="empty-state">
         <div class="icon">📭</div>
         <h3>No History</h3>
         <p>Run a simulation to see it here</p>
       </div>
 
+      <div v-else-if="filteredHistory.length === 0" class="empty-state">
+        <div class="icon">🔍</div>
+        <h3>No Results</h3>
+        <p>No simulations match your search</p>
+      </div>
+
       <div v-else class="history-list">
         <div
-          v-for="item in history"
+          v-for="item in filteredHistory"
           :key="item.id"
           class="history-item"
           @click="loadSimulation(item)"
@@ -27,14 +43,21 @@
               </span>
               <span class="timestamp">{{ formatTimestamp(item.timestamp) }}</span>
             </div>
+            <div v-if="item.label" class="item-tag">
+              <span class="tag-badge">🏷️ {{ item.label }}</span>
+            </div>
             <div class="item-details">
               <div class="detail">
                 <span class="label">Upstream:</span>
-                <span class="value">{{ item.params.p_up }} psig</span>
+                <span class="value">{{ item.params.p_up }}</span>
               </div>
               <div class="detail">
                 <span class="label">Downstream:</span>
-                <span class="value">{{ item.params.p_down_init }} psig</span>
+                <span class="value">{{ item.params.p_down_init }}</span>
+              </div>
+              <div v-if="item.unitSystem" class="detail">
+                <span class="label">Units:</span>
+                <span class="value unit-badge">{{ item.unitSystem }}</span>
               </div>
             </div>
           </div>
@@ -72,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import {
   clearHistory,
   deleteSimulation,
@@ -85,10 +108,22 @@ const emit = defineEmits<{
 }>();
 
 const history = ref<SimulationHistoryEntry[]>([]);
+const searchQuery = ref("");
 const showConfirmDialog = ref(false);
 const confirmTitle = ref("");
 const confirmMessage = ref("");
 const pendingAction = ref<(() => void) | null>(null);
+
+const filteredHistory = computed(() => {
+  const q = searchQuery.value.toLowerCase().trim();
+  if (!q) return history.value;
+  return history.value.filter((item) => {
+    const mode = (item.params.mode || "").toLowerCase();
+    const label = (item.label || "").toLowerCase();
+    const units = (item.unitSystem || "").toLowerCase();
+    return mode.includes(q) || label.includes(q) || units.includes(q);
+  });
+});
 
 async function loadHistory() {
   history.value = await getSimulationHistory();
@@ -220,6 +255,22 @@ function formatTimestamp(timestamp: number): string {
   @apply flex-1 overflow-y-auto p-6 flex flex-col gap-4;
 }
 
+.search-bar {
+  @apply shrink-0;
+}
+
+.search-input {
+  @apply w-full py-2 px-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-sm transition-all duration-200;
+}
+
+.search-input:hover {
+  @apply border-slate-300 bg-white;
+}
+
+.search-input:focus {
+  @apply outline-none border-blue-500 ring-4 ring-blue-500/10 bg-white;
+}
+
 .empty-state {
   @apply text-center py-12 px-4;
 }
@@ -286,6 +337,18 @@ function formatTimestamp(timestamp: number): string {
 
 .detail .value {
   @apply text-slate-700 font-semibold;
+}
+
+.item-tag {
+  @apply flex items-center;
+}
+
+.tag-badge {
+  @apply text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-0.5;
+}
+
+.unit-badge {
+  @apply text-xs capitalize;
 }
 
 .btn-delete {

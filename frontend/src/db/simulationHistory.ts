@@ -29,6 +29,7 @@ export interface SimulationHistoryEntry {
     composition?: string;
   };
   label?: string;
+  unitSystem?: string;
 }
 
 /**
@@ -42,6 +43,9 @@ class SimulationHistoryDatabase extends Dexie {
     this.version(1).stores({
       history: "++id, timestamp",
     });
+    this.version(2).stores({
+      history: "++id, timestamp, label, unitSystem",
+    });
   }
 }
 
@@ -54,6 +58,7 @@ const db = new SimulationHistoryDatabase();
 export async function saveSimulation(
   params: Record<string, any>,
   label?: string,
+  unitSystem?: string,
 ): Promise<void> {
   try {
     // Add new entry
@@ -81,6 +86,7 @@ export async function saveSimulation(
         composition: params.composition,
       },
       label,
+      unitSystem,
     });
 
     // Keep only last 10 entries

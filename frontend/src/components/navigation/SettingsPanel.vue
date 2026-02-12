@@ -30,7 +30,6 @@
         <small>Maximum simulation duration (seconds)</small>
       </div>
 
-      <button class="btn-apply" @click="applySettings">Apply Settings</button>
     </div>
   </div>
 </template>
@@ -60,12 +59,12 @@ watch(
   (newVal) => (localMaxSimTime.value = newVal),
 );
 
-function applySettings() {
+watch([localDt, localMaxSimTime], () => {
   emit("update", {
     dt: localDt.value,
     maxSimTime: localMaxSimTime.value,
   });
-}
+});
 </script>
 
 <style scoped>
@@ -115,7 +114,4 @@ function applySettings() {
   @apply text-xs text-slate-400;
 }
 
-.btn-apply {
-  @apply mt-auto py-3 px-6 bg-blue-600 text-white rounded-lg font-bold text-base shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all hover:bg-blue-700 cursor-pointer border-none;
-}
 </style>

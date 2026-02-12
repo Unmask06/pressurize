@@ -9,6 +9,7 @@
         :current-max-sim-time="currentMaxSimTime"
         @update-settings="updateSettings"
         @load-simulation="loadSimulationFromHistory"
+        @unit-system-changed="resetAllOutputs"
       />
       <div class="sidebar">
         <div class="sidebar-header">
@@ -36,8 +37,6 @@
           @stop="stopSimulation"
           @edit-composition="showCompositionEditor = true"
           @view-results="showResultsTable = true"
-          @edit-settings="showSettingsEditor = true"
-          @unit-system-changed="resetAllOutputs"
         />
       </div>
 
@@ -51,11 +50,12 @@
           :loading="!kpisReady"
         />
         <button
+          v-if="results.length > 0 && simulationCompleted"
           class="btn-download"
           @click="showReportModal = true"
-          :disabled="results.length === 0"
+          title="Download Report"
         >
-          📥 Download Report
+          📥
         </button>
       </div>
 
@@ -113,6 +113,7 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import {
     fetchUnitConfig,
+    getUnitSystem,
     streamSimulation,
     type SimulationRow,
 } from "./api/client";
@@ -220,7 +221,8 @@ async function runSimulation(params: any) {
           kpisReady.value = true;
 
           // Save simulation to history
-          saveSimulation(params).catch((e) => {
+          const simTag = params._tag;
+          saveSimulation(params, simTag, getUnitSystem()).catch((e) => {
             console.error("Failed to save simulation to history:", e);
           });
         },
@@ -342,15 +344,11 @@ function loadSimulationFromHistory(params: Record<string, any>) {
 }
 
 .btn-download {
-  @apply shrink-0 py-2 sm:py-3 px-4 sm:px-5 border-none bg-linear-to-br from-emerald-500 to-emerald-600 text-white rounded-lg sm:rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-emerald-500/30;
+  @apply shrink-0 py-2 px-3 border-none bg-linear-to-br from-emerald-500 to-emerald-600 text-white rounded-lg text-xl font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-emerald-500/30 flex items-center justify-center;
 }
 
-.btn-download:hover:not(:disabled) {
+.btn-download:hover {
   @apply from-emerald-600 to-emerald-700 -translate-y-0.5 shadow-xl shadow-emerald-500/40;
-}
-
-.btn-download:disabled {
-  @apply opacity-50 cursor-not-allowed transform-none shadow-none;
 }
 
 .chart-wrapper {

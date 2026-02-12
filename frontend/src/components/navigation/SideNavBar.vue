@@ -37,7 +37,10 @@
           :current-max-sim-time="currentMaxSimTime"
           @update="handleSettingsUpdate"
         />
-        <UnitSystemPanel v-else-if="activePanel === 'units'" />
+        <UnitSystemPanel
+          v-else-if="activePanel === 'units'"
+          @unit-system-changed="handleUnitSystemChanged"
+        />
         <HistoryPanel
           v-else-if="activePanel === 'history'"
           @load-simulation="handleLoadSimulation"
@@ -61,6 +64,7 @@ defineProps<{
 const emit = defineEmits<{
   "update-settings": [settings: { dt: number; maxSimTime: number }];
   "load-simulation": [params: Record<string, any>];
+  "unit-system-changed": [];
 }>();
 
 type PanelType = "settings" | "units" | "history" | null;
@@ -76,12 +80,15 @@ function togglePanel(panel: PanelType) {
 
 function handleSettingsUpdate(settings: { dt: number; maxSimTime: number }) {
   emit("update-settings", settings);
-  activePanel.value = null;
 }
 
 function handleLoadSimulation(params: Record<string, any>) {
   emit("load-simulation", params);
   activePanel.value = null;
+}
+
+function handleUnitSystemChanged() {
+  emit("unit-system-changed");
 }
 </script>
 

@@ -6,35 +6,58 @@
     </div>
 
     <div class="panel-content">
-      <div class="coming-soon">
-        <div class="icon">🚧</div>
-        <h3>Coming Soon</h3>
-        <p>Unit system switching is under development</p>
-      </div>
-
-      <div class="current-system">
-        <label>Current Unit System</label>
-        <div class="badge">
-          <span class="flag">🇺🇸</span>
-          <span class="text">Imperial Units</span>
-        </div>
-      </div>
-
-      <div class="info-box">
-        <h4>Planned Features</h4>
-        <ul>
-          <li>✓ SI (Metric) units</li>
-          <li>✓ Imperial units</li>
-          <li>✓ Automatic conversion</li>
-          <li>✓ Persistent preferences</li>
-        </ul>
+      <div class="system-options">
+        <button
+          v-for="sys in availableSystems"
+          :key="sys"
+          class="system-option"
+          :class="{ active: unitSystem === sys }"
+          @click="changeUnitSystem(sys)"
+        >
+          <span class="system-icon">{{ getSystemIcon(sys) }}</span>
+          <span class="system-name">{{ formatSystemName(sys) }}</span>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Placeholder component for future unit system switching
+import { computed } from "vue";
+import {
+  getUnitSystem,
+  setUnitSystem,
+  unitConfig,
+  type UnitSystem,
+} from "../../api/client";
+
+const emit = defineEmits<{
+  "unit-system-changed": [];
+}>();
+
+const unitSystem = computed(() => getUnitSystem());
+const availableSystems = computed(() => unitConfig.systems);
+
+function formatSystemName(sys: string): string {
+  return sys.charAt(0).toUpperCase() + sys.slice(1);
+}
+
+function getSystemIcon(sys: string): string {
+  switch (sys.toLowerCase()) {
+    case "imperial":
+      return "🇺🇸";
+    case "si":
+    case "metric":
+      return "🌍";
+    default:
+      return "📐";
+  }
+}
+
+function changeUnitSystem(system: UnitSystem) {
+  setUnitSystem(system);
+  emit("unit-system-changed");
+}
 </script>
 
 <style scoped>
@@ -60,55 +83,31 @@
   @apply flex-1 p-6 flex flex-col gap-6;
 }
 
-.coming-soon {
-  @apply text-center py-8 px-4;
+.system-options {
+  @apply flex flex-col gap-3;
 }
 
-.coming-soon .icon {
-  @apply text-5xl mb-4;
+.system-option {
+  @apply flex items-center gap-3 py-3 px-4 bg-white border border-slate-200 rounded-lg cursor-pointer transition-all duration-200 text-left;
 }
 
-.coming-soon h3 {
-  @apply text-lg font-bold text-slate-700 m-0 mb-2;
+.system-option:hover {
+  @apply border-blue-300 bg-blue-50/30;
 }
 
-.coming-soon p {
-  @apply text-sm text-slate-500 m-0;
+.system-option.active {
+  @apply border-blue-500 bg-blue-50 ring-2 ring-blue-500/20;
 }
 
-.current-system {
-  @apply flex flex-col gap-2;
-}
-
-.current-system label {
-  @apply text-xs text-slate-500 font-bold uppercase tracking-wider;
-}
-
-.badge {
-  @apply flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg py-3 px-4;
-}
-
-.badge .flag {
+.system-icon {
   @apply text-2xl;
 }
 
-.badge .text {
-  @apply text-sm font-semibold text-blue-900;
+.system-name {
+  @apply text-sm font-semibold text-slate-700;
 }
 
-.info-box {
-  @apply bg-slate-50 border border-slate-200 rounded-lg p-4;
-}
-
-.info-box h4 {
-  @apply text-sm font-bold text-slate-700 m-0 mb-3;
-}
-
-.info-box ul {
-  @apply list-none p-0 m-0 flex flex-col gap-2;
-}
-
-.info-box li {
-  @apply text-sm text-slate-600;
+.system-option.active .system-name {
+  @apply text-blue-700;
 }
 </style>
