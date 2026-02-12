@@ -4,6 +4,12 @@
       <div class="loading-spinner">⏳ Loading configuration...</div>
     </div>
     <template v-else>
+      <SideNavBar
+        :current-dt="currentDt"
+        :current-max-sim-time="currentMaxSimTime"
+        @update-settings="updateSettings"
+        @load-simulation="loadSimulationFromHistory"
+      />
       <div class="sidebar">
         <div class="sidebar-header">
           <div class="header-top">
@@ -20,6 +26,7 @@
           <p>Gas Valves</p>
         </div>
         <SimulationForm
+          ref="simulationFormRef"
           :loading="loading"
           :initial-composition="currentComposition"
           :results-empty="results.length === 0"
@@ -111,11 +118,13 @@ import {
 } from "./api/client";
 import CompositionEditor from "./components/CompositionEditor.vue";
 import KpiCards from "./components/KpiCards.vue";
+import SideNavBar from "./components/navigation/SideNavBar.vue";
 import ReportDownload from "./components/ReportDownload.vue";
 import ResultsChart from "./components/ResultsChart.vue";
 import ResultsTable from "./components/ResultsTable.vue";
 import SettingsEditor from "./components/SettingsEditor.vue";
 import SimulationForm from "./components/SimulationForm.vue";
+import { saveSimulation } from "./db/simulationHistory";
 
 const loading = ref(false);
 const unitConfigReady = ref(false);
@@ -145,6 +154,7 @@ onMounted(async () => {
 
 // Refs for report generation
 const chartRef = ref<InstanceType<typeof ResultsChart> | null>(null);
+const simulationFormRef = ref<InstanceType<typeof SimulationForm> | null>(null);
 const lastFormParams = ref<Record<string, any>>({});
 
 // Compute chart data URL when modal opens
@@ -208,6 +218,11 @@ async function runSimulation(params: any) {
           simulationCompleted.value =
             kpiData.completed !== undefined ? kpiData.completed : true;
           kpisReady.value = true;
+          
+          // Save simulation to history
+          saveSimulation(params).catch((e) => {
+            console.error("Failed to save simulation to history:", e);
+          });
         },
         onError: (message) => {
           console.error("Simulation failed:", message);
@@ -269,6 +284,12 @@ function resetAllOutputs() {
   
   // Clear last form params
   lastFormParams.value = {};
+}
+
+function loadSimulationFromHistory(params: Record<string, any>) {
+  if (simulationFormRef.value) {
+    simulationFormRef.value.loadParameters(params);
+  }
 }
 </script>
 

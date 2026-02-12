@@ -435,6 +435,16 @@ const buttonText = computed(() => {
 const buttonClass = computed(() => {
   return props.loading ? "btn-stop" : "btn-primary";
 });
+
+// Method to load parameters from history
+function loadParameters(params: Record<string, any>) {
+  Object.assign(form, params);
+}
+
+// Expose method for parent component to use
+defineExpose({
+  loadParameters,
+});
 </script>
 
 <style scoped>

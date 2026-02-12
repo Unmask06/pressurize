@@ -16,6 +16,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
+    "dexie": "^3.2.4",
     "echarts": "^6.0.0",
     "jspdf": "^4.0.0",
     "jszip": "^3.10.1",
