@@ -218,7 +218,7 @@ async function runSimulation(params: any) {
           simulationCompleted.value =
             kpiData.completed !== undefined ? kpiData.completed : true;
           kpisReady.value = true;
-          
+
           // Save simulation to history
           saveSimulation(params).catch((e) => {
             console.error("Failed to save simulation to history:", e);
@@ -289,6 +289,11 @@ function resetAllOutputs() {
 function loadSimulationFromHistory(params: Record<string, any>) {
   if (simulationFormRef.value) {
     simulationFormRef.value.loadParameters(params);
+    // Update lastFormParams so report generation has access to loaded parameters
+    // This ensures consistency if user generates a report before running a new simulation
+    lastFormParams.value = { ...params };
+  } else {
+    console.warn("Cannot load simulation: SimulationForm ref is not available");
   }
 }
 </script>
