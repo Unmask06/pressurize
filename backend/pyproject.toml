@@ -55,7 +55,14 @@ dev = [
     "pandas-stubs>=2.3.3.260113",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
+    "ruff>=0.13.1",
 ]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90", "B", "I", "Q", "D"]
 
 [tool.hatch.metadata]
 allow-direct-references = true

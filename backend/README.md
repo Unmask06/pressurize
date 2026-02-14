@@ -20,7 +20,7 @@ pressurize
 ### As a Python module
 
 ```bash
-python -m pressurize.main
+uv run python -m pressurize
 ```
 
 ### Using uvicorn directly
