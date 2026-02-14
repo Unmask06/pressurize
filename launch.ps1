@@ -1,42 +1,24 @@
-# Pressurize Launch Script
-# This script starts both backend and frontend servers
+# launch.ps1 — Start both servers for local development
 
-Write-Host "Starting Pressurize Application..." -ForegroundColor Cyan
+$backendPort = 8000
+$frontendPort = 5173
+$frontendUrl = "http://localhost:$frontendPort/products/pressurize/"
 
-# Configuration
-$BackendPort = 8000
-$FrontendPort = 5173
-$BackendUrl = "http://localhost:$BackendPort"
-$FrontendUrl = "http://localhost:$FrontendPort"
-$DocsUrl = "http://localhost:$FrontendPort/docs/"
+Write-Host "Starting Pressurize..." -ForegroundColor Cyan
 
-# Get the script directory
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-Write-Host "Working directory: $ScriptDir" -ForegroundColor DarkGray
-Set-Location $ScriptDir
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Set-Location $scriptDir
 
-# Start Backend
-Write-Host "Starting Backend (FastAPI)..." -ForegroundColor Cyan
-$backendArgs = "-NoExit", "-Command", "cd '$ScriptDir\backend'; uv run python -m uvicorn pressurize.main:app --reload --host 127.0.0.1 --port $BackendPort"
-Start-Process powershell -ArgumentList $backendArgs
+# Backend
+Start-Process powershell -ArgumentList "-NoExit", "-Command", `
+	"cd '$scriptDir\backend'; uv run python -m pressurize" `
+	-WindowStyle Normal
 
-# Wait for backend
-Write-Host "Waiting for backend to start..." -ForegroundColor Yellow
-Start-Sleep -Seconds 5
+# Frontend
+Start-Process powershell -ArgumentList "-NoExit", "-Command", `
+	"cd '$scriptDir\frontend'; npm.cmd run dev" `
+	-WindowStyle Normal
 
-# Start Frontend
-Write-Host "Starting Frontend (Vite)..." -ForegroundColor Cyan
-$frontendArgs = "-NoExit", "-Command", "cd '$ScriptDir\frontend'; npm.cmd run dev"
-Start-Process powershell -ArgumentList $frontendArgs
-
-# Wait for frontend
 Start-Sleep -Seconds 3
-
-# Open browser
-Write-Host "Opening browser..." -ForegroundColor Cyan
-Start-Process $FrontendUrl
-
-Write-Host "Application launched!" -ForegroundColor Green
-Write-Host "  Backend:  $BackendUrl" -ForegroundColor White
-Write-Host "  Frontend: $FrontendUrl" -ForegroundColor White
-Write-Host "  Docs:     $DocsUrl (available after build)" -ForegroundColor DarkYellow
+Start-Process $frontendUrl
+Write-Host "Launched: $frontendUrl" -ForegroundColor Green

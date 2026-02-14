@@ -26,6 +26,7 @@
     "vue-echarts": "^8.0.1"
   },
   "devDependencies": {
+    "@types/node": "^24.4.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "concurrently": "^8.2.2",
     "markdown-it-mathjax3": "^4.3.2",

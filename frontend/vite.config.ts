@@ -1,37 +1,38 @@
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import fs from "fs";
+import type { IncomingMessage, ServerResponse } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
-import { defineConfig } from "vite";
+import { defineConfig, type ViteDevServer } from "vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Plugin to serve pre-built VitePress docs from dist folder during dev
 function serveStaticDocs() {
   return {
     name: "serve-static-docs",
-    configureServer(server) {
+    configureServer(server: ViteDevServer) {
       server.middlewares.use((req, res, next) => {
-        // Check if request is for docs
-        if (req.url?.startsWith("/products/pressurize/docs")) {
+        const request = req as IncomingMessage & { url?: string };
+        const response = res as ServerResponse;
+        if (request.url?.startsWith("/products/pressurize/docs")) {
           const docsPath = path.resolve(
             __dirname,
             "dist/products/pressurize/docs",
           );
           let urlPath =
-            req.url.replace("/products/pressurize/docs", "") || "/index.html";
+            request.url.replace("/products/pressurize/docs", "") ||
+            "/index.html";
 
-          // Handle trailing slash
           if (urlPath.endsWith("/") || urlPath === "") {
-            urlPath = urlPath + "index.html";
+            urlPath = `${urlPath}index.html`;
           }
 
           const filePath = path.join(docsPath, urlPath);
 
           if (fs.existsSync(filePath)) {
             const ext = path.extname(filePath);
-            const contentTypes = {
+            const contentTypes: Record<string, string> = {
               ".html": "text/html",
               ".css": "text/css",
               ".js": "application/javascript",
@@ -42,8 +43,11 @@ function serveStaticDocs() {
               ".woff": "font/woff",
               ".woff2": "font/woff2",
             };
-            res.setHeader("Content-Type", contentTypes[ext] || "text/html");
-            fs.createReadStream(filePath).pipe(res);
+            response.setHeader(
+              "Content-Type",
+              contentTypes[ext] || "text/html",
+            );
+            fs.createReadStream(filePath).pipe(response);
             return;
           }
         }
@@ -53,20 +57,18 @@ function serveStaticDocs() {
   };
 }
 
-// https://vite.dev/config/
-export default defineConfig(({ command, mode }) => ({
+export default defineConfig({
   plugins: [serveStaticDocs(), vue(), tailwindcss()],
   base: "/products/pressurize/",
   build: {
     outDir: "dist/products/pressurize",
   },
-  server: {
-    port: 5173,
-    strictPort: false,
-    host: "127.0.0.1",
-    middlewareMode: false,
-    fs: {
-      allow: [".", "../docs"],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "src"),
     },
   },
-}));
+  server: {
+    port: 5173,
+  },
+});
