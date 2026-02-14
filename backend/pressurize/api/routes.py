@@ -23,18 +23,17 @@ router = APIRouter(tags=["pressurize"])
 
 CHUNK_SIZE = 5  # Number of rows per streaming chunk
 
+# Cache the unit configuration at startup
+_CACHED_UNITS_CONFIG = {
+    "systems": sorted(list(UNIT_SYSTEMS)),
+    "dimensions": {dim.lower(): systems for dim, systems in TARGET_DIMENSIONS.items()},
+}
+
 
 @router.get("/units/config")
 async def get_units_config() -> dict:
     """Get the unit configuration including supported systems and dimension mappings."""
-    # Normalize dimension keys to lowercase for consistent frontend access
-    dimensions_normalized = {
-        dim.lower(): systems for dim, systems in TARGET_DIMENSIONS.items()
-    }
-    return {
-        "systems": sorted(list(UNIT_SYSTEMS)),
-        "dimensions": dimensions_normalized,
-    }
+    return _CACHED_UNITS_CONFIG
 
 
 async def generate_simulation_stream(

@@ -1,17 +1,13 @@
 <template>
   <div class="app-container">
-    <div v-if="!unitConfigReady" class="loading-overlay">
-      <div class="loading-spinner">⏳ Loading configuration...</div>
-    </div>
-    <template v-else>
-      <SideNavBar
-        :current-dt="currentDt"
-        :current-max-sim-time="currentMaxSimTime"
-        @update-settings="updateSettings"
-        @load-simulation="loadSimulationFromHistory"
-        @unit-system-changed="resetAllOutputs"
-      />
-      <div class="sidebar">
+    <SideNavBar
+      :current-dt="currentDt"
+      :current-max-sim-time="currentMaxSimTime"
+      @update-settings="updateSettings"
+      @load-simulation="loadSimulationFromHistory"
+      @unit-system-changed="resetAllOutputs"
+    />
+    <div class="sidebar">
         <div class="sidebar-header">
           <div class="header-top">
             <h1>Pressurization Simulator</h1>
@@ -105,7 +101,6 @@
         @apply="updateSettings"
       />
     </Transition>
-    </template>
   </div>
 </template>
 
@@ -128,7 +123,7 @@ import SimulationForm from "./components/SimulationForm.vue";
 import { saveSimulation } from "./db/simulationHistory";
 
 const loading = ref(false);
-const unitConfigReady = ref(false);
+const unitConfigReady = ref(true);
 const showCompositionEditor = ref(false);
 const showResultsTable = ref(false);
 const showReportModal = ref(false);
