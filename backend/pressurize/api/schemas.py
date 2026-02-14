@@ -67,7 +67,7 @@ class SimulationRequest(BaseModel):
     k_curve: float = Field(
         4.0, description="Curve steepness for exponential/quick_acting"
     )
-    dt: float = Field(0.05, description="Time step (s)")
+    dt: float = Field(0.5, description="Time step (s)")
 
     # Composition Mode
     property_mode: Literal["manual", "composition"] = Field(

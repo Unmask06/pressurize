@@ -11,9 +11,9 @@
         <input
           type="number"
           v-model.number="localDt"
-          step="0.01"
-          min="0.01"
-          placeholder="0.05"
+          step="0.5"
+          min="0.5"
+          placeholder="0.5"
         />
         <small>Time step for simulation (seconds)</small>
       </div>

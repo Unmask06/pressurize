@@ -1,6 +1,7 @@
 import axios from "axios";
 import { reactive, ref } from "vue";
 import type { components } from "./schema";
+import defaultUnitConfig from "./unit-defaults.json";
 
 // Base URL: localhost for dev, api.xergiz.com for production
 const API_BASE_URL = import.meta.env.DEV
@@ -23,9 +24,10 @@ export interface UnitConfig {
   dimensions: Record<string, Record<string, string>>;
 }
 
+// Initialize with bundled config for immediate availability
 export const unitConfig = reactive<UnitConfig>({
-  systems: ["imperial"],
-  dimensions: {},
+  systems: defaultUnitConfig.systems,
+  dimensions: defaultUnitConfig.dimensions,
 });
 
 export function setUnitSystem(system: UnitSystem) {

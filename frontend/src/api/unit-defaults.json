@@ -1,0 +1,220 @@
+{
+  "systems": [
+    "cgs",
+    "engg_field",
+    "engg_si",
+    "imperial",
+    "si",
+    "us"
+  ],
+  "dimensions": {
+    "pressure": {
+      "imperial": "psi",
+      "si": "Pa",
+      "cgs": "Ba",
+      "us": "psi",
+      "engg_si": "bar",
+      "engg_field": "psi"
+    },
+    "length": {
+      "imperial": "ft",
+      "si": "m",
+      "cgs": "cm",
+      "us": "ft",
+      "engg_si": "m",
+      "engg_field": "ft"
+    },
+    "small length": {
+      "imperial": "in",
+      "si": "mm",
+      "cgs": "mm",
+      "us": "in",
+      "engg_si": "mm",
+      "engg_field": "in"
+    },
+    "temperature": {
+      "imperial": "°F",
+      "si": "K",
+      "cgs": "°C",
+      "us": "°F",
+      "engg_si": "°C",
+      "engg_field": "°F"
+    },
+    "mass": {
+      "imperial": "lb",
+      "si": "kg",
+      "cgs": "g",
+      "us": "lb",
+      "engg_si": "kg",
+      "engg_field": "lb"
+    },
+    "time": {
+      "imperial": "s",
+      "si": "s",
+      "cgs": "s",
+      "us": "s",
+      "engg_si": "s",
+      "engg_field": "s"
+    },
+    "current": {
+      "imperial": "A",
+      "si": "A",
+      "cgs": "A",
+      "us": "A",
+      "engg_si": "A",
+      "engg_field": "A"
+    },
+    "luminosity": {
+      "imperial": "cd",
+      "si": "cd",
+      "cgs": "cd",
+      "us": "cd",
+      "engg_si": "cd",
+      "engg_field": "cd"
+    },
+    "substance": {
+      "imperial": "mol",
+      "si": "mol",
+      "cgs": "mol",
+      "us": "mol",
+      "engg_si": "mol",
+      "engg_field": "mol"
+    },
+    "area": {
+      "imperial": "ft²",
+      "si": "m²",
+      "cgs": "cm²",
+      "us": "ft²",
+      "engg_si": "m²",
+      "engg_field": "ft²"
+    },
+    "volume": {
+      "imperial": "ft³",
+      "si": "m³",
+      "cgs": "cm³",
+      "us": "ft³",
+      "engg_si": "m³",
+      "engg_field": "ft³"
+    },
+    "frequency": {
+      "imperial": "Hz",
+      "si": "Hz",
+      "cgs": "Hz",
+      "us": "Hz",
+      "engg_si": "Hz",
+      "engg_field": "Hz"
+    },
+    "wavenumber": {
+      "imperial": "1/ft",
+      "si": "1/m",
+      "cgs": "1/cm",
+      "us": "1/ft",
+      "engg_si": "1/m",
+      "engg_field": "1/ft"
+    },
+    "velocity": {
+      "imperial": "ft/s",
+      "si": "m/s",
+      "cgs": "cm/s",
+      "us": "ft/s",
+      "engg_si": "m/s",
+      "engg_field": "ft/s"
+    },
+    "speed": {
+      "imperial": "ft/s",
+      "si": "m/s",
+      "cgs": "cm/s",
+      "us": "ft/s",
+      "engg_si": "m/s",
+      "engg_field": "ft/s"
+    },
+    "mass flow rate": {
+      "imperial": "lb/s",
+      "si": "kg/s",
+      "cgs": "g/s",
+      "us": "lb/s",
+      "engg_si": "kg/h",
+      "engg_field": "lb/h"
+    },
+    "volumetric flow rate": {
+      "imperial": "ft³/s",
+      "si": "m³/s",
+      "cgs": "cm³/s",
+      "us": "ft³/s",
+      "engg_si": "m³/h",
+      "engg_field": "ft³/h"
+    },
+    "acceleration": {
+      "imperial": "ft/s²",
+      "si": "m/s²",
+      "cgs": "cm/s²",
+      "us": "ft/s²",
+      "engg_si": "m/s²",
+      "engg_field": "ft/s²"
+    },
+    "force": {
+      "imperial": "lbf",
+      "si": "N",
+      "cgs": "dyn",
+      "us": "lbf",
+      "engg_si": "N",
+      "engg_field": "lbf"
+    },
+    "energy": {
+      "imperial": "ft_lb",
+      "si": "J",
+      "cgs": "erg",
+      "us": "ft_lb",
+      "engg_si": "J",
+      "engg_field": "ft_lb"
+    },
+    "power": {
+      "imperial": "ft_lb/s",
+      "si": "W",
+      "cgs": "erg/s",
+      "us": "ft_lb/s",
+      "engg_si": "W",
+      "engg_field": "ft_lb/s"
+    },
+    "momentum": {
+      "imperial": "ft·lb/s",
+      "si": "kg·m/s",
+      "cgs": "cm·g/s",
+      "us": "ft·lb/s",
+      "engg_si": "kg·m/s",
+      "engg_field": "ft·lb/s"
+    },
+    "density": {
+      "imperial": "lb/ft³",
+      "si": "kg/m³",
+      "cgs": "g/cm³",
+      "us": "lb/ft³",
+      "engg_si": "kg/m³",
+      "engg_field": "lb/ft³"
+    },
+    "torque": {
+      "imperial": "ft_lb",
+      "si": "m·N",
+      "cgs": "cm·dyn",
+      "us": "ft_lb",
+      "engg_si": "m·N",
+      "engg_field": "ft_lb"
+    },
+    "viscosity": {
+      "imperial": "lb/ft/s",
+      "si": "Pa·s",
+      "cgs": "P",
+      "us": "lb/ft/s",
+      "engg_si": "Pa·s",
+      "engg_field": "lb/ft/s"
+    },
+    "kinematic viscosity": {
+      "imperial": "sq_ft/s",
+      "si": "m²/s",
+      "cgs": "St",
+      "us": "sq_ft/s",
+      "engg_si": "m²/s",
+      "engg_field": "sq_ft/s"
+    }
+  }
+}

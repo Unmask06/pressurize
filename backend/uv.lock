@@ -414,8 +414,8 @@ wheels = [
 
 [[package]]
 name = "pint-glass"
-version = "0.3.0"
-source = { git = "https://github.com/Unmask06/pint-glass.git?branch=main#23738ca25a3c4374073d522811645d9ebf8a611d" }
+version = "0.4.0"
+source = { git = "https://github.com/Unmask06/pint-glass.git?branch=main#e2b5000228136ea644b8a894db2f2f19302cb1ab" }
 dependencies = [
     { name = "fastapi" },
     { name = "pint" },
@@ -443,7 +443,7 @@ wheels = [
 
 [[package]]
 name = "pressurize"
-version = "0.6"
+version = "0.6.1"
 source = { editable = "." }
 dependencies = [
     { name = "chemicals" },

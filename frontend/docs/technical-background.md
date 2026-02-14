@@ -58,6 +58,6 @@ The curve factor $k$ controls steepness for Exponential and Quick Acting profile
 
 ## Time-Stepping
 
-The simulation uses a fixed time step ($\Delta t$, default 0.05 s). At each step, the mass flow rate is calculated based on the current valve opening, upstream/downstream pressures, and flow regime. Pressures are then updated based on the mass balance in each vessel.
+The simulation uses a fixed time step ($\Delta t$, default 0.5 s). At each step, the mass flow rate is calculated based on the current valve opening, upstream/downstream pressures, and flow regime. Pressures are then updated based on the mass balance in each vessel.
 
 The simulation terminates when pressures equalize (within tolerance) or the maximum simulation time is reached.
