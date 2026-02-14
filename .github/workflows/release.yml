@@ -52,7 +52,7 @@ jobs:
       - uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.XERGIZ_TRIGGER_TOKEN }}
-          repository: Unmask06/xergiz
+          repository: Xergiz/xergiz
           event-type: product-updated
           client-payload: |
             {
@@ -70,7 +70,7 @@ jobs:
       - uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.XERGIZ_TRIGGER_TOKEN }}
-          repository: Unmask06/xergiz
+          repository: Xergiz/xergiz
           event-type: product-backend-updated
           client-payload: |
             {
