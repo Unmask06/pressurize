@@ -106,7 +106,7 @@
               <input
                 type="number"
                 v-model.number="form.discharge_coeff"
-                step="0.05"
+                step="0.5"
               />
             </div>
             <div class="form-group quarter">
@@ -321,7 +321,7 @@ const form = reactive<SimulationRequest>({
   k_curve: 4.0,
   property_mode: "composition",
   composition: "Methane=1.0",
-  dt: 0.05,
+  dt: 0.5,
 });
 
 // Reset opening_mode to linear if switching to close while on fixed

@@ -131,7 +131,7 @@ const showSettingsEditor = ref(false);
 const currentComposition = ref(
   "Methane=0.9387, Ethane=0.0121, Propane=0.0004, Carbon dioxide=0.0054, Nitrogen=0.0433",
 );
-const currentDt = ref(0.05);
+const currentDt = ref(0.5);
 const currentMaxSimTime = ref(10000);
 
 // AbortController for stopping simulation

@@ -287,7 +287,7 @@ export interface components {
             /**
              * Dt
              * @description Time step (s)
-             * @default 0.05
+             * @default 0.5
              */
             dt: number;
             /**
