@@ -77,18 +77,22 @@ function changeUnitSystem(system: UnitSystem) {
 
 .unit-system-panel {
   @apply h-full flex flex-col;
+  background-color: var(--xergiz-panel);
 }
 
 .panel-header {
-  @apply border-b border-slate-200 p-6;
+  @apply border-b p-6;
+  border-color: var(--xergiz-border);
 }
 
 .panel-header h2 {
-  @apply text-xl font-bold text-slate-800 m-0;
+  @apply text-xl font-bold m-0;
+  color: var(--xergiz-text);
 }
 
 .panel-header p {
-  @apply text-sm text-slate-500 mt-1 mb-0;
+  @apply text-sm mt-1 mb-0;
+  color: var(--xergiz-text-muted);
 }
 
 .panel-content {
@@ -100,15 +104,21 @@ function changeUnitSystem(system: UnitSystem) {
 }
 
 .system-option {
-  @apply flex items-center gap-3 py-3 px-4 bg-white border border-slate-200 rounded-lg cursor-pointer transition-all duration-200 text-left;
+  @apply flex items-center gap-3 py-3 px-4 border rounded-lg cursor-pointer transition-all duration-200 text-left;
+  background-color: var(--xergiz-dark);
+  border-color: var(--xergiz-border);
 }
 
 .system-option:hover {
-  @apply border-blue-300 bg-blue-50/30;
+  border-color: var(--xergiz-teal);
+  background-color: var(--xergiz-teal-dim);
 }
 
 .system-option.active {
-  @apply border-blue-500 bg-blue-50 ring-2 ring-blue-500/20;
+  @apply ring-2;
+  border-color: var(--xergiz-teal);
+  background-color: var(--xergiz-teal-dim);
+  ring-color: var(--xergiz-teal-glow);
 }
 
 .system-icon {
@@ -116,10 +126,11 @@ function changeUnitSystem(system: UnitSystem) {
 }
 
 .system-name {
-  @apply text-sm font-semibold text-slate-700;
+  @apply text-sm font-semibold;
+  color: var(--xergiz-text);
 }
 
 .system-option.active .system-name {
-  @apply text-blue-700;
+  color: var(--xergiz-teal);
 }
 </style>

@@ -82,41 +82,34 @@ function close() {
   @apply w-[90%] max-w-100;
 }
 
-/* Component-specific header styling */
-.modal-header h3 {
-  @apply text-lg font-semibold text-slate-800;
-}
-
 .form-group {
   @apply flex flex-col gap-2;
 }
 
 .form-group label {
-  @apply text-sm text-slate-600 font-medium;
+  @apply text-xs font-bold uppercase tracking-wider;
+  color: var(--xergiz-text-muted);
 }
 
 .form-group input {
-  @apply py-2.5 px-3 border border-slate-200 rounded-md bg-white text-slate-800 text-base transition-colors;
+  @apply py-2.5 px-3 border rounded-md text-base transition-colors;
+  background: var(--xergiz-dark);
+  border-color: var(--xergiz-border);
+  color: var(--xergiz-text);
+}
+
+.form-group input:hover {
+  border-color: var(--xergiz-border-hover);
 }
 
 .form-group input:focus {
-  @apply outline-none border-blue-500 ring-2 ring-blue-500/20;
+  @apply outline-none ring-2;
+  border-color: var(--xergiz-teal);
+  ring-color: var(--xergiz-teal-dim);
 }
 
 .hint {
-  @apply text-xs text-slate-400;
-}
-
-/* Component-specific button styles */
-.btn-secondary {
-  @apply text-slate-600;
-}
-
-.btn-secondary:hover {
-  @apply bg-slate-100;
-}
-
-.btn-primary:hover {
-  @apply bg-blue-600;
+  @apply text-xs;
+  color: var(--xergiz-text-muted);
 }
 </style>

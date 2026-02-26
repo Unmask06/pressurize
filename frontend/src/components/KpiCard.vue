@@ -54,58 +54,79 @@ const formattedValue = computed(() => {
 @import "tailwindcss";
 
 .kpi-card {
-  @apply bg-white rounded-lg p-2 sm:p-3 flex flex-row items-center gap-2 shadow-sm transition-all duration-200 border border-slate-200;
+  @apply rounded-xl p-3 flex flex-row items-center gap-2.5 transition-all duration-200 border;
+  background: var(--xergiz-surface);
+  border-color: var(--xergiz-border);
 }
 
 .kpi-card:hover {
-  @apply -translate-y-0.5 shadow-md;
+  @apply -translate-y-0.5;
+  border-color: var(--xergiz-border-hover);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .kpi-icon {
-  @apply text-lg sm:text-xl bg-slate-100 p-1.5 sm:p-2 rounded-lg leading-none shrink-0;
+  @apply text-base p-2 rounded-lg leading-none shrink-0;
+  background: var(--xergiz-teal-dim);
 }
 
 .kpi-content {
-  @apply flex flex-col flex-1;
+  @apply flex flex-col flex-1 gap-0;
 }
 
 .kpi-label {
-  @apply text-xs text-slate-500 font-medium whitespace-nowrap;
+  @apply text-[10px] font-medium whitespace-nowrap;
+  color: var(--xergiz-text-muted);
 }
 
 .kpi-value {
-  @apply text-sm sm:text-base md:text-lg font-bold text-slate-800 leading-tight whitespace-nowrap;
+  @apply text-base font-bold leading-tight whitespace-nowrap;
+  color: var(--xergiz-text);
 }
 
 .kpi-unit {
-  @apply text-xs text-slate-400;
+  @apply text-[10px];
+  color: var(--xergiz-text-muted);
 }
 
-/* Specific accent colors */
+/* Specific accent colors with glow */
+.kpi-card.flow .kpi-icon {
+  background: rgba(248, 113, 113, 0.12);
+}
 .kpi-card.flow .kpi-value {
-  @apply text-red-500;
+  color: #f87171;
 }
 
+.kpi-card.pressure .kpi-icon {
+  background: rgba(96, 165, 250, 0.12);
+}
 .kpi-card.pressure .kpi-value {
-  @apply text-blue-500;
+  color: #60a5fa;
 }
 
+.kpi-card.time .kpi-icon {
+  background: rgba(52, 211, 153, 0.12);
+}
 .kpi-card.time .kpi-value {
-  @apply text-emerald-500;
+  color: #34d399;
 }
 
+.kpi-card.mass .kpi-icon {
+  background: rgba(167, 139, 250, 0.12);
+}
 .kpi-card.mass .kpi-value {
-  @apply text-violet-500;
+  color: #a78bfa;
 }
 
 /* Loading state */
 .kpi-value.loading {
-  @apply text-slate-400;
+  color: var(--xergiz-text-muted);
 }
 
 .loading-dots {
   @apply inline-block;
   animation: pulse 1.2s ease-in-out infinite;
+  color: var(--xergiz-teal);
 }
 
 @keyframes pulse {

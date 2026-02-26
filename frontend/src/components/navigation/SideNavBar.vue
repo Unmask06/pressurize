@@ -100,7 +100,8 @@ function handleUnitSystemChanged() {
 }
 
 .icon-bar {
-  @apply w-16 bg-slate-800 flex flex-col items-center gap-2 py-4;
+  @apply w-16 flex flex-col items-center gap-2 py-4;
+  background-color: var(--xergiz-blue);
 }
 
 .nav-icon {
@@ -108,15 +109,17 @@ function handleUnitSystemChanged() {
 }
 
 .nav-icon:hover {
-  @apply bg-slate-700;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .nav-icon.active {
-  @apply bg-slate-600;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .expanded-panel {
-  @apply w-80 bg-white border-r border-slate-200;
+  @apply w-80 border-r overflow-hidden;
+  background-color: var(--xergiz-panel);
+  border-color: var(--xergiz-border);
 }
 
 /* Slide transition */

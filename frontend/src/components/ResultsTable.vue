@@ -13,8 +13,12 @@
               <th>Time ({{ getUnit("time") }})</th>
               <th>P Up ({{ getUnit("pressure") }})</th>
               <th>P Down ({{ getUnit("pressure") }})</th>
-              <th>dP/dt Up</th>
-              <th>dP/dt Down</th>
+              <th>
+                dP/dt Up ({{ getUnit("pressure") }}/{{ getUnit("time") }})
+              </th>
+              <th>
+                dP/dt Down ({{ getUnit("pressure") }}/{{ getUnit("time") }})
+              </th>
               <th>Flow ({{ getUnit("mass_flow_rate") }})</th>
               <th>Valve (%)</th>
               <th>Regime</th>
@@ -71,18 +75,24 @@ const emit = defineEmits(["close"]);
 }
 
 table {
-  @apply w-full border-collapse text-sm text-slate-800;
+  @apply w-full border-collapse text-sm;
+  color: var(--xergiz-text);
 }
 
 th {
-  @apply sticky top-0 bg-slate-100 p-4 text-left border-b-2 border-slate-200 font-semibold whitespace-nowrap;
+  @apply sticky top-0 p-4 text-left border-b-2 font-semibold whitespace-nowrap text-xs uppercase tracking-wider;
+  background: var(--xergiz-panel);
+  border-color: var(--xergiz-border);
+  color: var(--xergiz-text-muted);
 }
 
 td {
-  @apply py-3 px-4 border-b border-slate-200 whitespace-nowrap;
+  @apply py-3 px-4 border-b whitespace-nowrap;
+  background: var(--xergiz-surface);
+  border-color: var(--xergiz-border);
 }
 
-tr:hover {
-  @apply bg-slate-100;
+tr:hover td {
+  background: color-mix(in srgb, var(--xergiz-surface) 80%, white 20%);
 }
 </style>

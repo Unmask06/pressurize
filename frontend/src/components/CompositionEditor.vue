@@ -234,16 +234,26 @@ function apply() {
   @apply mb-6;
 }
 
+.presets-section label {
+  @apply text-xs font-bold uppercase tracking-wider;
+  color: var(--xergiz-text-muted);
+}
+
 .preset-chips {
   @apply flex flex-wrap gap-2 mt-2;
 }
 
 .chip {
-  @apply py-1.5 px-3 bg-slate-100 border border-slate-200 rounded-full cursor-pointer text-sm transition-all;
+  @apply py-1.5 px-3 border rounded-full cursor-pointer text-sm transition-all;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--xergiz-border-hover);
+  color: var(--xergiz-text);
 }
 
 .chip:hover {
-  @apply bg-blue-500 text-white border-blue-500;
+  background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+  color: #020617;
+  border-color: transparent;
 }
 
 .editor-grid {
@@ -251,15 +261,31 @@ function apply() {
 }
 
 .list-container {
-  @apply border border-slate-200 rounded-lg p-4 flex flex-col;
+  @apply border rounded-lg p-4 flex flex-col;
+  border-color: var(--xergiz-border);
+  background: var(--xergiz-surface);
 }
 
 h4 {
   @apply m-0 mb-2 text-base;
+  color: var(--xergiz-text);
 }
 
 .search-input {
-  @apply w-full py-2 px-3 mb-2 border border-slate-200 rounded-md bg-white text-slate-800;
+  @apply w-full py-2 px-3 mb-2 border rounded-md text-sm;
+  background: var(--xergiz-dark);
+  border-color: var(--xergiz-border);
+  color: var(--xergiz-text);
+}
+
+.search-input::placeholder {
+  color: var(--xergiz-text-muted);
+}
+
+.search-input:focus {
+  @apply outline-none ring-2;
+  border-color: var(--xergiz-teal);
+  ring-color: var(--xergiz-teal-dim);
 }
 
 .component-list {
@@ -271,19 +297,23 @@ h4 {
 }
 
 .comp-item.add {
-  @apply bg-slate-100 border-none text-left;
+  @apply border-none text-left;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--xergiz-text);
 }
 
 .comp-item.add:hover:not(:disabled) {
-  @apply bg-slate-200;
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .comp-item.add:disabled {
-  @apply opacity-50 cursor-default;
+  @apply opacity-40 cursor-default;
 }
 
 .comp-item.selected {
-  @apply bg-slate-100 cursor-default;
+  @apply cursor-default;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--xergiz-text);
 }
 
 .comp-name {
@@ -291,23 +321,43 @@ h4 {
 }
 
 .fraction-input {
-  @apply w-17.5 py-1 px-2 mr-2 text-right border border-slate-200 rounded;
+  @apply w-17.5 py-1 px-2 mr-2 text-right border rounded text-sm;
+  background: var(--xergiz-dark);
+  border-color: var(--xergiz-border);
+  color: var(--xergiz-text);
+}
+
+.fraction-input:focus {
+  @apply outline-none;
+  border-color: var(--xergiz-teal);
 }
 
 .remove-btn {
-  @apply border-none bg-transparent text-red-500 cursor-pointer font-bold;
+  @apply border-none bg-transparent cursor-pointer font-bold;
+  color: #f87171;
+}
+
+.remove-btn:hover {
+  color: #ef4444;
 }
 
 .total-section {
-  @apply mt-4 p-2 rounded flex justify-between font-bold;
+  @apply mt-4 p-2 rounded flex justify-between font-bold text-sm;
 }
 
 .total-section.valid {
-  @apply bg-emerald-500/10 text-emerald-500;
+  background: rgba(52, 211, 153, 0.1);
+  color: #34d399;
 }
 
 .total-section.invalid {
-  @apply bg-red-500/10 text-red-500;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+.action-icon {
+  color: var(--xergiz-teal);
+  @apply font-bold;
 }
 
 /* Component-specific button styles */

@@ -41,7 +41,9 @@
                 {{ getModeIcon(item.params.mode) }}
                 {{ formatMode(item.params.mode) }}
               </span>
-              <span class="timestamp">{{ formatTimestamp(item.timestamp) }}</span>
+              <span class="timestamp">{{
+                formatTimestamp(item.timestamp)
+              }}</span>
             </div>
             <div v-if="item.label" class="item-tag">
               <span class="tag-badge">🏷️ {{ item.label }}</span>
@@ -49,11 +51,16 @@
             <div class="item-details">
               <div class="detail">
                 <span class="label">P (Up/Down):</span>
-                <span class="value">{{ item.params.p_up }} / {{ item.params.p_down_init }}</span>
+                <span class="value"
+                  >{{ item.params.p_up }} / {{ item.params.p_down_init }}</span
+                >
               </div>
               <div class="detail">
                 <span class="label">V (Up/Down):</span>
-                <span class="value">{{ item.params.upstream_volume }} / {{ item.params.downstream_volume }}</span>
+                <span class="value"
+                  >{{ item.params.upstream_volume }} /
+                  {{ item.params.downstream_volume }}</span
+                >
               </div>
               <div v-if="item.unitSystem" class="detail">
                 <span class="label">Units:</span>
@@ -255,15 +262,18 @@ function formatTimestamp(timestamp: number): string {
 }
 
 .panel-header {
-  @apply border-b border-slate-200 p-6;
+  @apply border-b p-6;
+  border-color: var(--xergiz-border);
 }
 
 .panel-header h2 {
-  @apply text-xl font-bold text-slate-800 m-0;
+  @apply text-xl font-bold m-0;
+  color: var(--xergiz-text);
 }
 
 .panel-header p {
-  @apply text-sm text-slate-500 mt-1 mb-0;
+  @apply text-sm mt-1 mb-0;
+  color: var(--xergiz-text-muted);
 }
 
 .panel-content {
@@ -275,15 +285,24 @@ function formatTimestamp(timestamp: number): string {
 }
 
 .search-input {
-  @apply w-full py-2 px-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-sm transition-all duration-200;
+  @apply w-full py-2 px-3 border rounded-lg text-sm transition-all duration-200;
+  background: var(--xergiz-dark);
+  border-color: var(--xergiz-border);
+  color: var(--xergiz-text);
+}
+
+.search-input::placeholder {
+  color: var(--xergiz-text-muted);
 }
 
 .search-input:hover {
-  @apply border-slate-300 bg-white;
+  border-color: var(--xergiz-border-hover);
 }
 
 .search-input:focus {
-  @apply outline-none border-blue-500 ring-4 ring-blue-500/10 bg-white;
+  @apply outline-none ring-2;
+  border-color: var(--xergiz-teal);
+  ring-color: var(--xergiz-teal-dim);
 }
 
 .empty-state {
@@ -295,11 +314,13 @@ function formatTimestamp(timestamp: number): string {
 }
 
 .empty-state h3 {
-  @apply text-lg font-bold text-slate-700 m-0 mb-2;
+  @apply text-lg font-bold m-0 mb-2;
+  color: var(--xergiz-text);
 }
 
 .empty-state p {
-  @apply text-sm text-slate-500 m-0;
+  @apply text-sm m-0;
+  color: var(--xergiz-text-muted);
 }
 
 .history-list {
@@ -307,7 +328,14 @@ function formatTimestamp(timestamp: number): string {
 }
 
 .history-item {
-  @apply flex items-center gap-3 bg-white border border-slate-200 rounded-lg p-4 cursor-pointer transition-all duration-200 hover:border-blue-300 hover:shadow-md;
+  @apply flex items-center gap-3 border rounded-lg p-4 cursor-pointer transition-all duration-200;
+  background: var(--xergiz-surface);
+  border-color: var(--xergiz-border);
+}
+
+.history-item:hover {
+  border-color: var(--xergiz-border-hover);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .item-content {
@@ -323,19 +351,23 @@ function formatTimestamp(timestamp: number): string {
 }
 
 .mode-pressurize {
-  @apply bg-green-100 text-green-700;
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
 }
 
 .mode-depressurize {
-  @apply bg-orange-100 text-orange-700;
+  background: rgba(251, 146, 60, 0.12);
+  color: #fb923c;
 }
 
 .mode-equalize {
-  @apply bg-blue-100 text-blue-700;
+  background: rgba(96, 165, 250, 0.12);
+  color: #60a5fa;
 }
 
 .timestamp {
-  @apply text-xs text-slate-400;
+  @apply text-xs;
+  color: var(--xergiz-text-muted);
 }
 
 .item-details {
@@ -347,11 +379,13 @@ function formatTimestamp(timestamp: number): string {
 }
 
 .detail .label {
-  @apply text-slate-500 font-medium;
+  color: var(--xergiz-text-muted);
+  @apply font-medium;
 }
 
 .detail .value {
-  @apply text-slate-700 font-semibold;
+  color: var(--xergiz-text);
+  @apply font-semibold;
 }
 
 .item-tag {
@@ -359,7 +393,10 @@ function formatTimestamp(timestamp: number): string {
 }
 
 .tag-badge {
-  @apply text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-0.5;
+  @apply text-xs rounded px-2 py-0.5 border;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.2);
 }
 
 .unit-badge {
@@ -367,27 +404,50 @@ function formatTimestamp(timestamp: number): string {
 }
 
 .btn-delete {
-  @apply bg-red-50 border-none cursor-pointer text-lg p-2 rounded-lg transition-all hover:bg-red-100 active:scale-90;
+  @apply border-none cursor-pointer text-lg p-2 rounded-lg transition-all;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.btn-delete:active {
+  @apply scale-90;
 }
 
 .btn-clear {
-  @apply mt-auto py-2 px-4 bg-red-50 border border-red-200 text-red-600 rounded-lg font-semibold text-sm cursor-pointer transition-all hover:bg-red-100 hover:border-red-300;
+  @apply mt-auto py-2 px-4 border rounded-lg font-semibold text-sm cursor-pointer transition-all;
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.btn-clear:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .dialog-overlay {
-  @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50;
+  @apply fixed inset-0 backdrop-blur-md flex items-center justify-center z-50;
+  background: rgba(2, 6, 23, 0.8);
 }
 
 .dialog {
-  @apply bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl;
+  @apply rounded-xl p-6 max-w-md w-full mx-4 border;
+  background: var(--xergiz-panel);
+  border-color: var(--xergiz-border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 .dialog h3 {
-  @apply text-lg font-bold text-slate-800 m-0 mb-2;
+  @apply text-lg font-bold m-0 mb-2;
+  color: var(--xergiz-text);
 }
 
 .dialog p {
-  @apply text-sm text-slate-600 mb-6;
+  @apply text-sm mb-6;
+  color: var(--xergiz-text-muted);
 }
 
 .dialog-actions {
@@ -395,10 +455,23 @@ function formatTimestamp(timestamp: number): string {
 }
 
 .btn-cancel {
-  @apply py-2 px-4 bg-slate-100 border-none text-slate-700 rounded-lg font-semibold cursor-pointer transition-all hover:bg-slate-200;
+  @apply py-2 px-4 border-none rounded-lg font-semibold cursor-pointer transition-all;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--xergiz-text-muted);
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--xergiz-text);
 }
 
 .btn-confirm {
-  @apply py-2 px-4 bg-red-600 border-none text-white rounded-lg font-semibold cursor-pointer transition-all hover:bg-red-700;
+  @apply py-2 px-4 border-none text-white rounded-lg font-semibold cursor-pointer transition-all;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.btn-confirm:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
 }
 </style>
