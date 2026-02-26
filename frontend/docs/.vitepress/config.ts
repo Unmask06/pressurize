@@ -6,7 +6,10 @@ export default defineConfig({
   description: "Dynamic Valve Pressurization Simulator",
   base: "/products/pressurize/docs/",
   outDir: "../dist/products/pressurize/docs",
-  head: [["link", { rel: "canonical", href: "/products/pressurize/" }]],
+  head: [
+    ["link", { rel: "canonical", href: "/products/pressurize/" }],
+    ["link", { rel: "icon", href: "/xergiz-logo.png" }],
+  ],
   markdown: {
     config: (md) => {
       md.use(mathjax3);

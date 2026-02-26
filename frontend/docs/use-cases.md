@@ -14,7 +14,7 @@ In process plants, gas is often transferred between vessels at different pressur
 
 ### 3. Industrial Process Safety
 
-Safety valves and relief systems must be sized correctly. If a control valve fails open, how fast does pressure build up? Pressurize simulates these worst-case scenarios — switch to Fixed (Instant) opening mode and compare peak flow rates against relief device capacity.
+Safety valves and relief systems must be sized correctly. If a control valve fails open, how fast does pressure build up? Pressurize simulates these worst-case scenarios — switch to Orifice (Instant) opening mode and compare peak flow rates against relief device capacity.
 
 ### 4. Blowdown Analysis
 

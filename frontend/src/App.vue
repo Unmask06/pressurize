@@ -8,33 +8,36 @@
       @unit-system-changed="resetAllOutputs"
     />
     <div class="sidebar">
-        <div class="sidebar-header">
-          <div class="header-top">
-            <h1>Pressurization Simulator</h1>
-            <a
-              href="/products/pressurize/docs/"
-              class="btn-docs"
-              title="View Documentation"
-              target="_blank"
-              rel="noopener noreferrer"
-              >📖</a
-            >
-          </div>
-          <p>Gas Valves</p>
+      <div class="sidebar-header">
+        <div class="header-logo">
+          <img src="/xergiz-logo.png" alt="XergiZ Logo" class="logo-img" />
         </div>
-        <SimulationForm
-          ref="simulationFormRef"
-          :loading="loading"
-          :initial-composition="currentComposition"
-          :results-empty="results.length === 0"
-          :current-dt="currentDt"
-          :simulation-completed="simulationCompleted"
-          @run="runSimulation"
-          @stop="stopSimulation"
-          @edit-composition="showCompositionEditor = true"
-          @view-results="showResultsTable = true"
-        />
+        <div class="header-top">
+          <h1>Pressurization Simulator</h1>
+          <a
+            href="/products/pressurize/docs/"
+            class="btn-docs"
+            title="View Documentation"
+            target="_blank"
+            rel="noopener noreferrer"
+            >📖</a
+          >
+        </div>
+        <p>Gas Valves</p>
       </div>
+      <SimulationForm
+        ref="simulationFormRef"
+        :loading="loading"
+        :initial-composition="currentComposition"
+        :results-empty="results.length === 0"
+        :current-dt="currentDt"
+        :simulation-completed="simulationCompleted"
+        @run="runSimulation"
+        @stop="stopSimulation"
+        @edit-composition="showCompositionEditor = true"
+        @view-results="showResultsTable = true"
+      />
+    </div>
 
     <div class="main-content">
       <div class="results-header">
@@ -107,10 +110,10 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import {
-    fetchUnitConfig,
-    getUnitSystem,
-    streamSimulation,
-    type SimulationRow,
+  fetchUnitConfig,
+  getUnitSystem,
+  streamSimulation,
+  type SimulationRow,
 } from "./api/client";
 import CompositionEditor from "./components/CompositionEditor.vue";
 import KpiCards from "./components/KpiCards.vue";
@@ -268,17 +271,17 @@ function resetAllOutputs() {
   // Clear all results when unit system changes
   results.value = [];
   loadedRows.value = 0;
-  
+
   // Reset KPIs to zero
   kpis.peakFlow = 0;
   kpis.finalPressure = 0;
   kpis.equilibriumTime = 0;
   kpis.totalMass = 0;
-  
+
   // Reset KPI ready state
   kpisReady.value = true;
   simulationCompleted.value = true;
-  
+
   // Clear last form params
   lastFormParams.value = {};
 }
@@ -308,6 +311,14 @@ function loadSimulationFromHistory(params: Record<string, any>) {
 
 .sidebar-header {
   @apply p-6 border-b border-slate-200;
+}
+
+.header-logo {
+  @apply mb-4;
+}
+
+.logo-img {
+  @apply h-12 w-auto;
 }
 
 .header-top {

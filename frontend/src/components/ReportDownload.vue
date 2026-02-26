@@ -216,11 +216,11 @@ async function getPdfBlob(): Promise<Blob> {
     const inputKeys = Object.keys(props.inputs).filter((k) => {
       // Always exclude dt and composition
       if (k === "dt" || k === "composition") return false;
-      // Exclude k_curve (Curve Factor) for Linear and Fixed modes since it's not used
+      // Exclude k_curve (Curve Factor) for Linear and Orifice modes since it's not used
       if (
         k === "k_curve" &&
         (props.inputs.opening_mode === "linear" ||
-          props.inputs.opening_mode === "fixed")
+          props.inputs.opening_mode === "orifice")
       )
         return false;
       // Exclude upstream volume in pressurize mode and downstream volume in depressurize mode

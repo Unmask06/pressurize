@@ -13,6 +13,8 @@ from pressurize.config.settings import (
 )
 from pressurize.core.physics import (
     calculate_critical_pressure_ratio,
+    calculate_cv_gas_flow,
+    calculate_density,
     calculate_dual_dp_dt,
     calculate_mass_flow_rate,
 )
@@ -46,6 +48,10 @@ class SimulationState:
     k: float
     gas_state_up: GasState | None
     gas_state_down: GasState | None
+    # Cv flow model fields
+    flow_model: str = "orifice"
+    Cv: float | None = None
+    x_T: float = 0.7
 
 
 def _initialize_simulation_state(
@@ -63,6 +69,9 @@ def _initialize_simulation_state(
     upstream_temp: float,
     downstream_volume: float,
     downstream_temp: float,
+    flow_model: str = "orifice",
+    cv_value: float | None = None,
+    x_T: float = 0.7,
 ) -> SimulationState:
     """Initialize all simulation state variables.
 
@@ -81,6 +90,9 @@ def _initialize_simulation_state(
         upstream_temp: Upstream vessel temperature (SI: K).
         downstream_volume: Downstream vessel volume (SI: m³).
         downstream_temp: Downstream vessel temperature (SI: K).
+        flow_model: "orifice" or "cv".
+        cv_value: Valve Cv coefficient (required when flow_model="cv").
+        x_T: Terminal pressure drop ratio for Cv model.
 
     Returns:
         SimulationState object with initialized values.
@@ -104,12 +116,17 @@ def _initialize_simulation_state(
     logger.debug(f"Temperatures: T_up={T_up:.1f} K, T_down={T_down:.1f} K")
 
     # Valve parameters (valve_id is in meters)
-    valve_radius = valve_id / 2
-    A_max = np.pi * valve_radius**2
-    Cd = discharge_coeff
-    logger.debug(
-        f"Valve parameters: radius={valve_radius:.4f} m, A_max={A_max:.6f} m², Cd={Cd}"
-    )
+    if flow_model == "cv":
+        A_max = 0.0  # Not used in Cv mode
+        Cd = discharge_coeff
+        logger.debug(f"Valve parameters (Cv mode): Cv={cv_value}, x_T={x_T}")
+    else:
+        valve_radius = valve_id / 2
+        A_max = np.pi * valve_radius**2
+        Cd = discharge_coeff
+        logger.debug(
+            f"Valve parameters (orifice mode): radius={valve_radius:.4f} m, A_max={A_max:.6f} m², Cd={Cd}"
+        )
 
     # Initialize gas properties based on mode
     if property_mode == "composition" and composition:
@@ -156,6 +173,9 @@ def _initialize_simulation_state(
         k=k,
         gas_state_up=gas_state_up,
         gas_state_down=gas_state_down,
+        flow_model=flow_model,
+        Cv=cv_value,
+        x_T=x_T,
     )
 
 
@@ -163,7 +183,7 @@ def _initialize_results(
     P_up: float,
     P_down_init: float,
     valve_action: Literal["open", "close"],
-    opening_mode: Literal["linear", "exponential", "quick_acting", "fixed"],
+    opening_mode: Literal["linear", "exponential", "quick_acting", "orifice"],
     Z: float,
     k: float,
     M: float,
@@ -185,7 +205,7 @@ def _initialize_results(
     # Determine initial valve opening percentage
     if valve_action == "close":
         initial_opening = 100.0
-    elif opening_mode == "fixed":
+    elif opening_mode == "orifice":
         initial_opening = 100.0
     else:
         initial_opening = 0.0
@@ -216,7 +236,7 @@ def _calculate_valve_opening_fraction(
     t: float,
     opening_time: float,
     valve_action: Literal["open", "close"],
-    opening_mode: Literal["linear", "exponential", "quick_acting", "fixed"],
+    opening_mode: Literal["linear", "exponential", "quick_acting", "orifice"],
     k_curve: float,
 ) -> float:
     """Calculate valve opening fraction (0.0 to 1.0) based on time and opening mode.
@@ -231,7 +251,7 @@ def _calculate_valve_opening_fraction(
     Returns:
         Opening fraction from 0.0 (fully closed) to 1.0 (fully open).
     """
-    if opening_mode == "fixed":
+    if opening_mode == "orifice":
         return 1.0 if valve_action == "open" else 0.0
 
     if opening_time <= 0:
@@ -425,12 +445,7 @@ def _check_stopping_condition(
                 f"Stopping condition met for closing valve: opening_fraction={opening_fraction:.6f} <= 0.0"
             )
     else:
-        # For opening: stop when valve reaches 100% AND pressure equilibrium
-        should_stop = regime == "Equilibrium" and opening_fraction >= 1.0
-        if should_stop:
-            logger.debug(
-                f"Stopping condition met for opening valve: opening_fraction={opening_fraction:.6f} >= 1.0 "
-            )
+        should_stop = False
 
     return should_stop
 
@@ -491,7 +506,7 @@ def _append_step_results(
 
 
 def _calculate_max_simulation_time(
-    opening_mode: Literal["linear", "exponential", "quick_acting", "fixed"],
+    opening_mode: Literal["linear", "exponential", "quick_acting", "orifice"],
     opening_time: float,
     valve_action: Literal["open", "close"],
 ) -> float:
@@ -505,12 +520,19 @@ def _calculate_max_simulation_time(
     Returns:
         Maximum simulation time in seconds.
     """
-    if opening_mode == "fixed" or opening_time <= 0:
-        return MAX_SIMULATION_TIME_FIXED
+    if opening_mode == "orifice" or opening_time <= 0:
+        logger.debug(
+            f"Maximum simulation time fixed: opening_mode={opening_mode}, opening_time={opening_time}"
+        )
+        return 0
     elif valve_action == "close":
-        return opening_time * 1.2  # Closing: 1.2x closing time
+        max_time = opening_time * 1.2  # Closing: 1.2x closing time
+        logger.debug(f"Calculated max simulation time for closing: {max_time}s")
+        return max_time
     else:
-        return opening_time * 10  # Opening: 10x opening time for equilibrium
+        max_time = opening_time * 10  # Opening: 10x opening time for equilibrium
+        logger.debug(f"Calculated max simulation time for opening: {max_time}s")
+        return max_time
 
 
 def run_simulation_streaming(
@@ -527,13 +549,18 @@ def run_simulation_streaming(
     k_ratio: float,
     discharge_coeff: float = 0.65,
     valve_action: Literal["open", "close"] = "open",
-    opening_mode: Literal["linear", "exponential", "quick_acting", "fixed"] = "linear",
+    opening_mode: Literal[
+        "linear", "exponential", "quick_acting", "orifice"
+    ] = "linear",
     k_curve: float = 4.0,
     dt: float = TIME_STEP,
     property_mode: Literal["manual", "composition"] = "manual",
     composition: str | None = None,
     mode: Literal["pressurize", "depressurize", "equalize"] = "equalize",
     should_stop_callback: Callable[[], bool] | None = None,
+    flow_model: str = "orifice",
+    cv_value: float | None = None,
+    x_T: float = 0.7,
 ) -> Generator[dict, None, None]:
     """Run the valve pressurization simulation as a generator that yields batches of results.
 
@@ -562,6 +589,9 @@ def run_simulation_streaming(
         upstream_temp=upstream_temp,
         downstream_volume=downstream_volume,
         downstream_temp=downstream_temp,
+        flow_model=flow_model,
+        cv_value=cv_value,
+        x_T=x_T,
     )
 
     # Initialize results storage
@@ -583,7 +613,7 @@ def run_simulation_streaming(
         "downstream_pressure": P_down_init,
         "flowrate": 0,
         "valve_opening_pct": 100.0
-        if (valve_action == "close" or opening_mode == "fixed")
+        if (valve_action == "close" or opening_mode == "orifice")
         else 0.0,
         "flow_regime": "None",
         "dp_dt_upstream": 0.0,
@@ -612,7 +642,7 @@ def run_simulation_streaming(
     P_up_current = P_up
     P_down_current = P_down_init
 
-    while t < max_time:
+    while True:
         # Check for abort signal
         if should_stop_callback and should_stop_callback():
             logger.info(f"Simulation aborted by user at t={t:.2f}s")
@@ -641,16 +671,30 @@ def run_simulation_streaming(
         )
 
         # Calculate flow regime and mass flow rate
-        regime, massflow_kgs = _calculate_flow_regime_and_mass_flow(
-            P_up=P_up,
-            P_down=P_down,
-            A=A,
-            k=k,
-            M=M,
-            Z=Z,
-            T=state.T_up,
-            Cd=state.Cd,
-        )
+        if state.flow_model == "cv" and state.Cv is not None:
+            # Cv-based flow: scale Cv by valve opening fraction
+            Cv_eff = state.Cv * opening_fraction
+            rho_upstream = calculate_density(P_up, state.T_up, Z, M)
+            regime, massflow_kgs = calculate_cv_gas_flow(
+                Cv=Cv_eff,
+                P_up_pa=P_up,
+                P_down_pa=P_down,
+                k=k,
+                rho_upstream_kgm3=rho_upstream,
+                x_T=state.x_T,
+            )
+        else:
+            # Orifice ID-based flow (default)
+            regime, massflow_kgs = _calculate_flow_regime_and_mass_flow(
+                P_up=P_up,
+                P_down=P_down,
+                A=A,
+                k=k,
+                M=M,
+                Z=Z,
+                T=state.T_up,
+                Cd=state.Cd,
+            )
 
         # Calculate pressure rates of change
         pressure_diff = P_up - P_down
@@ -713,11 +757,14 @@ def run_simulation_streaming(
                 }
 
         # Check stopping condition
-        if _check_stopping_condition(
+        stop_by_valve_action = _check_stopping_condition(
             valve_action=valve_action,
             opening_fraction=opening_fraction,
             regime=regime,
-        ):
+        )
+        STOP_SIMULATION = (t >= max_time) and (regime == "Equilibrium")
+
+        if stop_by_valve_action or STOP_SIMULATION:
             logger.info(
                 f"Simulation stopped at t={t:.2f}s: valve_opening={opening_fraction:.3f}, "
                 f"P_up={P_up_current:.0f} Pa, P_down={P_down_current:.0f} Pa"

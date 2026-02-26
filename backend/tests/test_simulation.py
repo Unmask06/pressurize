@@ -6,6 +6,7 @@ all physics calculations over time.
 
 import pandas as pd
 import pytest
+
 from pressurize.core.simulation import run_simulation_streaming
 
 
@@ -147,8 +148,8 @@ class TestValveOpeningModes:
             # Valve should be at or near 100%
             assert df["valve_opening_pct"].iloc[idx] >= 95
 
-    def test_fixed_opening_mode(self):
-        """Test fixed (instant) valve opening mode."""
+    def test_orifice_opening_mode(self):
+        """Test orifice (instant) valve opening mode."""
         df = run_simulation(
             P_up=3500000,
             P_down_init=1000,
@@ -161,7 +162,7 @@ class TestValveOpeningModes:
             molar_mass=29,
             z_factor=1.0,
             k_ratio=1.4,
-            opening_mode="fixed",
+            opening_mode="orifice",
         )
 
         # Valve should be 100% open from the start
@@ -856,3 +857,141 @@ class TestDualVesselModes:
         assert all(abs(x) < 1e-6 for x in downstream_dpdt), (
             "Downstream dp/dt should be zero in depressurize mode"
         )
+
+
+class TestCvFlowModel:
+    """Tests for Cv-based flow model in simulations."""
+
+    def test_cv_flow_model_basic(self):
+        """Test that a simulation with flow_model='cv' runs and produces results."""
+        df = run_simulation(
+            P_up=3500000,
+            P_down_init=1000,
+            upstream_volume=1.0,
+            downstream_volume=1.0,
+            valve_id=0.05,  # Not used in Cv mode but required param
+            opening_time=5,
+            upstream_temp=300,
+            downstream_temp=300,
+            molar_mass=29,
+            z_factor=1.0,
+            k_ratio=1.4,
+            flow_model="cv",
+            cv_value=50.0,
+            x_T=0.7,
+        )
+
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) > 1
+        # Should have positive flow at some point
+        assert df["flowrate"].max() > 0
+        # Downstream pressure should increase
+        assert df["downstream_pressure"].iloc[-1] > df["downstream_pressure"].iloc[0]
+
+    def test_cv_flow_model_has_required_columns(self):
+        """Test that Cv simulation output has all required columns."""
+        df = run_simulation(
+            P_up=3500000,
+            P_down_init=1000,
+            upstream_volume=1.0,
+            downstream_volume=1.0,
+            valve_id=0.05,
+            opening_time=5,
+            upstream_temp=300,
+            downstream_temp=300,
+            molar_mass=29,
+            z_factor=1.0,
+            k_ratio=1.4,
+            flow_model="cv",
+            cv_value=50.0,
+        )
+        required_columns = [
+            "time", "pressure", "upstream_pressure", "downstream_pressure",
+            "flowrate", "valve_opening_pct", "flow_regime",
+        ]
+        for col in required_columns:
+            assert col in df.columns, f"Missing column: {col}"
+
+    def test_cv_flow_regime_detection(self):
+        """Test that Cv model detects choked and subsonic regimes."""
+        df = run_simulation(
+            P_up=3500000,
+            P_down_init=1000,
+            upstream_volume=1.0,
+            downstream_volume=1.0,
+            valve_id=0.05,
+            opening_time=5,
+            upstream_temp=300,
+            downstream_temp=300,
+            molar_mass=29,
+            z_factor=1.0,
+            k_ratio=1.4,
+            flow_model="cv",
+            cv_value=50.0,
+            x_T=0.7,
+        )
+
+        regimes = df["flow_regime"].unique()
+        # Should start with Choked (large pressure ratio), eventually reach Equilibrium
+        assert "Choked" in regimes or "Subsonic" in regimes
+
+    def test_cv_scales_with_cv_value(self):
+        """Test that larger Cv produces higher peak flow."""
+        df1 = run_simulation(
+            P_up=3500000,
+            P_down_init=1000,
+            upstream_volume=1.0,
+            downstream_volume=1.0,
+            valve_id=0.05,
+            opening_time=5,
+            upstream_temp=300,
+            downstream_temp=300,
+            molar_mass=29,
+            z_factor=1.0,
+            k_ratio=1.4,
+            flow_model="cv",
+            cv_value=25.0,
+        )
+        df2 = run_simulation(
+            P_up=3500000,
+            P_down_init=1000,
+            upstream_volume=1.0,
+            downstream_volume=1.0,
+            valve_id=0.05,
+            opening_time=5,
+            upstream_temp=300,
+            downstream_temp=300,
+            molar_mass=29,
+            z_factor=1.0,
+            k_ratio=1.4,
+            flow_model="cv",
+            cv_value=50.0,
+        )
+
+        # Larger Cv should produce higher peak flow
+        assert df2["flowrate"].max() > df1["flowrate"].max()
+
+    def test_cv_orifice_mode_instant_open(self):
+        """Test Cv model with orifice (instant) opening mode."""
+        df = run_simulation(
+            P_up=3500000,
+            P_down_init=1000,
+            upstream_volume=1.0,
+            downstream_volume=1.0,
+            valve_id=0.05,
+            opening_time=5,
+            upstream_temp=300,
+            downstream_temp=300,
+            molar_mass=29,
+            z_factor=1.0,
+            k_ratio=1.4,
+            opening_mode="orifice",
+            flow_model="cv",
+            cv_value=50.0,
+        )
+
+        # Valve should be 100% open from t=0
+        assert df["valve_opening_pct"].iloc[0] == 100.0
+        # Should have flow immediately
+        if len(df) > 1:
+            assert df["flowrate"].iloc[1] > 0

@@ -1,6 +1,7 @@
 import json
 
 from fastapi.testclient import TestClient
+
 from pressurize.main import app
 
 client = TestClient(app)
@@ -145,7 +146,7 @@ def test_simulation_engg_field_kpis():
         - Mode: equalize
         - Upstream: 1350 psig, 1980 ft³, 248 °F
         - Downstream: 900 psig, 22319 ft³, 248 °F
-        - Valve: 0.75 in, fixed open, Cd=0.90
+        - Valve: 0.75 in, orifice open, Cd=0.90
         - Gas: composition mode (natural gas blend), k=1.43, MW=16.89, Z=0.95
         - Opening time: 5 s
 
@@ -169,7 +170,7 @@ def test_simulation_engg_field_kpis():
         "z_factor": 0.95,
         "k_ratio": 1.43,
         "discharge_coeff": 0.90,
-        "opening_mode": "fixed",
+        "opening_mode": "orifice",
         "valve_action": "open",
         "property_mode": "composition",
         "composition": "Methane=0.9387, Ethane=0.0121, Propane=0.0004, Carbon dioxide=0.0054, Nitrogen=0.0433",

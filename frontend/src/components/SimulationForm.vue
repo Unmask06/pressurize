@@ -97,18 +97,64 @@
         <div class="section-container">
           <div class="section-header">🔧 Valve Configuration</div>
           <div class="row">
-            <div class="form-group quarter">
-              <label>Valve ID ({{ getUnit("small_length") }})</label>
-              <input type="number" v-model.number="form.valve_id" />
+            <div class="form-group full">
+              <label>Flow Model</label>
+              <div class="toggle-group">
+                <button
+                  :class="{ active: form.flow_model === 'orifice' }"
+                  @click="form.flow_model = 'orifice'"
+                  title="Orifice ID-based flow (ISO 5167-2)"
+                >
+                  🔧 Orifice ID
+                </button>
+                <button
+                  :class="{ active: form.flow_model === 'cv' }"
+                  @click="form.flow_model = 'cv'"
+                  title="Valve Cv-based flow (ISA/IEC 60534)"
+                >
+                  📊 Cv
+                </button>
+              </div>
             </div>
-            <div class="form-group quarter">
-              <label>Discharge Coeff (Cd)</label>
-              <input
-                type="number"
-                v-model.number="form.discharge_coeff"
-                step="0.5"
-              />
-            </div>
+          </div>
+          <div class="two-col-row">
+            <template v-if="form.flow_model === 'orifice'">
+              <div class="form-group">
+                <label>Valve ID ({{ getUnit("small_length") }})</label>
+                <input type="number" v-model.number="form.valve_id" />
+              </div>
+              <div class="form-group">
+                <label>Discharge Coeff (Cd)</label>
+                <input
+                  type="number"
+                  v-model.number="form.discharge_coeff"
+                  step="0.5"
+                />
+              </div>
+            </template>
+            <template v-else>
+              <div class="form-group">
+                <label>Cv (gpm/√psi)</label>
+                <input
+                  type="number"
+                  v-model.number="form.cv_value"
+                  step="1"
+                  min="0"
+                />
+              </div>
+              <div class="form-group">
+                <label>xT</label>
+                <input
+                  type="number"
+                  v-model.number="form.x_t"
+                  step="0.05"
+                  min="0.1"
+                  max="1"
+                />
+              </div>
+            </template>
+          </div>
+          <div class="row">
             <div class="form-group quarter">
               <label>Valve Action</label>
               <div class="toggle-group">
@@ -126,7 +172,10 @@
                 </button>
               </div>
             </div>
-            <div class="form-group quarter">
+            <div
+              class="form-group quarter"
+              v-if="form.opening_mode !== 'orifice'"
+            >
               <label>{{
                 form.valve_action === "close"
                   ? `Closing Time (${getUnit("time")})`
@@ -145,8 +194,8 @@
                 <option value="linear">Linear</option>
                 <option value="exponential">Exponential</option>
                 <option value="quick_acting">Quick Acting</option>
-                <option v-if="form.valve_action === 'open'" value="fixed">
-                  Fixed (Instant)
+                <option v-if="form.valve_action === 'open'" value="orifice">
+                  Orifice (Instant)
                 </option>
               </select>
             </div>
@@ -266,7 +315,7 @@
         @click="loading ? stopSimulation() : runSimulation()"
         :title="buttonText"
       >
-        {{ buttonText.split(' ')[0] }}
+        {{ buttonText.split(" ")[0] }}
       </button>
     </div>
   </div>
@@ -274,11 +323,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
-import {
-  apiClient,
-  getUnit,
-  type SimulationRequest,
-} from "../api/client";
+import { apiClient, getUnit, type SimulationRequest } from "../api/client";
 
 const props = defineProps<{
   loading: boolean;
@@ -288,12 +333,7 @@ const props = defineProps<{
   simulationCompleted: boolean;
 }>();
 
-const emit = defineEmits([
-  "run",
-  "stop",
-  "edit-composition",
-  "view-results",
-]);
+const emit = defineEmits(["run", "stop", "edit-composition", "view-results"]);
 
 function viewResults() {
   emit("view-results");
@@ -309,6 +349,9 @@ const form = reactive<SimulationRequest>({
   upstream_volume: 100,
   downstream_volume: 100,
   valve_id: 2.0, // Default 2 inches
+  flow_model: "orifice",
+  cv_value: undefined,
+  x_t: 0.7,
   opening_time: 5,
   valve_action: "open",
   upstream_temp: 70,
@@ -324,11 +367,11 @@ const form = reactive<SimulationRequest>({
   dt: 0.5,
 });
 
-// Reset opening_mode to linear if switching to close while on fixed
+// Reset opening_mode to linear if switching to close while on orifice
 watch(
   () => form.valve_action,
   (action) => {
-    if (action === "close" && form.opening_mode === "fixed") {
+    if (action === "close" && form.opening_mode === "orifice") {
       form.opening_mode = "linear";
     }
   },
@@ -439,7 +482,7 @@ defineExpose({
 }
 
 .grid-row.vessels-row {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  @apply grid grid-cols-1 xl:grid-cols-2 gap-4;
 }
 
 .grid-row.full-width {
@@ -447,7 +490,15 @@ defineExpose({
 }
 
 .quarter {
-  @apply flex-1 min-w-30;
+  @apply flex-1 min-w-[20%];
+}
+
+.full {
+  @apply w-full;
+}
+
+.two-col-row {
+  @apply grid grid-cols-2 gap-4;
 }
 
 .actions {
@@ -467,15 +518,15 @@ h3 {
 }
 
 .row {
-  @apply flex flex-wrap gap-4;
+  @apply flex flex-wrap gap-3;
 }
 
 .half {
-  @apply flex-1 min-w-50;
+  @apply flex-1 min-w-[45%];
 }
 
 .third {
-  @apply flex-1 min-w-35;
+  @apply flex-1 min-w-[30%];
 }
 
 label {
