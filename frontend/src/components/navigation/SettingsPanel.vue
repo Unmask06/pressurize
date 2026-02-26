@@ -29,7 +29,6 @@
         />
         <small>Maximum simulation duration (seconds)</small>
       </div>
-
     </div>
   </div>
 </template>
@@ -72,18 +71,22 @@ watch([localDt, localMaxSimTime], () => {
 
 .settings-panel {
   @apply h-full flex flex-col;
+  background-color: var(--xergiz-panel);
 }
 
 .panel-header {
-  @apply border-b border-slate-200 p-6;
+  @apply border-b p-6;
+  border-color: var(--xergiz-border);
 }
 
 .panel-header h2 {
-  @apply text-xl font-bold text-slate-800 m-0;
+  @apply text-xl font-bold m-0;
+  color: var(--xergiz-text);
 }
 
 .panel-header p {
-  @apply text-sm text-slate-500 mt-1 mb-0;
+  @apply text-sm mt-1 mb-0;
+  color: var(--xergiz-text-muted);
 }
 
 .panel-content {
@@ -95,23 +98,29 @@ watch([localDt, localMaxSimTime], () => {
 }
 
 .form-group label {
-  @apply text-xs text-slate-500 font-bold uppercase tracking-wider;
+  @apply text-[10px] font-bold uppercase tracking-wider;
+  color: var(--xergiz-text-muted);
 }
 
 .form-group input {
-  @apply py-3 px-4 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-base transition-all duration-200;
+  @apply py-2 px-3 border rounded-lg text-sm transition-all duration-200;
+  background-color: var(--xergiz-dark);
+  border-color: var(--xergiz-border);
+  color: var(--xergiz-text);
 }
 
 .form-group input:hover {
-  @apply border-slate-300 bg-white;
+  border-color: var(--xergiz-teal);
 }
 
 .form-group input:focus {
-  @apply outline-none border-blue-500 ring-4 ring-blue-500/10 bg-white;
+  @apply outline-none ring-2;
+  border-color: var(--xergiz-teal);
+  ring-color: var(--xergiz-teal-dim);
 }
 
 .form-group small {
-  @apply text-xs text-slate-400;
+  @apply text-[10px];
+  color: var(--xergiz-text-muted);
 }
-
 </style>

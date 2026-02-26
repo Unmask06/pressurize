@@ -94,6 +94,9 @@ async def generate_simulation_stream(
             composition=req.composition,
             mode=req.mode,
             should_stop_callback=should_stop,
+            flow_model=req.flow_model,
+            cv_value=req.cv_value,
+            x_T=req.x_t,
         ):
             # Store all results for KPI calculation
             all_results.append(row_dict)

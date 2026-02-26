@@ -8,33 +8,36 @@
       @unit-system-changed="resetAllOutputs"
     />
     <div class="sidebar">
-        <div class="sidebar-header">
-          <div class="header-top">
-            <h1>Pressurization Simulator</h1>
-            <a
-              href="/products/pressurize/docs/"
-              class="btn-docs"
-              title="View Documentation"
-              target="_blank"
-              rel="noopener noreferrer"
-              >📖</a
-            >
-          </div>
-          <p>Gas Valves</p>
+      <div class="sidebar-header">
+        <div class="header-logo">
+          <img src="/xergiz-logo.png" alt="XergiZ Logo" class="logo-img" />
         </div>
-        <SimulationForm
-          ref="simulationFormRef"
-          :loading="loading"
-          :initial-composition="currentComposition"
-          :results-empty="results.length === 0"
-          :current-dt="currentDt"
-          :simulation-completed="simulationCompleted"
-          @run="runSimulation"
-          @stop="stopSimulation"
-          @edit-composition="showCompositionEditor = true"
-          @view-results="showResultsTable = true"
-        />
+        <div class="header-top">
+          <h1>Pressurization Simulator</h1>
+          <a
+            href="/products/pressurize/docs/"
+            class="btn-docs"
+            title="View Documentation"
+            target="_blank"
+            rel="noopener noreferrer"
+            >📖</a
+          >
+        </div>
+        <p>Gas Valves</p>
       </div>
+      <SimulationForm
+        ref="simulationFormRef"
+        :loading="loading"
+        :initial-composition="currentComposition"
+        :results-empty="results.length === 0"
+        :current-dt="currentDt"
+        :simulation-completed="simulationCompleted"
+        @run="runSimulation"
+        @stop="stopSimulation"
+        @edit-composition="showCompositionEditor = true"
+        @view-results="showResultsTable = true"
+      />
+    </div>
 
     <div class="main-content">
       <div class="results-header">
@@ -107,10 +110,10 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import {
-    fetchUnitConfig,
-    getUnitSystem,
-    streamSimulation,
-    type SimulationRow,
+  fetchUnitConfig,
+  getUnitSystem,
+  streamSimulation,
+  type SimulationRow,
 } from "./api/client";
 import CompositionEditor from "./components/CompositionEditor.vue";
 import KpiCards from "./components/KpiCards.vue";
@@ -268,17 +271,17 @@ function resetAllOutputs() {
   // Clear all results when unit system changes
   results.value = [];
   loadedRows.value = 0;
-  
+
   // Reset KPIs to zero
   kpis.peakFlow = 0;
   kpis.finalPressure = 0;
   kpis.equilibriumTime = 0;
   kpis.totalMass = 0;
-  
+
   // Reset KPI ready state
   kpisReady.value = true;
   simulationCompleted.value = true;
-  
+
   // Clear last form params
   lastFormParams.value = {};
 }
@@ -300,14 +303,27 @@ function loadSimulationFromHistory(params: Record<string, any>) {
 
 .app-container {
   @apply flex h-screen w-screen overflow-hidden;
+  background-color: var(--xergiz-dark);
 }
 
 .sidebar {
-  @apply w-[30%] min-w-80 bg-white border-r border-slate-200 flex flex-col shrink-0;
+  @apply w-[28%] min-w-80 border-r flex flex-col shrink-0;
+  background-color: var(--xergiz-panel);
+  border-color: var(--xergiz-border);
 }
 
 .sidebar-header {
-  @apply p-6 border-b border-slate-200;
+  @apply px-5 py-4 border-b;
+  border-color: var(--xergiz-border);
+}
+
+.header-logo {
+  @apply mb-3;
+}
+
+.logo-img {
+  @apply h-8 w-auto;
+  filter: brightness(0) invert(1);
 }
 
 .header-top {
@@ -315,23 +331,26 @@ function loadSimulationFromHistory(params: Record<string, any>) {
 }
 
 .sidebar-header h1 {
-  @apply m-0 text-2xl font-extrabold text-blue-500 tracking-tight;
+  @apply m-0 text-sm font-bold tracking-tight;
+  color: var(--xergiz-teal);
 }
 
 .btn-docs {
-  @apply text-xl hover:scale-110 transition-transform cursor-pointer no-underline;
+  @apply text-base hover:scale-110 transition-transform cursor-pointer no-underline;
 }
 
 .sidebar-header p {
-  @apply mt-1 mb-0 text-sm text-slate-400 font-medium uppercase tracking-widest;
+  @apply mt-0.5 mb-0 text-[10px] font-medium uppercase tracking-[0.2em];
+  color: var(--xergiz-text-muted);
 }
 
 .main-content {
-  @apply w-[70%] flex-1 flex flex-col p-4 sm:p-6 md:p-8 bg-slate-50 overflow-hidden gap-3 sm:gap-4;
+  @apply flex-1 flex flex-col p-5 overflow-hidden gap-4;
+  background-color: var(--xergiz-dark);
 }
 
 .results-header {
-  @apply flex flex-col sm:flex-row justify-between items-stretch sm:items-start gap-3 sm:gap-4 shrink-0;
+  @apply flex flex-col sm:flex-row justify-between items-stretch sm:items-start gap-3 shrink-0;
 }
 
 .results-header .kpi-grid {
@@ -339,11 +358,16 @@ function loadSimulationFromHistory(params: Record<string, any>) {
 }
 
 .btn-download {
-  @apply shrink-0 py-2 px-3 border-none bg-linear-to-br from-emerald-500 to-emerald-600 text-white rounded-lg text-xl font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-emerald-500/30 flex items-center justify-center;
+  @apply shrink-0 py-2 px-3 border-none text-sm rounded-lg font-semibold cursor-pointer transition-all duration-200 flex items-center justify-center;
+  background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+  color: #020617;
+  box-shadow: 0 4px 20px var(--xergiz-teal-glow);
 }
 
 .btn-download:hover {
-  @apply from-emerald-600 to-emerald-700 -translate-y-0.5 shadow-xl shadow-emerald-500/40;
+  filter: brightness(1.1);
+  @apply -translate-y-0.5;
+  box-shadow: 0 8px 30px rgba(45, 212, 191, 0.35);
 }
 
 .chart-wrapper {
@@ -351,10 +375,12 @@ function loadSimulationFromHistory(params: Record<string, any>) {
 }
 
 .loading-overlay {
-  @apply flex items-center justify-center w-full h-full bg-slate-50;
+  @apply flex items-center justify-center w-full h-full;
+  background-color: var(--xergiz-dark);
 }
 
 .loading-spinner {
-  @apply text-2xl font-bold text-blue-600 animate-pulse;
+  @apply text-lg font-semibold animate-pulse;
+  color: var(--xergiz-teal);
 }
 </style>

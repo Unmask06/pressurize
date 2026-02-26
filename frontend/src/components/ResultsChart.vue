@@ -45,7 +45,7 @@ defineExpose({
         return chart.getDataURL({
           type: "png",
           pixelRatio: 2,
-          backgroundColor: "#fff",
+          backgroundColor: "#0f172a",
         });
       }
     }
@@ -67,11 +67,11 @@ const option = computed(() => {
   return {
     tooltip: {
       trigger: "axis",
-      axisPointer: { type: "cross", label: { backgroundColor: "#6a7985" } },
-      backgroundColor: "rgba(255, 255, 255, 0.95)",
-      borderColor: "#eee",
+      axisPointer: { type: "cross", label: { backgroundColor: "#0f172a" } },
+      backgroundColor: "rgba(15, 23, 42, 0.95)",
+      borderColor: "rgba(148, 163, 184, 0.12)",
       borderWidth: 1,
-      textStyle: { color: "#333" },
+      textStyle: { color: "#f1f5f9" },
     },
     grid: {
       left: "3%",
@@ -87,7 +87,7 @@ const option = computed(() => {
         "Valve Opening",
       ],
       top: 0,
-      textStyle: { color: "#666" },
+      textStyle: { color: "#94a3b8" },
     },
     xAxis: {
       type: "value",
@@ -95,8 +95,11 @@ const option = computed(() => {
       name: `Time (${getUnit("time")})`,
       nameLocation: "middle",
       nameGap: 30,
-      axisLine: { lineStyle: { color: "#ccc" } },
-      axisLabel: { color: "#666" },
+      axisLine: { lineStyle: { color: "rgba(148, 163, 184, 0.12)" } },
+      axisLabel: { color: "#64748b" },
+      splitLine: {
+        lineStyle: { color: "rgba(148, 163, 184, 0.06)", type: "dashed" },
+      },
     },
     yAxis: [
       {
@@ -105,10 +108,10 @@ const option = computed(() => {
         position: "left",
         axisLine: { show: false },
         axisTick: { show: false },
-        axisLabel: { color: "#007aff", fontWeight: "bold" },
+        axisLabel: { color: "#60a5fa", fontWeight: "bold" },
         splitLine: {
           show: true,
-          lineStyle: { type: "dashed", opacity: 0.5 },
+          lineStyle: { color: "rgba(148, 163, 184, 0.06)", type: "dashed" },
         },
       },
       {
@@ -118,7 +121,7 @@ const option = computed(() => {
         offset: 0,
         axisLine: { show: false },
         axisTick: { show: false },
-        axisLabel: { color: "#ff9500", formatter: "{value}" },
+        axisLabel: { color: "#f87171", formatter: "{value}" },
         splitLine: { show: false },
       },
       {
@@ -130,7 +133,7 @@ const option = computed(() => {
         max: 100,
         axisLine: { show: false },
         axisTick: { show: false },
-        axisLabel: { color: "#34c759", formatter: "{value}%" },
+        axisLabel: { color: "#34d399", formatter: "{value}%" },
         splitLine: { show: false },
       },
     ],
@@ -140,14 +143,14 @@ const option = computed(() => {
         type: "line",
         smooth: true,
         showSymbol: false,
-        lineStyle: { type: "dashed", color: "#007aff" },
+        lineStyle: { type: "dashed", color: "#60a5fa" },
         data: downstream,
       },
       {
         name: "Upstream Pressure",
         type: "line",
         data: upstream,
-        lineStyle: { type: "dashed", color: "#95a5a6" },
+        lineStyle: { type: "dashed", color: "#94a3b8" },
         showSymbol: false,
       },
       {
@@ -156,12 +159,12 @@ const option = computed(() => {
         yAxisIndex: 1,
         smooth: true,
         showSymbol: false,
-        lineStyle: { width: 3, color: "#ff9500" },
+        lineStyle: { width: 3, color: "#f87171" },
         areaStyle: {
           opacity: 0.2,
           color: new graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "rgba(255, 149, 0, 0.6)" },
-            { offset: 1, color: "rgba(255, 149, 0, 0)" },
+            { offset: 0, color: "rgba(248, 113, 113, 0.6)" },
+            { offset: 1, color: "rgba(248, 113, 113, 0)" },
           ]),
         },
         data: flows,
@@ -172,7 +175,7 @@ const option = computed(() => {
         yAxisIndex: 2,
         step: "end",
         showSymbol: false,
-        lineStyle: { width: 2, color: "#34c759", type: "solid" },
+        lineStyle: { width: 2, color: "#34d399", type: "solid" },
         data: openings,
       },
     ],
@@ -188,6 +191,10 @@ const option = computed(() => {
         filterMode: "filter",
         brushSelect: false,
         bottom: 0,
+        textStyle: { color: "#64748b" },
+        borderColor: "rgba(148, 163, 184, 0.08)",
+        fillerColor: "rgba(45, 212, 191, 0.15)",
+        handleStyle: { color: "#2dd4bf" },
       },
     ],
   };
@@ -198,11 +205,14 @@ const option = computed(() => {
 @import "tailwindcss";
 
 .chart-container {
-  @apply w-full h-full bg-white rounded-xl p-4 shadow-sm border border-slate-200 transition-all duration-300;
+  @apply w-full h-full rounded-xl p-4 border transition-all duration-300;
+  background: var(--xergiz-surface);
+  border-color: var(--xergiz-border);
 }
 
 .chart-container:hover {
-  @apply -translate-y-0.5 shadow-md;
+  border-color: var(--xergiz-border-hover);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .chart {

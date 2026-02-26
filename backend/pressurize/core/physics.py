@@ -1,8 +1,14 @@
-"""Physics calculations for gas flow through orifices (ISO 5167-2)."""
+"""Physics calculations for gas flow through orifices (ISO 5167-2) and Cv valves (ISA/IEC 60534)."""
 
 import numpy as np
 
-from pressurize.config.settings import R_UNIVERSAL
+from pressurize.config.settings import (
+    KGM3_TO_LBFT3,
+    LBHR_TO_KGS,
+    N6_FPS,
+    PA_TO_PSIA,
+    R_UNIVERSAL,
+)
 
 
 def calculate_density(
@@ -311,3 +317,221 @@ def calculate_dual_dp_dt(
         )
 
     return dp_dt_upstream, dp_dt_downstream
+
+
+# ---------------------------------------------------------------------------
+# ISA/IEC 60534 Cv-based flow calculations
+# All functions accept SI inputs, convert to FPS internally, compute with
+# N6 = 63.338, and convert the output (lb/hr) back to kg/s.
+# ---------------------------------------------------------------------------
+
+
+def calculate_cv_gas_flow(
+    Cv: float,
+    P_up_pa: float,
+    P_down_pa: float,
+    k: float,
+    rho_upstream_kgm3: float,
+    x_T: float = 0.7,
+) -> tuple[str, float]:
+    """Calculate mass flow rate through a control valve using ISA/IEC 60534 gas sizing.
+
+    Converts SI inputs to FPS, applies the standard Cv gas equation with
+    expansion factor Y and specific-heat-ratio factor Fk, then converts
+    the result back to kg/s.
+
+    Formula (FPS):
+        W = N6 · Fp · Cv · Y · √(x · P1 · ρ1)
+        Fp = 1.0 (no piping reducers)
+
+    Args:
+        Cv: Valve flow coefficient (US gpm / √psi).
+        P_up_pa: Upstream absolute pressure in Pa.
+        P_down_pa: Downstream absolute pressure in Pa.
+        k: Heat capacity ratio (Cp/Cv).
+        rho_upstream_kgm3: Upstream gas density in kg/m³.
+        x_T: Terminal pressure drop ratio (dimensionless, typically 0.7).
+
+    Returns:
+        Tuple of (regime, mass_flow_kgs):
+            regime: "Choked" if x ≥ Fk·xT, "Subsonic" otherwise.
+            mass_flow_kgs: Mass flow rate in kg/s. Returns 0 if P_down ≥ P_up.
+    """
+    if P_down_pa >= P_up_pa:
+        return "Equilibrium", 0.0
+
+    # Convert SI → FPS
+    Pu_psia = P_up_pa * PA_TO_PSIA
+    Pd_psia = P_down_pa * PA_TO_PSIA
+    rho_lbft3 = rho_upstream_kgm3 * KGM3_TO_LBFT3
+
+    # Specific heat ratio factor
+    Fk = k / 1.4
+
+    # Pressure drop ratio
+    x = (Pu_psia - Pd_psia) / Pu_psia
+
+    # Terminal (choked) limit
+    x_limit = Fk * x_T
+
+    # Determine regime and cap x
+    if x >= x_limit:
+        regime = "Choked"
+        x_sizing = x_limit
+    else:
+        regime = "Subsonic"
+        x_sizing = x
+
+    # Expansion factor Y (clamped to 2/3 minimum)
+    Y = 1.0 - (x_sizing / (3.0 * x_limit))
+    if Y < 2.0 / 3.0:
+        Y = 2.0 / 3.0
+
+    # ISA/IEC 60534 gas mass flow (lb/hr)
+    Fp = 1.0  # Piping geometry factor (no reducers)
+    W_lbhr = N6_FPS * Fp * Cv * Y * np.sqrt(x_sizing * Pu_psia * rho_lbft3)
+
+    # Convert FPS → SI
+    mass_flow_kgs = W_lbhr * LBHR_TO_KGS
+
+    return regime, mass_flow_kgs
+
+
+def calculate_cv_liquid_flow(
+    Cv: float,
+    P_up_pa: float,
+    P_down_pa: float,
+    rho_liquid_kgm3: float,
+    P_vapor_pa: float,
+    P_critical_pa: float,
+    F_L: float = 0.9,
+) -> tuple[str, float]:
+    """Calculate liquid mass flow rate through a control valve using ISA/IEC 60534.
+
+    Handles both sub-critical and choked (flashing) liquid flow conditions.
+
+    Formula (FPS):
+        W = N6 · Fp · Cv · √(ρ_L · ΔP_eff)
+
+    Args:
+        Cv: Valve flow coefficient (US gpm / √psi).
+        P_up_pa: Upstream absolute pressure in Pa.
+        P_down_pa: Downstream absolute pressure in Pa.
+        rho_liquid_kgm3: Upstream liquid density in kg/m³.
+        P_vapor_pa: Fluid vapor pressure in Pa.
+        P_critical_pa: Fluid critical pressure in Pa.
+        F_L: Liquid pressure recovery factor (dimensionless, typically 0.9).
+
+    Returns:
+        Tuple of (regime, mass_flow_kgs):
+            regime: "Choked" if actual ΔP exceeds maximum, "Subsonic" otherwise.
+            mass_flow_kgs: Mass flow rate in kg/s. Returns 0 if P_down ≥ P_up.
+    """
+    if P_down_pa >= P_up_pa:
+        return "Equilibrium", 0.0
+
+    # Convert SI → FPS
+    Pu_psia = P_up_pa * PA_TO_PSIA
+    Pd_psia = P_down_pa * PA_TO_PSIA
+    Pv_psia = P_vapor_pa * PA_TO_PSIA
+    Pc_psia = P_critical_pa * PA_TO_PSIA
+    rho_lbft3 = rho_liquid_kgm3 * KGM3_TO_LBFT3
+
+    # Liquid critical pressure ratio factor
+    FF = 0.96 - 0.28 * np.sqrt(Pv_psia / Pc_psia) if Pc_psia > 0 else 0.96
+
+    # Maximum allowable pressure drop for choking
+    dP_max = (F_L**2) * (Pu_psia - FF * Pv_psia)
+
+    # Actual pressure drop
+    dP = Pu_psia - Pd_psia
+
+    # Effective pressure drop and regime
+    if dP > dP_max:
+        regime = "Choked"
+        dP_eff = dP_max
+    else:
+        regime = "Subsonic"
+        dP_eff = dP
+
+    if dP_eff <= 0:
+        return "Equilibrium", 0.0
+
+    # ISA/IEC 60534 liquid mass flow (lb/hr)
+    Fp = 1.0
+    W_lbhr = N6_FPS * Fp * Cv * np.sqrt(rho_lbft3 * dP_eff)
+
+    # Convert FPS → SI
+    mass_flow_kgs = W_lbhr * LBHR_TO_KGS
+
+    return regime, mass_flow_kgs
+
+
+def calculate_cv_two_phase_flow(
+    vapor_fraction: float,
+    Cv: float,
+    rho_liquid_kgm3: float,
+    rho_vapor_kgm3: float,
+    P_up_pa: float,
+    P_down_pa: float,
+    P_vapor_pa: float,
+    P_critical_pa: float,
+    k: float = 1.4,
+    x_T: float = 0.7,
+    F_L: float = 0.9,
+) -> tuple[str, float]:
+    """Calculate two-phase mass flow through a control valve (ISA/IEC 60534).
+
+    Blends liquid and gas Cv flow results weighted by the vapor mass fraction.
+
+    Args:
+        vapor_fraction: Vapor mass fraction (0 = pure liquid, 1 = pure gas).
+        Cv: Valve flow coefficient (US gpm / √psi).
+        rho_liquid_kgm3: Liquid phase density in kg/m³.
+        rho_vapor_kgm3: Vapor phase density in kg/m³.
+        P_up_pa: Upstream absolute pressure in Pa.
+        P_down_pa: Downstream absolute pressure in Pa.
+        P_vapor_pa: Fluid vapor pressure in Pa.
+        P_critical_pa: Fluid critical pressure in Pa.
+        k: Heat capacity ratio (Cp/Cv) for vapor.
+        x_T: Terminal pressure drop ratio (dimensionless).
+        F_L: Liquid pressure recovery factor (dimensionless).
+
+    Returns:
+        Tuple of (regime, mass_flow_kgs).
+
+    Raises:
+        ValueError: If vapor_fraction is not between 0 and 1.
+    """
+    if not (0.0 <= vapor_fraction <= 1.0):
+        raise ValueError(f"vapor_fraction must be 0–1, got {vapor_fraction}")
+
+    if P_down_pa >= P_up_pa:
+        return "Equilibrium", 0.0
+
+    # Pure liquid
+    if vapor_fraction == 0.0:
+        return calculate_cv_liquid_flow(
+            Cv, P_up_pa, P_down_pa, rho_liquid_kgm3, P_vapor_pa, P_critical_pa, F_L
+        )
+
+    # Pure gas
+    if vapor_fraction == 1.0:
+        return calculate_cv_gas_flow(Cv, P_up_pa, P_down_pa, k, rho_vapor_kgm3, x_T)
+
+    # Mixed phase: weighted blend
+    regime_liq, flow_liq = calculate_cv_liquid_flow(
+        Cv, P_up_pa, P_down_pa, rho_liquid_kgm3, P_vapor_pa, P_critical_pa, F_L
+    )
+    regime_gas, flow_gas = calculate_cv_gas_flow(
+        Cv, P_up_pa, P_down_pa, k, rho_vapor_kgm3, x_T
+    )
+
+    mass_flow = (1.0 - vapor_fraction) * flow_liq + vapor_fraction * flow_gas
+
+    # Report regime of the dominant phase
+    regime = (
+        regime_gas if vapor_fraction >= 0.5 else regime_liq
+    )  # TODO: Check if this is the best way to report regime for two-phase flow
+
+    return regime, mass_flow

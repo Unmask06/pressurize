@@ -97,18 +97,64 @@
         <div class="section-container">
           <div class="section-header">🔧 Valve Configuration</div>
           <div class="row">
-            <div class="form-group quarter">
-              <label>Valve ID ({{ getUnit("small_length") }})</label>
-              <input type="number" v-model.number="form.valve_id" />
+            <div class="form-group full">
+              <label>Flow Model</label>
+              <div class="toggle-group">
+                <button
+                  :class="{ active: form.flow_model === 'orifice' }"
+                  @click="form.flow_model = 'orifice'"
+                  title="Orifice ID-based flow (ISO 5167-2)"
+                >
+                  🔧 Orifice ID
+                </button>
+                <button
+                  :class="{ active: form.flow_model === 'cv' }"
+                  @click="form.flow_model = 'cv'"
+                  title="Valve Cv-based flow (ISA/IEC 60534)"
+                >
+                  📊 Cv
+                </button>
+              </div>
             </div>
-            <div class="form-group quarter">
-              <label>Discharge Coeff (Cd)</label>
-              <input
-                type="number"
-                v-model.number="form.discharge_coeff"
-                step="0.5"
-              />
-            </div>
+          </div>
+          <div class="two-col-row">
+            <template v-if="form.flow_model === 'orifice'">
+              <div class="form-group">
+                <label>Valve ID ({{ getUnit("small_length") }})</label>
+                <input type="number" v-model.number="form.valve_id" />
+              </div>
+              <div class="form-group">
+                <label>Discharge Coeff (Cd)</label>
+                <input
+                  type="number"
+                  v-model.number="form.discharge_coeff"
+                  step="0.5"
+                />
+              </div>
+            </template>
+            <template v-else>
+              <div class="form-group">
+                <label>Cv (gpm/√psi)</label>
+                <input
+                  type="number"
+                  v-model.number="form.cv_value"
+                  step="1"
+                  min="0"
+                />
+              </div>
+              <div class="form-group">
+                <label>xT</label>
+                <input
+                  type="number"
+                  v-model.number="form.x_t"
+                  step="0.05"
+                  min="0.1"
+                  max="1"
+                />
+              </div>
+            </template>
+          </div>
+          <div class="row">
             <div class="form-group quarter">
               <label>Valve Action</label>
               <div class="toggle-group">
@@ -126,7 +172,10 @@
                 </button>
               </div>
             </div>
-            <div class="form-group quarter">
+            <div
+              class="form-group quarter"
+              v-if="form.opening_mode !== 'orifice'"
+            >
               <label>{{
                 form.valve_action === "close"
                   ? `Closing Time (${getUnit("time")})`
@@ -145,8 +194,8 @@
                 <option value="linear">Linear</option>
                 <option value="exponential">Exponential</option>
                 <option value="quick_acting">Quick Acting</option>
-                <option v-if="form.valve_action === 'open'" value="fixed">
-                  Fixed (Instant)
+                <option v-if="form.valve_action === 'open'" value="orifice">
+                  Orifice (Instant)
                 </option>
               </select>
             </div>
@@ -266,7 +315,7 @@
         @click="loading ? stopSimulation() : runSimulation()"
         :title="buttonText"
       >
-        {{ buttonText.split(' ')[0] }}
+        {{ buttonText.split(" ")[0] }}
       </button>
     </div>
   </div>
@@ -274,11 +323,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
-import {
-  apiClient,
-  getUnit,
-  type SimulationRequest,
-} from "../api/client";
+import { apiClient, getUnit, type SimulationRequest } from "../api/client";
 
 const props = defineProps<{
   loading: boolean;
@@ -288,12 +333,7 @@ const props = defineProps<{
   simulationCompleted: boolean;
 }>();
 
-const emit = defineEmits([
-  "run",
-  "stop",
-  "edit-composition",
-  "view-results",
-]);
+const emit = defineEmits(["run", "stop", "edit-composition", "view-results"]);
 
 function viewResults() {
   emit("view-results");
@@ -309,6 +349,9 @@ const form = reactive<SimulationRequest>({
   upstream_volume: 100,
   downstream_volume: 100,
   valve_id: 2.0, // Default 2 inches
+  flow_model: "orifice",
+  cv_value: undefined,
+  x_t: 0.7,
   opening_time: 5,
   valve_action: "open",
   upstream_temp: 70,
@@ -324,11 +367,11 @@ const form = reactive<SimulationRequest>({
   dt: 0.5,
 });
 
-// Reset opening_mode to linear if switching to close while on fixed
+// Reset opening_mode to linear if switching to close while on orifice
 watch(
   () => form.valve_action,
   (action) => {
-    if (action === "close" && form.opening_mode === "fixed") {
+    if (action === "close" && form.opening_mode === "orifice") {
       form.opening_mode = "linear";
     }
   },
@@ -426,20 +469,21 @@ defineExpose({
 @import "tailwindcss";
 
 .simulation-form {
-  @apply bg-white p-8 rounded-2xl border border-slate-200 flex flex-col gap-6 h-full overflow-y-auto;
+  @apply p-5 flex flex-col gap-4 h-full overflow-y-auto;
+  background: transparent;
   width: 100%;
 }
 
 .form-grid {
-  @apply flex flex-col gap-4;
+  @apply flex flex-col gap-3;
 }
 
 .grid-row {
-  @apply flex flex-col gap-4;
+  @apply flex flex-col gap-3;
 }
 
 .grid-row.vessels-row {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  @apply grid grid-cols-1 xl:grid-cols-2 gap-3;
 }
 
 .grid-row.full-width {
@@ -447,11 +491,19 @@ defineExpose({
 }
 
 .quarter {
-  @apply flex-1 min-w-30;
+  @apply flex-1 min-w-[20%];
+}
+
+.full {
+  @apply w-full;
+}
+
+.two-col-row {
+  @apply grid grid-cols-2 gap-3;
 }
 
 .actions {
-  @apply flex gap-3 mt-4 justify-center;
+  @apply flex gap-3 mt-3 justify-center;
 }
 
 .actions button {
@@ -459,66 +511,90 @@ defineExpose({
 }
 
 h3 {
-  @apply m-0 text-2xl font-bold text-slate-800 tracking-tight;
+  @apply m-0 text-base font-semibold tracking-tight;
+  color: var(--xergiz-text);
 }
 
 .form-group {
-  @apply flex flex-col gap-1.5;
+  @apply flex flex-col gap-1;
 }
 
 .row {
-  @apply flex flex-wrap gap-4;
+  @apply flex flex-wrap gap-3;
 }
 
 .half {
-  @apply flex-1 min-w-50;
+  @apply flex-1 min-w-[45%];
 }
 
 .third {
-  @apply flex-1 min-w-35;
+  @apply flex-1 min-w-[30%];
 }
 
 label {
-  @apply text-xs text-slate-500 font-bold uppercase tracking-wider;
+  @apply text-[10px] font-semibold uppercase tracking-wider;
+  color: var(--xergiz-text-muted);
 }
 
 input,
 select {
-  @apply w-full py-3 px-4 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-base transition-all duration-200;
+  @apply w-full py-1.5 px-3 border rounded-lg text-xs transition-all duration-150;
+  background: var(--xergiz-dark);
+  border-color: var(--xergiz-border);
+  color: var(--xergiz-text);
 }
 
 input:hover,
 select:hover {
-  @apply border-slate-300 bg-white;
+  border-color: var(--xergiz-border-hover);
 }
 
 input:focus,
 select:focus {
-  @apply outline-none border-blue-500 ring-4 ring-blue-500/10 bg-white;
+  @apply outline-none;
+  border-color: var(--xergiz-teal);
+  box-shadow: 0 0 0 3px var(--xergiz-teal-dim);
+}
+
+input::placeholder {
+  color: var(--xergiz-text-muted);
 }
 
 hr {
-  @apply border-none border-t border-slate-100 my-2;
+  @apply border-none border-t my-2;
+  border-color: var(--xergiz-border);
 }
 
 .toggle-group {
-  @apply flex bg-slate-100 p-1.5 rounded-xl gap-1;
+  @apply flex p-0.5 rounded-lg gap-0.5;
+  background: var(--xergiz-dark);
+  border: 1px solid var(--xergiz-border);
 }
 
 .toggle-group button {
-  @apply flex-1 py-2 px-3 border-none bg-transparent text-slate-600 rounded-lg cursor-pointer text-sm font-semibold transition-all duration-200;
+  @apply flex-1 py-1.5 px-2 border-none bg-transparent rounded-md cursor-pointer text-[11px] font-semibold transition-all duration-150;
+  color: var(--xergiz-text-muted);
+}
+
+.toggle-group button:hover:not(.active) {
+  color: var(--xergiz-text);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .toggle-group button.active {
-  @apply bg-white text-blue-600 shadow-md shadow-blue-500/10;
+  background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+  color: #020617;
+  @apply shadow-sm;
 }
 
 input.read-only {
-  @apply bg-slate-100 text-slate-400 cursor-not-allowed border-dashed;
+  @apply cursor-not-allowed border-dashed opacity-40;
 }
 
 .composition-summary {
-  @apply flex items-center justify-between bg-blue-50/50 py-3 px-4 rounded-xl border border-blue-100;
+  @apply flex items-center justify-between py-2 px-3 rounded-lg border;
+  background: var(--xergiz-teal-dim);
+  border-color: rgba(45, 212, 191, 0.15);
 }
 
 .summary-card {
@@ -526,15 +602,18 @@ input.read-only {
 }
 
 .summary-icon {
-  @apply text-xl;
+  @apply text-base;
 }
 
 .summary-text {
-  @apply text-sm font-semibold text-blue-900;
+  @apply text-[11px] font-semibold;
+  color: var(--xergiz-teal);
 }
 
 .composition-summary-inline {
-  @apply flex items-center gap-2 bg-blue-50/50 py-2 px-3 rounded-lg border border-blue-100;
+  @apply flex items-center gap-2 py-1.5 px-3 rounded-lg border;
+  background: var(--xergiz-teal-dim);
+  border-color: rgba(45, 212, 191, 0.15);
 }
 
 .tag-row {
@@ -542,55 +621,92 @@ input.read-only {
 }
 
 .tag-row label {
-  @apply text-xs text-slate-500 font-bold uppercase tracking-wider whitespace-nowrap mb-0;
+  @apply text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap mb-0;
+  color: var(--xergiz-text-muted);
 }
 
 .tag-input {
-  @apply flex-1 py-2 px-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 text-sm transition-all duration-200;
+  @apply flex-1 py-1.5 px-3 border rounded-lg text-xs transition-all duration-150;
+  background: var(--xergiz-dark);
+  border-color: var(--xergiz-border);
+  color: var(--xergiz-text);
 }
 
 .tag-input:hover {
-  @apply border-slate-300 bg-white;
+  border-color: var(--xergiz-border-hover);
 }
 
 .tag-input:focus {
-  @apply outline-none border-blue-500 ring-4 ring-blue-500/10 bg-white;
+  @apply outline-none;
+  border-color: var(--xergiz-teal);
+  box-shadow: 0 0 0 3px var(--xergiz-teal-dim);
 }
 
 .btn-table {
-  @apply py-3 px-4 bg-white border-2 border-slate-200 text-slate-600 rounded-xl font-bold cursor-pointer transition-all hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-2xl;
+  @apply py-2 px-4 border rounded-xl font-bold cursor-pointer transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-xl;
+  background: var(--xergiz-surface);
+  border-color: var(--xergiz-border);
+  color: var(--xergiz-text-muted);
+}
+
+.btn-table:hover:not(:disabled) {
+  border-color: var(--xergiz-teal);
+  color: var(--xergiz-teal);
+  box-shadow: 0 0 15px var(--xergiz-teal-dim);
 }
 
 .btn-primary {
-  @apply py-3 px-4 bg-blue-600 text-white rounded-xl font-bold text-2xl shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all hover:bg-blue-700 disabled:bg-slate-300 disabled:shadow-none;
+  @apply py-2 px-4 text-white rounded-xl font-bold text-lg active:scale-[0.98] transition-all disabled:opacity-40 disabled:shadow-none;
+  background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+  color: #020617;
+  box-shadow: 0 4px 20px var(--xergiz-teal-glow);
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 30px rgba(45, 212, 191, 0.35);
 }
 
 .btn-stop {
-  @apply py-3 px-4 bg-red-600 text-white rounded-xl font-bold text-2xl shadow-lg shadow-red-600/20 active:scale-[0.98] transition-all hover:bg-red-700;
+  @apply py-2 px-4 text-white rounded-xl font-bold text-lg active:scale-[0.98] transition-all;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.25);
+}
+
+.btn-stop:hover {
+  box-shadow: 0 4px 30px rgba(239, 68, 68, 0.35);
 }
 
 .btn-secondary {
-  @apply py-1.5 px-3 rounded-lg text-blue-600 text-xs font-bold uppercase tracking-wider bg-white border border-blue-100;
+  @apply py-1 px-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider border;
+  background: transparent;
+  color: var(--xergiz-teal);
+  border-color: rgba(45, 212, 191, 0.2);
 }
 
 .btn-secondary:hover {
-  @apply bg-blue-50 border-blue-200;
+  background: var(--xergiz-teal-dim);
 }
 
 .section-container {
-  @apply bg-slate-50/50 p-5 rounded-2xl border border-slate-100 flex flex-col gap-4;
+  @apply p-3.5 rounded-xl border flex flex-col gap-2.5;
+  background: var(--xergiz-surface);
+  border-color: var(--xergiz-border);
 }
 
 .section-header {
-  @apply text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2;
+  @apply text-[10px] font-semibold uppercase tracking-widest flex items-center gap-2;
+  color: var(--xergiz-teal);
 }
 
 .section-header::after {
   content: "";
-  @apply h-px bg-slate-100 flex-1;
+  @apply h-px flex-1;
+  background: linear-gradient(90deg, var(--xergiz-border-hover), transparent);
 }
 
 small {
-  @apply text-[10px] text-slate-400 font-medium;
+  @apply text-[9px] font-medium;
+  color: var(--xergiz-text-muted);
 }
 </style>

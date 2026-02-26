@@ -7,12 +7,8 @@
       </div>
 
       <div class="modal-body">
-        <h3 class="text-lg font-semibold text-slate-800 mb-2">
-          Report Details
-        </h3>
-        <label class="block text-sm font-medium text-slate-600 mb-1">
-          Report Title
-        </label>
+        <h3>Report Details</h3>
+        <label> Report Title </label>
         <textarea
           v-model="reportTitle"
           placeholder="Enter report title... (e.g., Simulation Report for Valve S-101)"
@@ -20,9 +16,7 @@
           class="mb-4"
         ></textarea>
 
-        <label class="block text-sm font-medium text-slate-600 mb-1">
-          Additional Notes
-        </label>
+        <label> Additional Notes </label>
         <textarea
           v-model="notes"
           placeholder="Enter your notes here... (e.g., purpose of simulation, observations, etc.)"
@@ -216,11 +210,11 @@ async function getPdfBlob(): Promise<Blob> {
     const inputKeys = Object.keys(props.inputs).filter((k) => {
       // Always exclude dt and composition
       if (k === "dt" || k === "composition") return false;
-      // Exclude k_curve (Curve Factor) for Linear and Fixed modes since it's not used
+      // Exclude k_curve (Curve Factor) for Linear and Orifice modes since it's not used
       if (
         k === "k_curve" &&
         (props.inputs.opening_mode === "linear" ||
-          props.inputs.opening_mode === "fixed")
+          props.inputs.opening_mode === "orifice")
       )
         return false;
       // Exclude upstream volume in pressurize mode and downstream volume in depressurize mode
@@ -504,80 +498,75 @@ async function handleDownload(type: "pdf" | "all") {
   }
 }
 
-/* Component-specific modal header styling */
-.modal-header h2 {
-  @apply text-xl text-slate-800;
-}
-
-/* Component-specific close button styling */
-.close-btn {
-  @apply p-1 leading-none transition-colors text-slate-400;
-}
-
-.close-btn:hover {
-  @apply text-slate-500;
-}
-
 /* Component-specific body and textarea styling */
-.instructions {
-  @apply m-0 mb-4 text-slate-500 text-sm;
+.modal-body h3 {
+  @apply text-lg font-semibold mb-2;
+  color: var(--xergiz-text);
+}
+
+.modal-body label {
+  @apply block text-xs font-bold uppercase tracking-wider mb-1;
+  color: var(--xergiz-text-muted);
 }
 
 .modal-body textarea {
-  @apply w-full p-3.5 border-2 border-slate-200 rounded-lg text-sm font-sans resize-y transition-all;
+  @apply w-full p-3.5 border rounded-lg text-sm font-sans resize-y transition-all;
+  background: var(--xergiz-dark);
+  border-color: var(--xergiz-border);
+  color: var(--xergiz-text);
 }
 
 .modal-body textarea:focus {
-  @apply outline-none border-blue-500 ring-4 ring-blue-500/10;
+  @apply outline-none ring-2;
+  border-color: var(--xergiz-teal);
+  ring-color: var(--xergiz-teal-dim);
 }
 
 .modal-body textarea::placeholder {
-  @apply text-slate-400;
+  color: var(--xergiz-text-muted);
 }
 
 /* Component-specific footer styling */
 .modal-footer {
-  @apply bg-slate-50 rounded-b-2xl;
+  @apply rounded-b-2xl;
+  background: var(--xergiz-surface);
 }
 
 /* Component-specific button styles */
-.btn-secondary {
-  @apply border-2 bg-white text-slate-500 font-medium;
-}
-
-.btn-secondary:hover {
-  @apply border-slate-300 bg-slate-50;
-}
-
 .btn-primary {
-  @apply bg-linear-to-br from-blue-500 to-blue-600 font-semibold text-xs sm:text-sm;
-}
-
-.btn-primary:hover:not(:disabled) {
-  @apply from-blue-600 to-blue-700 -translate-y-px;
+  @apply text-xs sm:text-sm font-semibold;
 }
 
 .btn-assets {
-  @apply bg-linear-to-br from-emerald-500 to-emerald-600 font-semibold text-white rounded-lg text-xs sm:text-sm transition-all;
+  @apply font-semibold text-white rounded-lg text-xs sm:text-sm transition-all border-none cursor-pointer py-2 px-4;
+  background: linear-gradient(135deg, #34d399, #10b981);
 }
 
 .btn-assets:hover:not(:disabled) {
-  @apply from-emerald-600 to-emerald-700 -translate-y-px shadow-md;
+  filter: brightness(1.1);
+  box-shadow: 0 0 15px rgba(52, 211, 153, 0.3);
+  @apply -translate-y-px;
 }
 
 .btn-assets:disabled {
-  @apply opacity-60 cursor-not-allowed;
+  @apply opacity-40 cursor-not-allowed;
 }
 
 .footer-credits {
-  @apply text-center text-[10px] text-slate-400 mt-2;
+  @apply text-center text-[10px] mt-2;
+  color: var(--xergiz-text-muted);
 }
 
 .author-link {
-  @apply text-blue-400 hover:text-blue-500 hover:underline transition-colors font-medium;
+  @apply hover:underline transition-colors font-medium;
+  color: var(--xergiz-teal);
+}
+
+.author-link:hover {
+  filter: brightness(1.2);
 }
 
 .btn-primary:disabled {
-  @apply opacity-60 cursor-not-allowed;
+  @apply opacity-40 cursor-not-allowed;
 }
 </style>

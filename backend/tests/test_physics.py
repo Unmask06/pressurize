@@ -13,6 +13,9 @@ import pytest
 from pressurize.core.physics import (
     calculate_choked_flow,
     calculate_critical_pressure_ratio,
+    calculate_cv_gas_flow,
+    calculate_cv_liquid_flow,
+    calculate_cv_two_phase_flow,
     calculate_dp_dt,
     calculate_mass_flow_rate,
     calculate_subsonic_flow,
@@ -413,3 +416,212 @@ class TestIntegration:
 
         # Rate should be reasonable (not instantaneous)
         assert dp_dt < 1e8  # Less than 100 MPa/s for this scenario
+
+
+class TestCvGasFlow:
+    """Tests for ISA/IEC 60534 Cv-based gas flow calculations."""
+
+    # Common test parameters (SI units)
+    Cv = 50.0  # Typical small globe valve
+    P_up = 3.5e6  # ~500 psig
+    P_down = 2.0e6  # ~275 psig
+    k = 1.3  # Natural gas
+    rho = 25.0  # kg/m³ (typical high-pressure gas density)
+    x_T = 0.7  # Globe valve default
+
+    def test_positive_flow(self):
+        """Test that gas Cv flow produces a positive mass flow rate."""
+        regime, flow = calculate_cv_gas_flow(
+            self.Cv, self.P_up, self.P_down, self.k, self.rho, self.x_T
+        )
+        assert flow > 0
+        assert regime in ("Choked", "Subsonic")
+
+    def test_zero_flow_at_equilibrium(self):
+        """Test that flow is zero when pressures are equal."""
+        regime, flow = calculate_cv_gas_flow(
+            self.Cv, self.P_up, self.P_up, self.k, self.rho, self.x_T
+        )
+        assert flow == 0.0
+        assert regime == "Equilibrium"
+
+    def test_zero_flow_reverse_pressure(self):
+        """Test that flow is zero when downstream exceeds upstream."""
+        regime, flow = calculate_cv_gas_flow(
+            self.Cv, self.P_down, self.P_up, self.k, self.rho, self.x_T
+        )
+        assert flow == 0.0
+        assert regime == "Equilibrium"
+
+    def test_scales_with_cv(self):
+        """Test that doubling Cv doubles the flow rate."""
+        _, flow1 = calculate_cv_gas_flow(
+            self.Cv, self.P_up, self.P_down, self.k, self.rho, self.x_T
+        )
+        _, flow2 = calculate_cv_gas_flow(
+            self.Cv * 2, self.P_up, self.P_down, self.k, self.rho, self.x_T
+        )
+        assert pytest.approx(flow2, rel=0.01) == 2 * flow1
+
+    def test_choked_regime_detection(self):
+        """Test that large pressure drop triggers choked flow."""
+        # Very low downstream → large x → should be choked
+        regime, flow = calculate_cv_gas_flow(
+            self.Cv, self.P_up, 100000, self.k, self.rho, self.x_T
+        )
+        assert regime == "Choked"
+        assert flow > 0
+
+    def test_subsonic_regime_detection(self):
+        """Test that small pressure drop gives subsonic flow."""
+        # Small pressure difference
+        regime, flow = calculate_cv_gas_flow(
+            self.Cv, self.P_up, self.P_up * 0.95, self.k, self.rho, self.x_T
+        )
+        assert regime == "Subsonic"
+        assert flow > 0
+
+    def test_choked_flow_independent_of_downstream(self):
+        """Test that choked flow doesn't change with further downstream decrease."""
+        _, flow1 = calculate_cv_gas_flow(
+            self.Cv, self.P_up, 100000, self.k, self.rho, self.x_T
+        )
+        _, flow2 = calculate_cv_gas_flow(
+            self.Cv, self.P_up, 50000, self.k, self.rho, self.x_T
+        )
+        assert pytest.approx(flow1, rel=0.01) == flow2
+
+    def test_y_factor_clamped(self):
+        """Test that expansion factor Y is clamped to 2/3 minimum."""
+        # With extremely large x (far beyond choked), Y should be 2/3
+        # Since x is capped at x_limit = Fk * x_T, Y = 1 - 1/3 = 2/3
+        regime, flow = calculate_cv_gas_flow(
+            self.Cv, self.P_up, 1.0, self.k, self.rho, self.x_T
+        )
+        assert regime == "Choked"
+        assert flow > 0
+
+
+class TestCvLiquidFlow:
+    """Tests for ISA/IEC 60534 Cv-based liquid flow calculations."""
+
+    Cv = 50.0
+    P_up = 3.5e6  # Pa
+    P_down = 2.0e6  # Pa
+    rho_liq = 800.0  # kg/m³ (typical hydrocarbon liquid)
+    P_vapor = 1.0e5  # Pa (low vapor pressure)
+    P_critical = 4.6e6  # Pa (typical critical pressure)
+    F_L = 0.9
+
+    def test_positive_flow(self):
+        """Test that liquid Cv flow produces a positive mass flow rate."""
+        regime, flow = calculate_cv_liquid_flow(
+            self.Cv, self.P_up, self.P_down, self.rho_liq,
+            self.P_vapor, self.P_critical, self.F_L,
+        )
+        assert flow > 0
+        assert regime in ("Choked", "Subsonic")
+
+    def test_zero_at_equilibrium(self):
+        """Test zero flow when pressures are equal."""
+        regime, flow = calculate_cv_liquid_flow(
+            self.Cv, self.P_up, self.P_up, self.rho_liq,
+            self.P_vapor, self.P_critical, self.F_L,
+        )
+        assert flow == 0.0
+        assert regime == "Equilibrium"
+
+    def test_scales_with_cv(self):
+        """Test that doubling Cv doubles liquid flow."""
+        _, flow1 = calculate_cv_liquid_flow(
+            self.Cv, self.P_up, self.P_down, self.rho_liq,
+            self.P_vapor, self.P_critical, self.F_L,
+        )
+        _, flow2 = calculate_cv_liquid_flow(
+            self.Cv * 2, self.P_up, self.P_down, self.rho_liq,
+            self.P_vapor, self.P_critical, self.F_L,
+        )
+        assert pytest.approx(flow2, rel=0.01) == 2 * flow1
+
+    def test_choked_liquid_flow(self):
+        """Test liquid choking when pressure drop exceeds FL limit."""
+        # Very low downstream → dP > dP_max → choked
+        regime, flow = calculate_cv_liquid_flow(
+            self.Cv, self.P_up, 1000.0, self.rho_liq,
+            self.P_vapor, self.P_critical, self.F_L,
+        )
+        assert regime == "Choked"
+        assert flow > 0
+
+
+class TestCvTwoPhaseFlow:
+    """Tests for ISA/IEC 60534 Cv-based two-phase flow calculations."""
+
+    Cv = 50.0
+    P_up = 3.5e6
+    P_down = 2.0e6
+    rho_liq = 800.0
+    rho_vap = 25.0
+    P_vapor = 1.0e5
+    P_critical = 4.6e6
+    k = 1.3
+    x_T = 0.7
+    F_L = 0.9
+
+    def test_pure_gas_matches_gas_function(self):
+        """Test that vapor_fraction=1.0 matches the gas-only function."""
+        _, flow_tp = calculate_cv_two_phase_flow(
+            1.0, self.Cv, self.rho_liq, self.rho_vap,
+            self.P_up, self.P_down, self.P_vapor, self.P_critical,
+            self.k, self.x_T, self.F_L,
+        )
+        _, flow_gas = calculate_cv_gas_flow(
+            self.Cv, self.P_up, self.P_down, self.k, self.rho_vap, self.x_T
+        )
+        assert pytest.approx(flow_tp, rel=0.001) == flow_gas
+
+    def test_pure_liquid_matches_liquid_function(self):
+        """Test that vapor_fraction=0.0 matches the liquid-only function."""
+        _, flow_tp = calculate_cv_two_phase_flow(
+            0.0, self.Cv, self.rho_liq, self.rho_vap,
+            self.P_up, self.P_down, self.P_vapor, self.P_critical,
+            self.k, self.x_T, self.F_L,
+        )
+        _, flow_liq = calculate_cv_liquid_flow(
+            self.Cv, self.P_up, self.P_down, self.rho_liq,
+            self.P_vapor, self.P_critical, self.F_L,
+        )
+        assert pytest.approx(flow_tp, rel=0.001) == flow_liq
+
+    def test_blended_flow_intermediate(self):
+        """Test that mixed-phase flow is between pure gas and pure liquid."""
+        _, flow_gas = calculate_cv_gas_flow(
+            self.Cv, self.P_up, self.P_down, self.k, self.rho_vap, self.x_T
+        )
+        _, flow_liq = calculate_cv_liquid_flow(
+            self.Cv, self.P_up, self.P_down, self.rho_liq,
+            self.P_vapor, self.P_critical, self.F_L,
+        )
+        _, flow_blend = calculate_cv_two_phase_flow(
+            0.5, self.Cv, self.rho_liq, self.rho_vap,
+            self.P_up, self.P_down, self.P_vapor, self.P_critical,
+            self.k, self.x_T, self.F_L,
+        )
+        assert min(flow_gas, flow_liq) <= flow_blend <= max(flow_gas, flow_liq)
+
+    def test_invalid_vapor_fraction_raises(self):
+        """Test that invalid vapor fractions raise ValueError."""
+        with pytest.raises(ValueError, match="vapor_fraction"):
+            calculate_cv_two_phase_flow(
+                1.5, self.Cv, self.rho_liq, self.rho_vap,
+                self.P_up, self.P_down, self.P_vapor, self.P_critical,
+            )
+
+    def test_equilibrium_returns_zero(self):
+        """Test that equal pressures give zero flow."""
+        regime, flow = calculate_cv_two_phase_flow(
+            0.5, self.Cv, self.rho_liq, self.rho_vap,
+            self.P_up, self.P_up, self.P_vapor, self.P_critical,
+        )
+        assert flow == 0.0
+        assert regime == "Equilibrium"

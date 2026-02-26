@@ -3,7 +3,7 @@
 from typing import Literal
 
 from pint_glass import PintGlass
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class SimulationRequest(BaseModel):
@@ -45,6 +45,24 @@ class SimulationRequest(BaseModel):
     valve_id: PintGlass("Small Length", "Input") = Field(
         ..., description="Valve ID", gt=0
     )
+
+    # Flow model selection
+    flow_model: Literal["orifice", "cv"] = Field(
+        "orifice",
+        description="Flow calculation model: orifice (ID-based ISO 5167-2) or cv (valve coefficient ISA/IEC 60534)",
+    )
+    cv_value: float | None = Field(
+        None,
+        description="Valve flow coefficient Cv (US gpm/√psi). Required when flow_model='cv'.",
+        gt=0,
+    )
+    x_t: float = Field(
+        0.7,
+        description="Terminal pressure drop ratio xT (dimensionless, typically 0.7 for globe valves)",
+        gt=0,
+        le=1,
+    )
+
     opening_time: PintGlass("time", "Input") = Field(
         ..., description="Valve opening time", ge=0
     )
@@ -60,9 +78,9 @@ class SimulationRequest(BaseModel):
         "open",
         description="Valve action: open (0→100%) or close (100→0%)",
     )
-    opening_mode: Literal["linear", "exponential", "quick_acting", "fixed"] = Field(
+    opening_mode: Literal["linear", "exponential", "quick_acting", "orifice"] = Field(
         "linear",
-        description="Valve opening mode: linear, exponential, quick_acting, fixed",
+        description="Valve opening mode: linear, exponential, quick_acting, orifice",
     )
     k_curve: float = Field(
         4.0, description="Curve steepness for exponential/quick_acting"
@@ -76,6 +94,13 @@ class SimulationRequest(BaseModel):
     composition: str | None = Field(
         None, description="Composition string, e.g., 'Methane=0.9, Ethane=0.1'"
     )
+
+    @model_validator(mode="after")
+    def _validate_flow_model_fields(self) -> "SimulationRequest":
+        """Ensure cv_value is provided when flow_model is 'cv'."""
+        if self.flow_model == "cv" and self.cv_value is None:
+            raise ValueError("cv_value is required when flow_model is 'cv'")
+        return self
 
 
 class SimulationResultPoint(BaseModel):

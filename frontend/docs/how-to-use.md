@@ -34,7 +34,7 @@ Select one of the three modes at the top of the form:
   - `Linear` — constant rate of opening
   - `Exponential` — slow start, fast finish
   - `Quick Acting` — fast start, slow finish
-  - `Fixed (Instant)` — full open/close immediately
+  - `Orifice (Instant)` — full open immediately
 - **Curve Factor (k)** — controls steepness for Exponential and Quick Acting modes.
 
 ### 5. Set Gas Properties
@@ -79,7 +79,7 @@ Early in the simulation you'll see flat maximum flow (choked/sonic regime). As t
 
 Same setup as above, but change:
 
-- Opening Mode → `Fixed (Instant)`
+- Opening Mode → `Orifice (Instant)`
 
 Compare the pressure rise rate and peak flow against the slower Linear case. This worst-case scenario helps size relief devices and verify system safety margins.
 

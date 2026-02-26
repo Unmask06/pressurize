@@ -4,506 +4,524 @@
  */
 
 export interface paths {
-    "/units/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Units Config
-         * @description Get the unit configuration including supported systems and dimension mappings.
-         */
-        get: operations["get_units_config_units_config_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/units/config": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/simulate/stream": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Stream Simulation Endpoint
-         * @description Stream simulation results progressively for large datasets.
-         *
-         *     Yields results in chunks of 100 rows via Server-Sent Events (SSE).
-         *     Final message contains computed KPIs.
-         */
-        post: operations["stream_simulation_endpoint_simulate_stream_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Get Units Config
+     * @description Get the unit configuration including supported systems and dimension mappings.
+     */
+    get: operations["get_units_config_units_config_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/simulate/stream": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/components": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Components
-         * @description Get list of available gas components for composition modeling.
-         */
-        get: operations["get_components_components_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Stream Simulation Endpoint
+     * @description Stream simulation results progressively for large datasets.
+     *
+     *     Yields results in chunks of 100 rows via Server-Sent Events (SSE).
+     *     Final message contains computed KPIs.
+     */
+    post: operations["stream_simulation_endpoint_simulate_stream_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/components": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/presets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Presets
-         * @description Get list of predefined gas composition presets.
-         */
-        get: operations["get_presets_presets_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Get Components
+     * @description Get list of available gas components for composition modeling.
+     */
+    get: operations["get_components_components_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/presets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/presets/{preset_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Preset Details
-         * @description Get detailed composition data for a specific preset.
-         */
-        get: operations["get_preset_details_presets__preset_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Get Presets
+     * @description Get list of predefined gas composition presets.
+     */
+    get: operations["get_presets_presets_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/presets/{preset_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/properties": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Calculate Properties
-         * @description Calculate gas properties (Z, k, M) from composition and conditions.
-         */
-        post: operations["calculate_properties_properties_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Get Preset Details
+     * @description Get detailed composition data for a specific preset.
+     */
+    get: operations["get_preset_details_presets__preset_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/properties": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read Root
-         * @description Root endpoint returning API status.
-         */
-        get: operations["read_root__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Calculate Properties
+     * @description Calculate gas properties (Z, k, M) from composition and conditions.
+     */
+    post: operations["calculate_properties_properties_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /**
+     * Read Root
+     * @description Root endpoint returning API status.
+     */
+    get: operations["read_root__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
-        };
-        /**
-         * PropertiesRequest
-         * @description Request schema for calculating gas properties from composition.
-         *
-         *     Used to compute Z-factor, k-ratio, and molar mass from a gas mixture.
-         */
-        PropertiesRequest: {
-            /** Composition */
-            composition: string;
-            /** Pressure */
-            pressure: number;
-            /** Temp */
-            temp: number;
-        };
-        /**
-         * PropertiesResponse
-         * @description Response schema for gas property calculations.
-         *
-         *     Returns compressibility (Z), heat capacity ratio (k), and molar mass (M).
-         */
-        PropertiesResponse: {
-            /** Z */
-            Z: number;
-            /** K */
-            k: number;
-            /** M */
-            M: number;
-        };
-        /**
-         * SimulationRequest
-         * @description Request schema for gas pressurization simulation.
-         *
-         *     Contains all parameters needed to run a valve pressurization simulation,
-         *     including vessel properties, valve characteristics, and gas properties.
-         */
-        SimulationRequest: {
-            /**
-             * Mode
-             * @description Simulation mode: pressurize, depressurize, or equalize
-             * @default equalize
-             * @enum {string}
-             */
-            mode: "pressurize" | "depressurize" | "equalize";
-            /**
-             * P Up
-             * @description Upstream pressure
-             */
-            p_up: number;
-            /**
-             * Upstream Volume
-             * @description Upstream vessel volume
-             */
-            upstream_volume: number;
-            /**
-             * Upstream Temp
-             * @description Upstream vessel temperature. TODO: Currently constant; may add dynamic model later.
-             */
-            upstream_temp: number;
-            /**
-             * P Down Init
-             * @description Initial downstream pressure
-             * @default 0
-             */
-            p_down_init: number;
-            /**
-             * Downstream Volume
-             * @description Downstream vessel volume
-             */
-            downstream_volume: number;
-            /**
-             * Downstream Temp
-             * @description Downstream vessel temperature. TODO: Currently constant; may add dynamic model later.
-             */
-            downstream_temp: number;
-            /**
-             * Valve Id
-             * @description Valve ID
-             */
-            valve_id: number;
-            /**
-             * Opening Time
-             * @description Valve opening time
-             */
-            opening_time: number;
-            /**
-             * Molar Mass
-             * @description Molar mass (g/mol)
-             * @default 28.97
-             */
-            molar_mass: number;
-            /**
-             * Z Factor
-             * @description Compressibility factor
-             * @default 1
-             */
-            z_factor: number;
-            /**
-             * K Ratio
-             * @description Heat capacity ratio (Cp/Cv)
-             * @default 1.4
-             */
-            k_ratio: number;
-            /**
-             * Discharge Coeff
-             * @description Discharge coefficient (Cd)
-             * @default 0.65
-             */
-            discharge_coeff: number;
-            /**
-             * Valve Action
-             * @description Valve action: open (0→100%) or close (100→0%)
-             * @default open
-             * @enum {string}
-             */
-            valve_action: "open" | "close";
-            /**
-             * Opening Mode
-             * @description Valve opening mode: linear, exponential, quick_acting, fixed
-             * @default linear
-             * @enum {string}
-             */
-            opening_mode: "linear" | "exponential" | "quick_acting" | "fixed";
-            /**
-             * K Curve
-             * @description Curve steepness for exponential/quick_acting
-             * @default 4
-             */
-            k_curve: number;
-            /**
-             * Dt
-             * @description Time step (s)
-             * @default 0.5
-             */
-            dt: number;
-            /**
-             * Property Mode
-             * @description Property mode: manual or composition
-             * @default manual
-             * @enum {string}
-             */
-            property_mode: "manual" | "composition";
-            /**
-             * Composition
-             * @description Composition string, e.g., 'Methane=0.9, Ethane=0.1'
-             */
-            composition?: string | null;
-        };
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-        };
+  schemas: {
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components["schemas"]["ValidationError"][];
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    /**
+     * PropertiesRequest
+     * @description Request schema for calculating gas properties from composition.
+     *
+     *     Used to compute Z-factor, k-ratio, and molar mass from a gas mixture.
+     */
+    PropertiesRequest: {
+      /** Composition */
+      composition: string;
+      /** Pressure */
+      pressure: number;
+      /** Temp */
+      temp: number;
+    };
+    /**
+     * PropertiesResponse
+     * @description Response schema for gas property calculations.
+     *
+     *     Returns compressibility (Z), heat capacity ratio (k), and molar mass (M).
+     */
+    PropertiesResponse: {
+      /** Z */
+      Z: number;
+      /** K */
+      k: number;
+      /** M */
+      M: number;
+    };
+    /**
+     * SimulationRequest
+     * @description Request schema for gas pressurization simulation.
+     *
+     *     Contains all parameters needed to run a valve pressurization simulation,
+     *     including vessel properties, valve characteristics, and gas properties.
+     */
+    SimulationRequest: {
+      /**
+       * Mode
+       * @description Simulation mode: pressurize, depressurize, or equalize
+       * @default equalize
+       * @enum {string}
+       */
+      mode: "pressurize" | "depressurize" | "equalize";
+      /**
+       * P Up
+       * @description Upstream pressure
+       */
+      p_up: number;
+      /**
+       * Upstream Volume
+       * @description Upstream vessel volume
+       */
+      upstream_volume: number;
+      /**
+       * Upstream Temp
+       * @description Upstream vessel temperature. TODO: Currently constant; may add dynamic model later.
+       */
+      upstream_temp: number;
+      /**
+       * P Down Init
+       * @description Initial downstream pressure
+       * @default 0
+       */
+      p_down_init: number;
+      /**
+       * Downstream Volume
+       * @description Downstream vessel volume
+       */
+      downstream_volume: number;
+      /**
+       * Downstream Temp
+       * @description Downstream vessel temperature. TODO: Currently constant; may add dynamic model later.
+       */
+      downstream_temp: number;
+      /**
+       * Valve Id
+       * @description Valve ID
+       */
+      valve_id: number;
+      /**
+       * Flow Model
+       * @description Flow calculation model: orifice (ID-based ISO 5167-2) or cv (valve coefficient ISA/IEC 60534)
+       * @default orifice
+       * @enum {string}
+       */
+      flow_model: "orifice" | "cv";
+      /**
+       * Cv Value
+       * @description Valve flow coefficient Cv (US gpm/√psi). Required when flow_model='cv'.
+       */
+      cv_value?: number | null;
+      /**
+       * X T
+       * @description Terminal pressure drop ratio xT (dimensionless, typically 0.7 for globe valves)
+       * @default 0.7
+       */
+      x_t: number;
+      /**
+       * Opening Time
+       * @description Valve opening time
+       */
+      opening_time: number;
+      /**
+       * Molar Mass
+       * @description Molar mass (g/mol)
+       * @default 28.97
+       */
+      molar_mass: number;
+      /**
+       * Z Factor
+       * @description Compressibility factor
+       * @default 1
+       */
+      z_factor: number;
+      /**
+       * K Ratio
+       * @description Heat capacity ratio (Cp/Cv)
+       * @default 1.4
+       */
+      k_ratio: number;
+      /**
+       * Discharge Coeff
+       * @description Discharge coefficient (Cd)
+       * @default 0.65
+       */
+      discharge_coeff: number;
+      /**
+       * Valve Action
+       * @description Valve action: open (0→100%) or close (100→0%)
+       * @default open
+       * @enum {string}
+       */
+      valve_action: "open" | "close";
+      /**
+       * Opening Mode
+       * @description Valve opening mode: linear, exponential, quick_acting, orifice
+       * @default linear
+       * @enum {string}
+       */
+      opening_mode: "linear" | "exponential" | "quick_acting" | "orifice";
+      /**
+       * K Curve
+       * @description Curve steepness for exponential/quick_acting
+       * @default 4
+       */
+      k_curve: number;
+      /**
+       * Dt
+       * @description Time step (s)
+       * @default 0.5
+       */
+      dt: number;
+      /**
+       * Property Mode
+       * @description Property mode: manual or composition
+       * @default manual
+       * @enum {string}
+       */
+      property_mode: "manual" | "composition";
+      /**
+       * Composition
+       * @description Composition string, e.g., 'Methane=0.9, Ethane=0.1'
+       */
+      composition?: string | null;
+    };
+    /** ValidationError */
+    ValidationError: {
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get_units_config_units_config_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
+  get_units_config_units_config_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    stream_simulation_endpoint_simulate_stream_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SimulationRequest"];
-            };
+        content: {
+          "application/json": {
+            [key: string]: unknown;
+          };
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+      };
     };
-    get_components_components_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string[];
-                };
-            };
-        };
+  };
+  stream_simulation_endpoint_simulate_stream_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    get_presets_presets_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    }[];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SimulationRequest"];
+      };
     };
-    get_preset_details_presets__preset_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                preset_id: string;
-            };
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: number;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": unknown;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    calculate_properties_properties_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PropertiesRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertiesResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  get_components_components_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    read_root__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
-                };
-            };
+        content: {
+          "application/json": string[];
         };
+      };
     };
+  };
+  get_presets_presets_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            [key: string]: string;
+          }[];
+        };
+      };
+    };
+  };
+  get_preset_details_presets__preset_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        preset_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            [key: string]: number;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  calculate_properties_properties_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PropertiesRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PropertiesResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  read_root__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            [key: string]: string;
+          };
+        };
+      };
+    };
+  };
 }
