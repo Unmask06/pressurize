@@ -49,12 +49,13 @@
 /* Button Styles */
 .btn-primary {
   @apply py-2 px-4 text-white border-none rounded-lg cursor-pointer font-medium text-sm transition-all;
-  background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+  background: linear-gradient(135deg, #f5a623, #e8911a);
+  color: #020617;
 }
 
 .btn-primary:hover:not(:disabled) {
-  filter: brightness(1.1);
-  box-shadow: 0 0 20px var(--xergiz-teal-glow);
+  filter: brightness(1.08);
+  box-shadow: 0 0 20px var(--xergiz-orange-glow);
 }
 
 .btn-primary:disabled {

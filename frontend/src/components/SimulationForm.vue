@@ -657,14 +657,14 @@ input.read-only {
 
 .btn-primary {
   @apply py-2 px-4 text-white rounded-xl font-bold text-lg active:scale-[0.98] transition-all disabled:opacity-40 disabled:shadow-none;
-  background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+  background: linear-gradient(135deg, #f5a623, #e8911a);
   color: #020617;
-  box-shadow: 0 4px 20px var(--xergiz-teal-glow);
+  box-shadow: 0 4px 20px var(--xergiz-orange-glow);
 }
 
 .btn-primary:hover:not(:disabled) {
-  filter: brightness(1.1);
-  box-shadow: 0 4px 30px rgba(45, 212, 191, 0.35);
+  filter: brightness(1.08);
+  box-shadow: 0 4px 30px rgba(245, 166, 35, 0.4);
 }
 
 .btn-stop {

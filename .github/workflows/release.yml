@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write  # Needed for creating persistent web build release
 
 jobs:
   # 1. Identify trigger & 2. Detect changes
@@ -58,6 +58,22 @@ jobs:
         with:
           name: pressurize-dist
           path: frontend/dist/
+
+      # Persistent release asset — survives beyond 90-day artifact retention
+      - name: Package web dist for persistent release
+        run: |
+          cd frontend
+          tar -czf pressurize-web-dist.tar.gz -C dist .
+
+      - name: Upload to persistent latest-web release
+        run: |
+          gh release delete latest-web --yes --cleanup-tag 2>/dev/null || true
+          gh release create latest-web frontend/pressurize-web-dist.tar.gz \
+            --title "Latest Web Build" \
+            --notes "Auto-generated web build for XergiZ integration. Do not delete." \
+            --prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # 3.1 Notify xergiz frontend
   notify-xergiz-frontend:

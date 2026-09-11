@@ -15,6 +15,24 @@ export const apiClient = axios.create({
   },
 });
 
+// Attach XergiZ Supabase JWT for production web requests.
+// xergiz.com and xergiz.com/products/pressurize/ share the same origin,
+// so we can read the auth session stored by the XergiZ SPA.
+apiClient.interceptors.request.use((config) => {
+  try {
+    const cached = sessionStorage.getItem("xergiz_auth_session");
+    if (cached) {
+      const session = JSON.parse(cached);
+      if (session?.access_token) {
+        config.headers.Authorization = `Bearer ${session.access_token}`;
+      }
+    }
+  } catch {
+    /* ignore parse / storage errors */
+  }
+  return config;
+});
+
 // Unit System Management
 export type UnitSystem = string;
 const currentUnitSystem = ref<UnitSystem>("imperial");
@@ -141,11 +159,24 @@ export async function streamSimulation(
   callbacks: StreamCallbacks,
   signal?: AbortSignal,
 ): Promise<void> {
+  // Build auth header for this native fetch (Axios interceptor doesn't apply)
+  const authHeader: Record<string, string> = {};
+  try {
+    const cached = sessionStorage.getItem("xergiz_auth_session");
+    if (cached) {
+      const session = JSON.parse(cached);
+      if (session?.access_token) {
+        authHeader.Authorization = `Bearer ${session.access_token}`;
+      }
+    }
+  } catch { /* ignore */ }
+
   const response = await fetch(`${API_BASE_URL}/simulate/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "x-unit-system": currentUnitSystem.value,
+      ...authHeader,
     },
     body: JSON.stringify(params),
     signal,
