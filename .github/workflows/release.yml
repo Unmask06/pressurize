@@ -8,6 +8,12 @@ on:
       - "backend/**"
       - ".github/workflows/release.yml"
   workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build and release all'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: write  # Needed for creating persistent web build release
@@ -51,8 +57,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install uv
-        uses: astral-sh/setup-uv@v2
       - run: cd frontend && npm ci && npm run build
       - uses: actions/upload-artifact@v4
         with:
@@ -67,7 +71,7 @@ jobs:
 
       - name: Upload to persistent latest-web release
         run: |
-          gh release delete latest-web --yes --cleanup-tag 2>/dev/null || true
+          gh release upload latest-web frontend/pressurize-web-dist.tar.gz --clobber 2>/dev/null || \
           gh release create latest-web frontend/pressurize-web-dist.tar.gz \
             --title "Latest Web Build" \
             --notes "Auto-generated web build for XergiZ integration. Do not delete." \
@@ -81,7 +85,9 @@ jobs:
     if: needs.detect-changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: peter-evans/repository-dispatch@v3
+      - name: Send dispatch to XergiZ frontend
+        uses: peter-evans/repository-dispatch@v3
+        continue-on-error: true
         with:
           token: ${{ secrets.XERGIZ_TRIGGER_TOKEN }}
           repository: XergiZ/xergiz
@@ -100,7 +106,9 @@ jobs:
     if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: peter-evans/repository-dispatch@v3
+      - name: Send dispatch to XergiZ backend
+        uses: peter-evans/repository-dispatch@v3
+        continue-on-error: true
         with:
           token: ${{ secrets.XERGIZ_TRIGGER_TOKEN }}
           repository: XergiZ/xergiz
