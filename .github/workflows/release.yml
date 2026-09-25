@@ -19,38 +19,30 @@ permissions:
   contents: write  # Needed for creating persistent web build release
 
 jobs:
-  # 1. Identify trigger & 2. Detect changes
-  # On manual trigger: all outputs are true (nothing skipped)
-  # On push: only changed paths are true
+  # 1. Identify trigger & 2. Detect changes (push only)
   detect-changes:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
-      frontend: ${{ steps.set-changes.outputs.frontend }}
-      backend: ${{ steps.set-changes.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
-        if: github.event_name == 'push'
         id: filter
         with:
           filters: |
             frontend: frontend/**
             backend: backend/**
-      - name: Set change outputs
-        id: set-changes
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "frontend=true" >> "$GITHUB_OUTPUT"
-            echo "backend=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "frontend=${{ steps.filter.outputs.frontend }}" >> "$GITHUB_OUTPUT"
-            echo "backend=${{ steps.filter.outputs.backend }}" >> "$GITHUB_OUTPUT"
-          fi
 
   # 3. Build frontend
   build-frontend:
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true'
+    if: |
+      always() &&
+      !cancelled() &&
+      !failure() &&
+      (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.frontend == 'true')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -81,8 +73,7 @@ jobs:
 
   # 3.1 Notify xergiz frontend
   notify-xergiz-frontend:
-    needs: [detect-changes, build-frontend]
-    if: needs.detect-changes.outputs.frontend == 'true'
+    needs: build-frontend
     runs-on: ubuntu-latest
     steps:
       - name: Send dispatch to XergiZ frontend
@@ -103,7 +94,11 @@ jobs:
   # 4. Notify xergiz backend
   notify-xergiz-backend:
     needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true'
+    if: |
+      always() &&
+      !cancelled() &&
+      !failure() &&
+      (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.backend == 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Send dispatch to XergiZ backend
