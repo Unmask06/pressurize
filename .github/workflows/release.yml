@@ -74,6 +74,10 @@ jobs:
   # 3.1 Notify xergiz frontend
   notify-xergiz-frontend:
     needs: build-frontend
+    if: |
+      always() &&
+      !cancelled() &&
+      needs.build-frontend.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Send dispatch to XergiZ frontend
